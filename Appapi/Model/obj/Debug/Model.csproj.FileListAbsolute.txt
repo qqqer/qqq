@@ -1,0 +1,59 @@
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\Model\bin\Debug\Model.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\Model\bin\Debug\Model.pdb
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\Model\obj\Debug\Model.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\Model\obj\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\Model\bin\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\Model\bin\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\Model\obj\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\Model\obj\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool\Model\bin\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\Model\bin\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool\Model\obj\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\Model\obj\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\bin\Debug\Model.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\bin\Debug\Model.pdb
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\obj\Debug\Model.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\obj\Debug\Model.pdb
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\bin\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\bin\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\obj\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\obj\Debug\Model.pdb
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\bin\Debug\Model.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\bin\Debug\Model.pdb
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\obj\Debug\Model.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\Model\obj\Debug\Model.pdb
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\Model\bin\Debug\Model.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\Model\bin\Debug\Model.pdb
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\Model\obj\Debug\Model.csprojResolveAssemblyReference.cache
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\Model\obj\Debug\Model.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\Model\obj\Debug\Model.pdb
+E:\eat\Model\bin\Debug\Model.dll
+E:\eat\Model\bin\Debug\Model.pdb
+E:\eat\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+E:\eat\Model\obj\Debug\Model.dll
+E:\eat\Model\obj\Debug\Model.pdb
+D:\EAT\Model\bin\Debug\Model.dll
+D:\EAT\Model\bin\Debug\Model.pdb
+D:\EAT\Model\obj\Debug\Model.csprojAssemblyReference.cache
+D:\EAT\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+D:\EAT\Model\obj\Debug\Model.dll
+D:\EAT\Model\obj\Debug\Model.pdb
+C:\Users\admin\Desktop\Appapi\Appapi\Appapi\Model\bin\Debug\Model.dll
+C:\Users\admin\Desktop\Appapi\Appapi\Appapi\Model\bin\Debug\Model.pdb
+C:\Users\admin\Desktop\Appapi\Appapi\Appapi\Model\obj\Debug\Model.csprojAssemblyReference.cache
+C:\Users\admin\Desktop\Appapi\Appapi\Appapi\Model\obj\Debug\Model.csproj.CoreCompileInputs.cache
+C:\Users\admin\Desktop\Appapi\Appapi\Appapi\Model\obj\Debug\Model.dll
+C:\Users\admin\Desktop\Appapi\Appapi\Appapi\Model\obj\Debug\Model.pdb

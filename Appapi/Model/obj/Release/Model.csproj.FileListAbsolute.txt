@@ -1,0 +1,11 @@
+E:\Epicor Advanced Tool\Model\bin\Release\Model.dll
+E:\Epicor Advanced Tool\Model\bin\Release\Model.pdb
+E:\Epicor Advanced Tool\Model\obj\Release\Model.csproj.CoreCompileInputs.cache
+E:\Epicor Advanced Tool\Model\obj\Release\Model.dll
+E:\Epicor Advanced Tool\Model\obj\Release\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\bin\Release\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\bin\Release\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\obj\Release\Model.csprojResolveAssemblyReference.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\obj\Release\Model.csproj.CoreCompileInputs.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\obj\Release\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\Model\obj\Release\Model.pdb

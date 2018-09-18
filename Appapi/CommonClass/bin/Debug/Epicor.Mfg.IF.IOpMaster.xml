@@ -1,0 +1,427 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Epicor.Mfg.IF.IOpMaster</name>
+    </assembly>
+    <members>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterAttchDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasRestrictionDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasRestrictSubstDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterInspDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasDtlDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterAttchRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasRestrictionRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasRestrictSubstRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterInspRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasDtlRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterAttchRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasRestrictionRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasRestrictSubstRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasterInspRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterDataSet.OpMasDtlRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.IF.IOpMaster">
+            <summary>
+            Production operation codes master file.
+            DELETE: Not allowed if referenced in JobOper, OpStd or BomOper files.
+            </summary>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetNewOpMaster(Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            Inserts a new row in the DataSet with defaults populated.
+            </summary>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetNewOpMasterAttch(Epicor.Mfg.BO.OpMasterDataSet,System.String)">
+            <summary>
+            Inserts a new row in the DataSet with defaults populated.
+            </summary>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetNewOpMasRestriction(Epicor.Mfg.BO.OpMasterDataSet,System.String)">
+            <summary>
+            Inserts a new row in the DataSet with defaults populated.
+            </summary>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetNewOpMasRestrictSubst(Epicor.Mfg.BO.OpMasterDataSet,System.String,System.String)">
+            <summary>
+            Inserts a new row in the DataSet with defaults populated.
+            </summary>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetNewOpMasterInsp(Epicor.Mfg.BO.OpMasterDataSet,System.String)">
+            <summary>
+            Inserts a new row in the DataSet with defaults populated.
+            </summary>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetNewOpMasDtl(Epicor.Mfg.BO.OpMasterDataSet,System.String)">
+            <summary>
+            Inserts a new row in the DataSet with defaults populated.
+            </summary>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.DeleteByID(System.String)">
+            <summary>
+            Deletes a row given its ID.
+            </summary>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetByID(System.String)">
+            <summary>
+            Returns a DataSet given the primary key.
+            </summary>
+            <returns>The DataSet.</returns>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetList(System.String,System.Int32,System.Int32,System.Boolean@)">
+            <summary>
+            Returns a list of rows that satisfy the where clause.
+            </summary>
+            <param name="whereClause">An expression used to filter the rows. Can be left blank for all rows.</param>
+            <param name="pageSize">The maximum number of rows to return. Leave as zero for no maximum.</param>
+            <param name="absolutePage">Page of rows to return.</param>
+            <param name="morePages">Whether there are more pages of rows available.</param>
+            <returns>The list DataSet.</returns>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetRows(System.String,System.String,System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Boolean@)">
+            <summary>
+            Returns a dataset containing all rows that satisfy the where clauses.
+            </summary>
+            <returns>The full DataSet.</returns>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.Update(Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            Commits the DataSet changes to the data store.
+            </summary>
+            <param name="ds">The full DataSet.</param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.UpdateExt(Epicor.Mfg.BO.UpdExtOpMasterDataSet,System.Boolean,System.Boolean,System.Boolean@)">
+            <summary>
+            Apply input data to BO by calling GetByID/GetNew/Update methods.
+            </summary>
+            <returns>The dataset with list of errors occured during update process.</returns>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetCodeDescList(System.String,System.String)">
+            <summary>
+            To return the CodeDescriptionList values of a given table.field.
+            </summary>
+            <param name="tableName"></param>
+            <param name="fieldName"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ChangeCapabilityID(System.String,Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            Method to call when changing the Capability ID. Blank is a valid entry for
+            Capability ID.
+            </summary>
+            <param name="proposedCapID">The proposed Capability ID </param>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">The OpMaster data set </param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ChangeOpMasRestrictionType(Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            This methods assigns associated fields when OpMasRestriction.RestrictionTypeID changes.
+            </summary>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">OpMaster dataset</param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ChangeOpMasRestrictSubstance(Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            This methods assigns associated fields when OpMasRestrictSubst.SubstanceID changes.
+            </summary>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">OpMaster dataset</param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ChangeOpMasterPrimaryProdOpDtl(System.Int32,Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            This method checks if the entered primary production operation detail is valid.
+            This method should run when the OpMaster.ScrPrimaryProdOpDtl field changes.
+            </summary>
+            <param name="proposedProdOpDtl">The proposed primary production operation detail sequence </param>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">The Operation Master data set </param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ChangeOpMasterPrimarySetupOpDtl(System.Int32,Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            This method checks if the entered primary setup operation detail is valid.
+            This method should run when the OpMaster.ScrPrimarySetupOpDtl field changes.
+            </summary>
+            <param name="proposedSetupOpDtl">The proposed primary setup operation detail sequence </param>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">The Operation Master data set </param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ChangeResourceGrpID(System.String,Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            Method to call when changing the Resource Group ID. This method will update OpMasDtl
+            with the default labor and burden rates from the new resource group. Blank is a valid
+            entry for Resource Group ID.
+            </summary>
+            <param name="proposedResGrpID">The proposed Resource Group ID </param>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">The Operation Master data set </param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ChangeResourceID(System.String,Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            Method to call when changing the Resource ID. Blank is a valid entry for Resource ID.
+            </summary>
+            <param name="proposedResourceID">The proposed Resource ID </param>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">The Operation Master data set </param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ChangeVendorNumVendorID(System.String,Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            Method to call when changing the Vendor Num. Blank is a valid entry for
+            Vendor Num.
+            </summary>
+            <param name="proposedVendorNumVendorID">The proposed Vendor ID </param>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">The OpMaster data set </param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.CheckInactiveSchedRequirement(Epicor.Mfg.BO.OpMasterDataSet,System.String@)">
+            <summary>
+            Method to call check the capability, resource group, or resource is active.
+            This method should be called prior to calling the Update method on an OpMasDtl record.
+            Will return message text to present to the user if the code is inactive. The
+            message is asking the user if it is ok to save the record with an inactive code.
+            If the user answers yes, the record can be saved. If a blank value is returned
+            for InactiveMessage, continue as normal - no special processing needs to occur.
+            </summary>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">The OpMaster data set </param>
+            <param name="inactiveMessage">The text of the message </param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.GetByIDandOpType(System.String,System.String)">
+            <summary>
+            A variation of the standard GetByID. Gets a OpMaster for a specific OpCode with consideration of OpType(s).
+            Note OpType is a comma separated list of Operation types to be considered valid for this Get.
+            Used as a predecessor to calling GetByID.
+            </summary>
+            <param name="opCode">
+            Opmaster.OpCode
+            </param>
+            <param name="opType">
+            Opmaster.OpType
+            </param>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.InsertCapability(System.String,System.String,System.Int32,System.String)">
+            <summary>
+            This methods allows for the insertion of Capability on an operation to create
+            operation detail for drag/drop functionality.
+            </summary>
+            <param name="ipOpMasterRowID">The rowid of the OpMaster record to add the operation detail to</param>
+            <param name="ipCapabilityID">The Capability ID being added</param>
+            <param name="ipNewOpDtlSeq">The new operation detail seq</param>
+            <param name="ipBeforeOpDtlRowid">The operation detail rowid to insert operation detail before</param>
+            <returns type="Epicor.Mfg.BO.OpMasterDataSet">The OpMaster data set</returns>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.InsertResource(System.String,System.String,System.Int32,System.String)">
+            <summary>
+            This methods allows for the insertion of Resource on an operation to create
+            operation detail for drag/drop functionality.
+            </summary>
+            <param name="ipOpMasterRowID">The rowid of the OpMaster record to add the operation detail to</param>
+            <param name="ipResourceID">The Resource ID being added</param>
+            <param name="ipNewOpDtlSeq">The new operation detail seq</param>
+            <param name="ipBeforeOpDtlRowid">The operation detail rowid to insert operation detail before</param>
+            <returns type="Epicor.Mfg.BO.OpMasterDataSet">The OpMaster data set</returns>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.InsertResourceGroup(System.String,System.String,System.Int32,System.String)">
+            <summary>
+            This methods allows for the insertion of Resource Group on an operation to create
+            operation detail for drag/drop functionality.
+            </summary>
+            <param name="ipOpMasterRowID">The rowid of the OpMaster record to add the operation detail to</param>
+            <param name="ipResourceGrpID">The Resource Group ID being added</param>
+            <param name="ipNewOpDtlSeq">The new operation detail seq</param>
+            <param name="ipBeforeOpDtlRowid">The operation detail rowid to insert operation detail before</param>
+            <returns type="Epicor.Mfg.BO.OpMasterDataSet">The OpMaster data set</returns>
+        </member>
+        <member name="M:Epicor.Mfg.IF.IOpMaster.ValidateInspection(System.String,System.String,Epicor.Mfg.BO.OpMasterDataSet)">
+            <summary>
+            Method to validate the Inspection control fields. (EQM)
+            </summary>
+            <param name="ipProposedInspPlan">The new proposed InspPlanPartNum value</param>
+            <param name="ipProposedSpecId">The new proposed SpecID value</param>
+            <param name="ds" type="Epicor.Mfg.BO.OpMasterDataSet">The OpMaster entry Dataset.</param>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterListDataSet">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterListDataSet.OpMasterListDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterListDataSet.OpMasterListRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.OpMasterListDataSet.OpMasterListRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet">
+             <summary>
+            Represents a strongly typed in-memory cache of data.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterAttchDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasRestrictionDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasRestrictSubstDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterInspDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasDtlDataTable">
+             <summary>
+            Represents the strongly named DataTable class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterAttchRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasRestrictionRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasRestrictSubstRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterInspRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasDtlRow">
+             <summary>
+            Represents strongly named DataRow class.
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterAttchRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasRestrictionRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasRestrictSubstRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasterInspRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+        <member name="T:Epicor.Mfg.BO.UpdExtOpMasterDataSet.OpMasDtlRowChangeEvent">
+             <summary>
+            Row event argument class
+            </summary>
+        </member>
+    </members>
+</doc>

@@ -1,0 +1,115 @@
+E:\快盘\work project\Epicor\CommonClass\bin\Release\CommonClass.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\CommonClass.pdb
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Core.BLConnectionPool.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Core.Session.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Core.Version.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.SessionMod.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Progress.o4glrt.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.AppSettingsHandler.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.BO.UserFile.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.IF.IUserFile.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.BOReader.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.Cryptography.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.ISessionMod.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Core.CallContext.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Diagnostics.Core.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Common.BOExceptions.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Progress.Messages.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.BO.SysConfig.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.BOUpdateExt.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Pro.Convert.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.IBOReader.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.IF.ISysConfig.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Core.Session.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.SessionMod.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.BO.UserFile.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.IF.IUserFile.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.BOReader.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.ISessionMod.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.BO.SysConfig.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.Lib.IBOReader.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\Epicor.Mfg.IF.ISysConfig.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Release\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Release\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+E:\快盘\work project\Epicor\CommonClass\obj\Release\CommonClass.dll
+E:\快盘\work project\Epicor\CommonClass\obj\Release\CommonClass.pdb
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\CommonClass.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\CommonClass.pdb
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Ice.Core.Session.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Epicor.ServiceModel.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Ice.Contracts.Lib.SessionMod.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Ice.Lib.Deployment.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Ice.Contracts.Lib.BOReader.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Ice.Contracts.BO.UserFile.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Ice.Lib.Cryptography.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Ice.Lib.AppSettingsHandler.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Epicor.Ice.Version.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Epicor.App.Version.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Release\Epicor.ServiceModel.xml
+C:\maihuanqiang\HSwebservices\CommonClass\obj\Release\CommonClass.csprojResolveAssemblyReference.cache
+C:\maihuanqiang\HSwebservices\CommonClass\obj\Release\CommonClass.csproj.CoreCompileInputs.cache
+C:\maihuanqiang\HSwebservices\CommonClass\obj\Release\CommonClass.dll
+C:\maihuanqiang\HSwebservices\CommonClass\obj\Release\CommonClass.pdb
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\CommonClass.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\CommonClass.pdb
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Ice.Core.Session.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Epicor.ServiceModel.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Ice.Contracts.Lib.SessionMod.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Ice.Lib.Deployment.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Ice.Contracts.Lib.BOReader.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Ice.Contracts.BO.UserFile.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Ice.Lib.Cryptography.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Ice.Lib.AppSettingsHandler.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Epicor.Ice.Version.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Epicor.App.Version.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Release\Epicor.ServiceModel.xml
+C:\maihuanqiang\HSwebservices119\CommonClass\obj\Release\CommonClass.csprojResolveAssemblyReference.cache
+C:\maihuanqiang\HSwebservices119\CommonClass\obj\Release\CommonClass.csproj.CoreCompileInputs.cache
+C:\maihuanqiang\HSwebservices119\CommonClass\obj\Release\CommonClass.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\obj\Release\CommonClass.pdb
+E:\Epicor Advanced Tool\CommonClass\bin\Release\CommonClass.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\CommonClass.pdb
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Core.Session.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Model.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Epicor.ServiceModel.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Contracts.Lib.SessionMod.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Lib.Deployment.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Contracts.Lib.BOReader.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Contracts.BO.UserFile.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Lib.Cryptography.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Lib.AppSettingsHandler.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Epicor.Ice.Version.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Epicor.App.Version.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Model.pdb
+E:\Epicor Advanced Tool\CommonClass\bin\Release\Epicor.ServiceModel.xml
+E:\Epicor Advanced Tool\CommonClass\bin\Release\zh-CN\Epicor.ServiceModel.resources.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\zh-CN\Ice.Lib.Deployment.resources.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Release\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+E:\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.csprojResolveAssemblyReference.cache
+E:\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.csproj.CoreCompileInputs.cache
+E:\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.csproj.CopyComplete
+E:\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.dll
+E:\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\CommonClass.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\CommonClass.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Core.Session.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Epicor.ServiceModel.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Contracts.Lib.SessionMod.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Lib.Deployment.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Contracts.Lib.BOReader.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Contracts.BO.UserFile.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Lib.Cryptography.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Ice.Lib.AppSettingsHandler.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Epicor.Ice.Version.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Epicor.App.Version.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\Epicor.ServiceModel.xml
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\zh-CN\Epicor.ServiceModel.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\zh-CN\Ice.Lib.Deployment.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Release\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.csprojResolveAssemblyReference.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.csproj.CoreCompileInputs.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.csproj.CopyComplete
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Release\CommonClass.pdb

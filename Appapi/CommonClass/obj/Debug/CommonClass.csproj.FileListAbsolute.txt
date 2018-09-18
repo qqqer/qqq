@@ -1,0 +1,656 @@
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\CommonClass.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\CommonClass.pdb
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Progress.o4glrt.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.ISessionMod.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Progress.Messages.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOUpdateExt.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.ISessionMod.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+E:\快盘\work project\Epicor\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+E:\快盘\work project\Epicor\CommonClass\obj\Debug\CommonClass.dll
+E:\快盘\work project\Epicor\CommonClass\obj\Debug\CommonClass.pdb
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\CommonClass.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\CommonClass.pdb
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Progress.o4glrt.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.ISessionMod.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Progress.Messages.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOUpdateExt.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.ISessionMod.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\obj\Debug\CommonClass.dll
+E:\百度云同步盘\快盘\work project\Epicor\CommonClass\obj\Debug\CommonClass.pdb
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\CommonClass.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\CommonClass.pdb
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.ISessionMod.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Progress.Messages.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOUpdateExt.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.ISessionMod.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\obj\Debug\CommonClass.dll
+E:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\obj\Debug\CommonClass.pdb
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\CommonClass.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\CommonClass.pdb
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.ISessionMod.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Progress.Messages.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOUpdateExt.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.ISessionMod.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.ISysConfig.resources.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\obj\Debug\CommonClass.dll
+D:\百度云同步盘\快盘\work project\EpicorAPI\EpicorWebService\CommonClass\obj\Debug\CommonClass.pdb
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\CommonClass.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\CommonClass.pdb
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Progress.o4glrt.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Progress.Messages.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOUpdateExt.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.SessionMod.xml
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.ISysConfig.resources.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\obj\Debug\CommonClass.dll
+C:\Users\dxl\Desktop\文档\2、epicor接口开发\源码\CommonClass\obj\Debug\CommonClass.pdb
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\CommonClass\bin\Debug\CommonClass.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\CommonClass\bin\Debug\CommonClass.pdb
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\CommonClass\obj\Debug\ResolveAssemblyReference.cache
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\CommonClass\obj\Debug\CommonClass.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\CommonClass\obj\Debug\CommonClass.pdb
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\CommonClass.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\CommonClass.pdb
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\obj\Debug\ResolveAssemblyReference.cache
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\obj\Debug\CommonClass.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\obj\Debug\CommonClass.pdb
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Progress.Messages.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+F:\小邓交接\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\CommonClass.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\CommonClass.pdb
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Progress.Messages.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\obj\Debug\ResolveAssemblyReference.cache
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\obj\Debug\CommonClass.dll
+F:\erpwebservices\epicor接口源码2014-3-2\源码2014-3-2\EpicorWebService\CommonClass\obj\Debug\CommonClass.pdb
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\CommonClass.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\CommonClass.pdb
+D:\项目代码\EpicorWebService\CommonClass\obj\Debug\CommonClass.dll
+D:\项目代码\EpicorWebService\CommonClass\obj\Debug\CommonClass.pdb
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\CommonClass.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\CommonClass.pdb
+Z:\D\项目代码\EpicorWebService\CommonClass\obj\Debug\ResolveAssemblyReference.cache
+Z:\D\项目代码\EpicorWebService\CommonClass\obj\Debug\CommonClass.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\obj\Debug\CommonClass.pdb
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Progress.Messages.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+D:\项目代码\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.ISysConfig.resources.dll
+D:\项目代码\EpicorWebService\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOUpdateExt.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Progress.Messages.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+Z:\D\项目代码\EpicorWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+D:\项目代码\JinXinWebService\CommonClass\bin\Debug\CommonClass.dll
+D:\项目代码\JinXinWebService\CommonClass\bin\Debug\CommonClass.pdb
+D:\项目代码\JinXinWebService\CommonClass\obj\Debug\CommonClass.dll
+D:\项目代码\JinXinWebService\CommonClass\obj\Debug\CommonClass.pdb
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\CommonClass.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\CommonClass.pdb
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.BLConnectionPool.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.CallContext.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Version.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.AppSettingsHandler.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.Cryptography.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Progress.Messages.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Core.Session.xml
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.BOReader.xml
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.SysConfig.xml
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.Lib.IBOReader.xml
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.ISysConfig.xml
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.Core.Session.resources.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\obj\Debug\ResolveAssemblyReference.cache
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\obj\Debug\CommonClass.dll
+D:\Epicor\EpicorData\AssetPhoto\EpicorWebservice\JinXinWebService\JinXinWebService\CommonClass\obj\Debug\CommonClass.pdb
+D:\个人资料\个人东西\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\CommonClass.dll
+D:\个人资料\个人东西\JinXinWebService\JinXinWebService\CommonClass\bin\Debug\CommonClass.pdb
+D:\个人资料\个人东西\JinXinWebService\JinXinWebService\CommonClass\obj\Debug\CommonClass.dll
+D:\个人资料\个人东西\JinXinWebService\JinXinWebService\CommonClass\obj\Debug\CommonClass.pdb
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\CommonClass.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\CommonClass.pdb
+D:\个人资料\个人东西\HongShiWebService\CommonClass\obj\Debug\CommonClass.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\obj\Debug\CommonClass.pdb
+E:\test\HongShiWebService\CommonClass\bin\Debug\CommonClass.dll
+E:\test\HongShiWebService\CommonClass\bin\Debug\CommonClass.pdb
+E:\test\HongShiWebService\CommonClass\obj\Debug\ResolveAssemblyReference.cache
+E:\test\HongShiWebService\CommonClass\obj\Debug\CommonClass.dll
+E:\test\HongShiWebService\CommonClass\obj\Debug\CommonClass.pdb
+E:\test\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.dll
+E:\test\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.dll
+E:\test\HongShiWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+E:\test\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+E:\test\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+E:\test\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+E:\test\HongShiWebService\CommonClass\bin\Debug\Progress.Messages.dll
+E:\test\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+E:\test\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+E:\test\HongShiWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\Progress.o4glrt.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.Diagnostics.Core.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.Pro.Convert.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.Common.BOExceptions.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\Progress.Messages.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.BO.UserFile.xml
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\Epicor.Mfg.IF.IUserFile.xml
+D:\个人资料\个人东西\HongShiWebService\CommonClass\bin\Debug\zh-CN\Epicor.Mfg.IF.IUserFile.resources.dll
+D:\个人资料\个人东西\HongShiWebService\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+D:\HongShiWebService\CommonClass\bin\Debug\CommonClass.dll
+D:\HongShiWebService\CommonClass\bin\Debug\CommonClass.pdb
+D:\HongShiWebService\CommonClass\obj\Debug\CommonClass.dll
+D:\HongShiWebService\CommonClass\obj\Debug\CommonClass.pdb
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\CommonClass.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\CommonClass.pdb
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Ice.Core.Session.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Epicor.App.Version.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+C:\maihuanqiang\HSwebservices\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+C:\maihuanqiang\HSwebservices\CommonClass\obj\Debug\CommonClass.dll
+C:\maihuanqiang\HSwebservices\CommonClass\obj\Debug\CommonClass.pdb
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\CommonClass.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\CommonClass.pdb
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Ice.Core.Session.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Epicor.App.Version.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+C:\maihuanqiang\HSwebservices119\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+C:\maihuanqiang\HSwebservices119\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+C:\maihuanqiang\HSwebservices119\CommonClass\obj\Debug\CommonClass.dll
+C:\maihuanqiang\HSwebservices119\CommonClass\obj\Debug\CommonClass.pdb
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+C:\maihuanqiang\HSwebservices\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+C:\maihuanqiang\HSwebservices\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\CommonClass.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\CommonClass.pdb
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Core.Session.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Model.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Epicor.App.Version.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Model.pdb
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\obj\Debug\CommonClass.dll
+\\192.168.9.198\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Plugin\CommonClass\obj\Debug\CommonClass.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\CommonClass.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\CommonClass.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Core.Session.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Epicor.App.Version.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\obj\Debug\CommonClass.dll
+C:\Users\Danny\Desktop\Epicor Advanced Plugin\CommonClass\obj\Debug\CommonClass.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Core.Session.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.App.Version.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.pdb
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.pdb
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Core.Session.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Model.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.App.Version.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Model.pdb
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.dll
+D:\Job\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.pdb
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.pdb
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Core.Session.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Model.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.App.Version.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Model.pdb
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+E:\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+E:\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+E:\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+E:\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csproj.CopyComplete
+E:\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.dll
+E:\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Core.Session.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Model.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.App.Version.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Model.pdb
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csproj.CopyComplete
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.dll
+C:\Users\Danny\Desktop\Epicor Advanced Tool1\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.pdb
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\CommonClass.pdb
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Core.Session.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Model.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.App.Version.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Model.pdb
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.csproj.CopyComplete
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.dll
+D:\Job\1. 红狮宝盛\A. Projects\N2. Epicor 10\1. Development\Epicor Advanced Tool\CommonClass\obj\Debug\CommonClass.pdb
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\CommonClass.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\CommonClass.pdb
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Ice.Core.Session.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Model.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Epicor.App.Version.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Model.pdb
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\obj\Debug\CommonClass.csprojResolveAssemblyReference.cache
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\obj\Debug\CommonClass.csproj.CopyComplete
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\obj\Debug\CommonClass.dll
+D:\Job\1. 红狮宝盛\A. Projects\16. EAT\CommonClass\obj\Debug\CommonClass.pdb
+E:\eat\CommonClass\bin\Debug\CommonClass.dll
+E:\eat\CommonClass\bin\Debug\CommonClass.pdb
+E:\eat\CommonClass\bin\Debug\Model.dll
+E:\eat\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+E:\eat\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+E:\eat\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+E:\eat\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+E:\eat\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+E:\eat\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+E:\eat\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+E:\eat\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+E:\eat\CommonClass\bin\Debug\Epicor.App.Version.dll
+E:\eat\CommonClass\bin\Debug\Model.pdb
+E:\eat\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+E:\eat\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+E:\eat\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+E:\eat\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+E:\eat\CommonClass\obj\Debug\CommonClass.csprojAssemblyReference.cache
+E:\eat\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+E:\eat\CommonClass\obj\Debug\CommonClass.csproj.CopyComplete
+E:\eat\CommonClass\obj\Debug\CommonClass.dll
+E:\eat\CommonClass\obj\Debug\CommonClass.pdb
+D:\EAT\CommonClass\bin\Debug\CommonClass.dll
+D:\EAT\CommonClass\bin\Debug\CommonClass.pdb
+D:\EAT\CommonClass\bin\Debug\Model.dll
+D:\EAT\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+D:\EAT\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+D:\EAT\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+D:\EAT\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+D:\EAT\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+D:\EAT\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+D:\EAT\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+D:\EAT\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+D:\EAT\CommonClass\bin\Debug\Epicor.App.Version.dll
+D:\EAT\CommonClass\bin\Debug\Model.pdb
+D:\EAT\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+D:\EAT\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+D:\EAT\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+D:\EAT\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+D:\EAT\CommonClass\obj\Debug\CommonClass.csprojAssemblyReference.cache
+D:\EAT\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+D:\EAT\CommonClass\obj\Debug\CommonClass.csproj.CopyComplete
+D:\EAT\CommonClass\obj\Debug\CommonClass.dll
+D:\EAT\CommonClass\obj\Debug\CommonClass.pdb
+E:\eat\CommonClass\bin\Debug\Ice.Core.Session.dll
+D:\EAT\CommonClass\bin\Debug\Ice.Core.Session.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\CommonClass.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\CommonClass.pdb
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Ice.Core.Session.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Model.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Epicor.ServiceModel.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Ice.Contracts.Lib.SessionMod.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Ice.Lib.Deployment.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Ice.Contracts.Lib.BOReader.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Ice.Contracts.BO.UserFile.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Ice.Lib.Cryptography.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Ice.Lib.AppSettingsHandler.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Epicor.Ice.Version.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Epicor.App.Version.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Model.pdb
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\Epicor.ServiceModel.xml
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\zh-CN\Epicor.ServiceModel.resources.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\zh-CN\Ice.Lib.Deployment.resources.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\bin\Debug\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\obj\Debug\CommonClass.csprojAssemblyReference.cache
+E:\app\Appapi\Appapi\Appapi\CommonClass\obj\Debug\CommonClass.csproj.CoreCompileInputs.cache
+E:\app\Appapi\Appapi\Appapi\CommonClass\obj\Debug\CommonClass.csproj.CopyComplete
+E:\app\Appapi\Appapi\Appapi\CommonClass\obj\Debug\CommonClass.dll
+E:\app\Appapi\Appapi\Appapi\CommonClass\obj\Debug\CommonClass.pdb
