@@ -36,7 +36,7 @@ namespace Appapi.Models
             return values;
         }//根据待拆入的字段值来生成sql语句中的values部分。
 
-        public static IEnumerable<PO> GetPO(PO Condition)
+        public static IEnumerable<Receipt> GetPO(Receipt Condition)
         {
             #region 构造sql语句
             string sql = @"select 
@@ -80,7 +80,7 @@ namespace Appapi.Models
                 sql += "and pd.LineDesc like '%" + Condition.PartDesc + "%' ";
             #endregion
 
-            List<PO> POs = CommonRepository.DataTableToList<PO>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql));
+            List<Receipt> POs = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql));
 
             for (int i = 0; i < POs.Count; i++)
             {
@@ -93,7 +93,7 @@ namespace Appapi.Models
             return POs;
         }
 
-        public static bool PrintQRCode(PO para)
+        public static bool PrintQRCode(Receipt para)
         {
             #region 计算批次号
             string sql = "select * from SerialNumber where name = 'BAT'";
@@ -213,9 +213,9 @@ namespace Appapi.Models
             return (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null); ;
         }
 
-        public static bool IsOverReceived(PO para)
+        public static bool IsOverReceived(Receipt para)
         {
-            PO temp = GetPO(para).ElementAt(0);
+            Receipt temp = GetPO(para).ElementAt(0);
 
             if(para.ReceiveCount <= temp.NotReceiptQty)
             {
@@ -307,7 +307,7 @@ namespace Appapi.Models
             return true;
         }
 
-        public static IEnumerable<PO> GetIQCMessage()
+        public static IEnumerable<Receipt> GetIQCMessage()
         {
             #region 构造sql语句
             string sql = @"select 
@@ -344,12 +344,12 @@ namespace Appapi.Models
                         from Receipt where SecondUserID = '"+ HttpContext.Current.Session["UserId"].ToString() + "' and status = 2 ";
             #endregion
 
-            List<PO> POs = CommonRepository.DataTableToList<PO>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
+            List<Receipt> POs = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
 
             return POs;
         }
 
-        public static bool UpdateIQCAmount(PO para)
+        public static bool UpdateIQCAmount(Receipt para)
         {
             string sql = "select NotReceiptQty from Receipt where ID = " + para.ID + " ";
 
@@ -367,7 +367,7 @@ namespace Appapi.Models
             return false;
         }
 
-        public static IEnumerable<PO> GetACTMessage()
+        public static IEnumerable<Receipt> GetACTMessage()
         {
             #region 构造sql语句
             string sql = @"select 
@@ -410,12 +410,12 @@ namespace Appapi.Models
                         from Receipt where ThirdUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "' and status = 3 ";
             #endregion
 
-            List<PO> POs = CommonRepository.DataTableToList<PO>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
+            List<Receipt> POs = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
 
             return POs;
         }
 
-        public static bool UpdateACTInfo(PO para)
+        public static bool UpdateACTInfo(Receipt para)
         {
             string sql = "select NotReceiptQty from Receipt where ID = " + para.ID + " ";
 

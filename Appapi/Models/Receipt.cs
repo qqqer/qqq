@@ -8,7 +8,7 @@ namespace Appapi.Models
     /// <summary>
     /// PoNum、PoLine、PORelNum、Plant、Company确定唯一PO
     /// </summary>
-    public class PO 
+    public class Receipt 
     {
         public int? PoNum { get; set; }
         public int? PoLine { get; set; }

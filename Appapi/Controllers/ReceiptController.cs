@@ -33,14 +33,14 @@ namespace Appapi.Controllers
         #region 收货接口
         //Post:  /api/Receipt/GetPOByCondition
         [HttpPost]
-        public IEnumerable<PO> GetPOByCondition(PO Condition)
+        public IEnumerable<Receipt> GetPOByCondition(Receipt Condition)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetPO(Condition) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
         }//根据Condition 返回匹配的采购单信息
 
         //Post:  /api/Receipt/PrintQRCodeByPO
         [HttpPost]
-        public bool PrintQRCodeByPO(PO Para)
+        public bool PrintQRCodeByPO(Receipt Para)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.PrintQRCode(Para) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
         }//根据Para提供的参数，打印收货二维码
@@ -53,7 +53,7 @@ namespace Appapi.Controllers
 
         //Post:  /api/Receipt/IsOverReceived
         [HttpPost]
-        public bool CheckOverReceived(PO Para)
+        public bool CheckOverReceived(Receipt Para)
         {
             //throw new HttpResponseException(HttpStatusCode.Forbidden);
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.IsOverReceived(Para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
@@ -62,14 +62,14 @@ namespace Appapi.Controllers
 
         #region IQC接口
         //Get:  /api/Receipt/GetIQCmessage
-        public IEnumerable<PO> GetIQCMessage()
+        public IEnumerable<Receipt> GetIQCMessage()
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetIQCMessage() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//获取IQC信息
 
         //Post:  /api/Receipt/UpdateIQCAmount
         [HttpPost]
-        public bool UpdateIQCAmount(PO para)
+        public bool UpdateIQCAmount(Receipt para)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.UpdateIQCAmount(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//更新IQC数量
@@ -77,14 +77,14 @@ namespace Appapi.Controllers
 
         #region 入库接口
         //Get:  /api/Receipt/GetACTMessage
-        public IEnumerable<PO> GetACTMessage()
+        public IEnumerable<Receipt> GetACTMessage()
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetACTMessage() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//获取入库信息
 
         //Post:  /api/Receipt/UpdateACTInfo
         [HttpPost]
-        public bool UpdateACTInfo(PO para)
+        public bool UpdateACTInfo(Receipt para)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.UpdateACTInfo(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//更新入库信息
