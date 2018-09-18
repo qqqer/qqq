@@ -192,10 +192,10 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\CommonRepository.cs" />
-    <Compile Include="Models\SQLRepository..cs" />
     <Compile Include="Models\Receipt.cs" />
     <Compile Include="Models\ReceiptRepository.cs" />
     <Compile Include="Models\PrintRepository.cs" />
+    <Compile Include="Models\SQLRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
