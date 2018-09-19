@@ -54,7 +54,8 @@ namespace Appapi.Models
             using (SqlConnection connection = new SqlConnection(connectionString))
             {
                 PrepareCommand(cmd, connection, null, cmdType, cmdText, commandParameters);
-                object val = cmd.ExecuteScalar();
+                object val = null;
+                val = cmd.ExecuteScalar();
                 cmd.Parameters.Clear();
                 return val;
             }
@@ -146,7 +147,7 @@ namespace Appapi.Models
             var dr = ExecuteReader(connectionString, CommandType.Text, sql, null);
             var dt = convertDataReaderToDataSet(dr).Tables[0];
 
-            return dt;
+            return dt.Rows.Count > 0 ? dt : null;
         }
     }
 }

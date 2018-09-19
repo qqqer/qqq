@@ -14,9 +14,9 @@ namespace Appapi.Controllers
         #region 登录验证接口
         //Post:  /api/Receipt/Login
         [HttpPost]
-        public bool Login(dynamic Account)
+        public string Login(dynamic Account)
         {
-            bool isvalid = true; // = 账号认证接口（）
+            bool isvalid = false; // = 账号认证接口（）
             
             if (isvalid)
             {
@@ -26,10 +26,19 @@ namespace Appapi.Controllers
                 HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
             }
 
-            return isvalid;
+            return Convert.ToString(Account.company);
         }//登录验证
         #endregion
+        
+        [HttpPost]
+        public IEnumerable<test> GetByCondition(dynamic Condition)
+        {
+            string sql = "select partnum, PartDescription from erp.part where partnum like '%" + Convert.ToString(Condition.partnum) + "%'";
+            List<test> POs = CommonRepository.DataTableToList<test>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql));
 
+            return POs;
+        }//测试
+        
         #region 收货接口
         //Post:  /api/Receipt/GetPOByCondition
         [HttpPost]

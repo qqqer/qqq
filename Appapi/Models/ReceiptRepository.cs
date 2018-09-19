@@ -82,22 +82,27 @@ namespace Appapi.Models
 
             List<Receipt> POs = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql));
 
-            for (int i = 0; i < POs.Count; i++)
+            if (POs != null)
             {
-                sql = "select (case ActCount when null then ReceiveCount else ActCount end) from Receipt " +
-                    "where ponum = " + POs[i].PoNum + " and poline = " + POs[i].PoLine + " and  PORelNum = " + POs[i].PORelNum + " and company = " + POs[i].Company + " and plant = " + POs[i].Plant + "";
+                for (int i = 0; i < POs.Count; i++)
+                {
+                    sql = "select (case ActCount when null then ReceiveCount else ActCount end) from Receipt " +
+                        "where ponum = " + POs[i].PoNum + " and poline = " + POs[i].PoLine + " and  PORelNum = " + POs[i].PORelNum + " and company = " + POs[i].Company + " and plant = " + POs[i].Plant + "";
 
-                POs[i].NotReceiptQty -= (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            }//计算POs中每个PO的NotReceiptQty
+                    POs[i].NotReceiptQty -= (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                }//计算POs中每个PO的NotReceiptQty
+            }
 
             return POs;
         }
 
-        public static bool PrintQRCode(Receipt para)
+        public static string PrintQRCode(Receipt para)
         {
             #region 计算批次号
             string sql = "select * from SerialNumber where name = 'BAT'";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+
+            if (dt == null) return "处理失败-1"; // SerialNumber表中未找到有BAT的记录行
 
             string time = dt.Rows[0]["time"].ToString().Substring(0, 10);//截取年月日部分
             string today = DateTime.Now.ToString().Substring(0, 10);
@@ -129,8 +134,10 @@ namespace Appapi.Models
                 para.IsPrint = true;
                 para.Status = 2;
             }
+            else
+                return "处理失败-2"; //打印失败
             #endregion
-            
+
             #region 回写数据到APP.Receipt表中
             if (para.IsPrint == true)
             {
@@ -203,7 +210,7 @@ namespace Appapi.Models
             }
             #endregion
 
-            return (bool)para.IsPrint;
+            return  "处理成功"; 
         }
 
         public static string GetSupplierName(string SupplierNo)
@@ -213,11 +220,13 @@ namespace Appapi.Models
             return (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null); ;
         }
 
-        public static bool IsOverReceived(Receipt para)
+        public static string IsOverReceived(Receipt para)
         {
             Receipt temp = GetPO(para).ElementAt(0);
 
-            if(para.ReceiveCount <= temp.NotReceiptQty)
+            if(temp == null) return "处理失败-1"; // 根据para中的参数 未找到相关数据
+
+            if (para.ReceiveCount <= temp.NotReceiptQty)
             {
                 para.AssemblySeq = temp.AssemblySeq;
                 para.JobSeq = temp.JobSeq;
@@ -302,9 +311,10 @@ namespace Appapi.Models
                 #endregion
 
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                return "未超收";
             }
             
-            return true;
+            return "超收";
         }
 
         public static IEnumerable<Receipt> GetIQCMessage()
@@ -349,11 +359,15 @@ namespace Appapi.Models
             return POs;
         }
 
-        public static bool UpdateIQCAmount(Receipt para)
+        public static string UpdateIQCAmount(Receipt para)
         {
             string sql = "select NotReceiptQty from Receipt where ID = " + para.ID + " ";
 
-            decimal NotReceiptQty = (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object o = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            if(o == null) return "处理失败-1";// 搜索不到para.ID指定的NotReceiptQty
+
+            decimal NotReceiptQty = (decimal)o; 
 
             if(para.QualifiedCount <= NotReceiptQty)
             {
@@ -361,10 +375,10 @@ namespace Appapi.Models
                 string.Format(sql, para.IsAllCheck, para.SpotCheckCount, para.QualifiedCount, para.UnqualifiedCount, para.Result, para.Remark, para.ThirdUserID, para.ID);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                return true;
+                return "处理成功";
             }
 
-            return false;
+            return "处理失败-2"; //para.QualifiedCount <= NotReceiptQty
         }
 
         public static IEnumerable<Receipt> GetACTMessage()
@@ -415,11 +429,15 @@ namespace Appapi.Models
             return POs;
         }
 
-        public static bool UpdateACTInfo(Receipt para)
+        public static string UpdateACTInfo(Receipt para)
         {
             string sql = "select NotReceiptQty from Receipt where ID = " + para.ID + " ";
 
-            decimal NotReceiptQty = (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object o = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            if (o == null) return "处理失败-1"; // 搜索不到para.ID指定的NotReceiptQty
+
+            decimal NotReceiptQty = (decimal)o;
 
             if (para.ActCount <= NotReceiptQty)
             {
@@ -427,11 +445,10 @@ namespace Appapi.Models
                 string.Format(sql, para.ActCount, para.Warehouse, para.BinNum, para.ID);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                //待续
+                //调用反写接口。     若反写erp失败，返回"处理失败-2" //反写数据进erp时失败
             }
         
-            return false;
+            return "处理失败-3"; //para.ActCount <= NotReceiptQty
         }
-
     }
 }
