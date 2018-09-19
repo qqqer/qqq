@@ -49,7 +49,7 @@ namespace Appapi.Controllers
 
         //Post:  /api/Receipt/PrintQRCodeByPO
         [HttpPost]
-        public bool PrintQRCodeByPO(Receipt Para)
+        public string PrintQRCodeByPO(Receipt Para)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.PrintQRCode(Para) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
         }//根据Para提供的参数，打印收货二维码
@@ -62,7 +62,7 @@ namespace Appapi.Controllers
 
         //Post:  /api/Receipt/IsOverReceived
         [HttpPost]
-        public bool CheckOverReceived(Receipt Para)
+        public string CheckOverReceived(Receipt Para)
         {
             //throw new HttpResponseException(HttpStatusCode.Forbidden);
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.IsOverReceived(Para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
@@ -78,7 +78,7 @@ namespace Appapi.Controllers
 
         //Post:  /api/Receipt/UpdateIQCAmount
         [HttpPost]
-        public bool UpdateIQCAmount(Receipt para)
+        public string UpdateIQCAmount(Receipt para)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.UpdateIQCAmount(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//更新IQC数量
@@ -93,7 +93,7 @@ namespace Appapi.Controllers
 
         //Post:  /api/Receipt/UpdateACTInfo
         [HttpPost]
-        public bool UpdateACTInfo(Receipt para)
+        public string UpdateACTInfo(Receipt para)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.UpdateACTInfo(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//更新入库信息
