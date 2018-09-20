@@ -48,10 +48,11 @@ namespace Appapi.Models
         public decimal? UnqualifiedCount { get; set; }
         public string Result { get; set; }
         public string ThirdUserID { get; set; }
-
         public DateTime ActReceiptDate { get; set; }
         public decimal? ActCount { get; set; }
         public string Warehouse { get; set; }
-        public string BinNum { get; set; }   
+        public string BinNum { get; set; }
+        public string SecondUserGroup { get; set; }
+        public string ThirdUserGroup { get; set; }
     }
 }
