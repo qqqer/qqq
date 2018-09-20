@@ -466,5 +466,26 @@ namespace Appapi.Models
         
             return "处理失败-3"; //para.ActCount <= NotReceiptQty 超收
         }
+
+        public static string GetNextUserGroup()
+        {
+            DataTable dt;
+            string sql, NextUserGroup = null;
+
+            sql = "select * from userfile where userid = '{0}', company = '{1}', plant = '{2}'";
+            string.Format(sql, HttpContext.Current.Session["UserId"].ToString(), HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
+            dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+            sql = "select userid from userfile where company = '{0}' and plant = '{1}' and disabled = 0 and RoleID = {2}";
+            string.Format(sql, dt.Rows[0][3].ToString(), dt.Rows[0][4].ToString(), (int)dt.Rows[0][1] + 1);
+            dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+            for(int i = 0; i < dt.Rows.Count; i++)
+            {
+                NextUserGroup += dt.Rows[i][0].ToString() + ",";
+            }
+
+            return NextUserGroup;
+        }
     }
 }

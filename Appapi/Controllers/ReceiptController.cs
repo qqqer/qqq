@@ -30,15 +30,6 @@ namespace Appapi.Controllers
         }//登录验证
         #endregion
         
-        [HttpPost]
-        public IEnumerable<test> GetByCondition(dynamic Condition)
-        {
-            string sql = "select partnum, PartDescription from erp.part where partnum like '%" + Convert.ToString(Condition.partnum) + "%'";
-            List<test> POs = CommonRepository.DataTableToList<test>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql));
-
-            return POs;
-        }//测试
-        
         #region 收货接口
         //Post:  /api/Receipt/GetPOByCondition
         [HttpPost]
@@ -98,5 +89,11 @@ namespace Appapi.Controllers
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.UpdateACTInfo(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//更新入库信息
         #endregion
+
+        //Get:  /api/Receipt/GetNextUserGroup
+        public static string GetNextUserGroup()
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup() : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }//返回下个节点可选人员
     }
 }
