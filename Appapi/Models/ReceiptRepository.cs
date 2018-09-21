@@ -36,6 +36,7 @@ namespace Appapi.Models
             return values;
         }//根据待拆入的字段值来生成sql语句中的values部分。
 
+        #region 接收
         public static IEnumerable<Receipt> GetPO(Receipt Condition)
         {
             #region 构造sql语句
@@ -96,8 +97,8 @@ namespace Appapi.Models
             return POs;
         }
 
-        public static string PrintQRCode(Receipt para)
-        {   
+        public static string ReceiveCommitWithNonQRCode(Receipt para)
+        {
             string sql = "select count(PoNum, PoLine, PORelNum, Plant, Company) from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
             string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
 
@@ -135,7 +136,7 @@ namespace Appapi.Models
 'text20': '', 'text21': '', 'text22': '', 'text23': '', 'text24': '', 'text25': '', 'text26': '', 'text27': '', 'text28': '', 'text29': '', 'text30': '' }";
             string.Format(jsonStr, para.PartNum, para.BatchNo, para.JobNum, para.AssemblySeq, para.SupplierNo, para.PoNum, para.PoLine, para.ReceiveCount, para.PORelNum, para.Company, para.JobSeq, para.HeatNum);
 
-            if (PrintRepository.PrintQR("C:\\D0201.btw", HttpContext.Current.Session["UserPrinter"].ToString(), 1,jsonStr) == "1|处理成功")
+            if (PrintRepository.PrintQR("C:\\D0201.btw", HttpContext.Current.Session["UserPrinter"].ToString(), 1, jsonStr) == "1|处理成功")
             {
                 para.IsPrint = true;
                 para.Status = 2;
@@ -176,6 +177,8 @@ namespace Appapi.Models
                 Company,
                 Plant,
                 IsPrint,
+                ReturnOne,
+                ReturnTwo,
                 ReceiptDate
                 ) values({0}) ";
                 string values = ConstructValues(new ArrayList
@@ -207,6 +210,8 @@ namespace Appapi.Models
                     HttpContext.Current.Session["Company"].ToString() ,//
                     HttpContext.Current.Session["Plant"].ToString() ,//
                     para.IsPrint,
+                    0,
+                    0,
                     para.ReceiptDate
                 });
                 string.Format(sql, values);
@@ -216,17 +221,17 @@ namespace Appapi.Models
             }
             #endregion
 
-            return  "处理成功"; 
+            return "处理成功";
         }
 
         public static string GetSupplierName(string SupplierNo)
         {
-            string sql = "select name from erp.vendor where vendorid = '"+ SupplierNo +"' ";
+            string sql = "select name from erp.vendor where vendorid = '" + SupplierNo + "' ";
 
             return (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null); ;
         }
 
-        public static string IsOverReceived(Receipt para)
+        public static string ReceiveCommitWithQRCode(Receipt para)
         {
             string sql = "select count(PoNum, PoLine, PORelNum, Plant, Company) from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
             string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
@@ -237,7 +242,7 @@ namespace Appapi.Models
 
             Receipt temp = GetPO(para).ElementAt(0);
 
-            if(temp == null) return "处理失败-2"; // 根据para中的参数 未找到相关数据
+            if (temp == null) return "处理失败-2"; // 根据para中的参数 未找到相关数据
 
             if (para.ReceiveCount <= temp.NotReceiptQty)
             {
@@ -285,6 +290,8 @@ namespace Appapi.Models
                         IsPrint,
                         ReceiptNo,
                         HeatNum,
+                        ReturnOne,
+                        ReturnTwo,
                         ReceiptDate
                         ) values({0}) ";
                 string values = ConstructValues(new ArrayList
@@ -318,6 +325,8 @@ namespace Appapi.Models
                     para.IsPrint,
                     para.ReceiptNo,
                     para.HeatNum,
+                    0,
+                    0,
                     para.ReceiptDate
                 });
                 string.Format(sql, values);
@@ -326,11 +335,18 @@ namespace Appapi.Models
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 return "处理成功";
             }
-            
+
             return "处理失败-3"; //超收
         }
 
-        public static IEnumerable<Receipt> GetIQCMessage()
+        public static IEnumerable<Receipt> GetRemainsOfReceiveUser()
+        {
+            string sql = @"select ID from Receipt where FirstUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "' and status = 1";
+        }
+        #endregion
+
+        #region 进料检验
+        public static IEnumerable<Receipt> GetRemainsOfIQCUser()
         {
             #region 构造sql语句
             string sql = @"select 
@@ -372,7 +388,7 @@ namespace Appapi.Models
             return POs;
         }
 
-        public static string UpdateIQCAmount(Receipt para)
+        public static string IQCCommit(Receipt para)
         {
             string sql = "select status from Receipt where ID = " + para.ID + " ";
             object status = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -395,8 +411,10 @@ namespace Appapi.Models
 
             return "处理失败-3"; //para.QualifiedCount <= NotReceiptQty 超收
         }
+        #endregion
 
-        public static IEnumerable<Receipt> GetACTMessage()
+        #region 入库
+        public static IEnumerable<Receipt> GetRemainsOfAcceptUser()
         {
             #region 构造sql语句
             string sql = @"select 
@@ -444,7 +462,7 @@ namespace Appapi.Models
             return POs;
         }
 
-        public static string UpdateACTInfo(Receipt para)
+        public static string AcceptCommit(Receipt para)
         {
             string sql = "select status from Receipt where ID = " + para.ID + " ";
             object status = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -466,6 +484,7 @@ namespace Appapi.Models
         
             return "处理失败-3"; //para.ActCount <= NotReceiptQty 超收
         }
+        #endregion
 
         public static string GetNextUserGroup()
         {
@@ -486,6 +505,20 @@ namespace Appapi.Models
             }
 
             return NextUserGroup;
+        }
+
+        public static string ReturnStatus(int ReceiptID, int oristatus)
+        {
+            string sql = "select status from Receipt where ID = " + ReceiptID + " ";
+            object currstatus = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            if ((int)currstatus < oristatus) return "处理失败-1"; //已被退回至某个节点。
+            if ((int)currstatus > oristatus) return "处理失败-2"; //该节点已被处理完毕
+
+
+            sql = @"update Receipt set ThirdUserGroup = null, status = 2, ReturnTwo = ReturnTwo+1, where ID = " + ReceiptID +"";
+            SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            return "处理成功";
         }
     }
 }
