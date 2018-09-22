@@ -180,6 +180,7 @@ namespace Appapi.Models
                 ReturnOne,
                 ReturnTwo,
                 ReceiptDate
+                HeatNum,
                 ) values({0}) ";
                 string values = ConstructValues(new ArrayList
                 {
@@ -212,6 +213,7 @@ namespace Appapi.Models
                     para.IsPrint,
                     0,
                     0,
+                    para.HeatNum,
                     para.ReceiptDate
                 });
                 string.Format(sql, values);
@@ -233,34 +235,35 @@ namespace Appapi.Models
 
         public static string ReceiveCommitWithQRCode(Receipt para)
         {
-            string sql = "select count(PoNum, PoLine, PORelNum, Plant, Company) from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
-            string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
+            
+                string sql = "select count(PoNum, PoLine, PORelNum, Plant, Company) from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
+                string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
 
-            bool isOperating = (bool)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            if (isOperating) return "处理失败-1"; //订单在该节点已被处理
+                bool isOperating = (bool)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                if (isOperating) return "处理失败-1"; //订单在该节点已被处理
 
 
-            Receipt temp = GetPO(para).ElementAt(0);
+                Receipt temp = GetPO(para).ElementAt(0);
 
-            if (temp == null) return "处理失败-2"; // 根据para中的参数 未找到相关数据
+                if (temp == null) return "处理失败-2"; // 根据para中的参数 未找到相关数据
 
-            if (para.ReceiveCount <= temp.NotReceiptQty)
-            {
-                para.AssemblySeq = temp.AssemblySeq;
-                para.JobSeq = temp.JobSeq;
-                para.IUM = temp.IUM;
-                para.TranType = temp.TranType;
-                para.PartType = temp.PartType;
-                para.OpDesc = temp.OpDesc;
-                para.CommentText = temp.CommentText;
-                para.Description = temp.Description;
-                para.NeedReceiptQty = temp.NeedReceiptQty;
-                para.NotReceiptQty = temp.NotReceiptQty;
-                para.Status = 2;
-                para.IsPrint = true;
+                if (para.ReceiveCount <= temp.NotReceiptQty)
+                {
+                    para.AssemblySeq = temp.AssemblySeq;
+                    para.JobSeq = temp.JobSeq;
+                    para.IUM = temp.IUM;
+                    para.TranType = temp.TranType;
+                    para.PartType = temp.PartType;
+                    para.OpDesc = temp.OpDesc;
+                    para.CommentText = temp.CommentText;
+                    para.Description = temp.Description;
+                    para.NeedReceiptQty = temp.NeedReceiptQty;
+                    para.NotReceiptQty = temp.NotReceiptQty;
+                    para.Status = 2;
+                    para.IsPrint = true;
 
-                #region 构造sql语句
-                sql = @"insert into Receipt(
+                    #region 构造sql语句
+                    sql = @"insert into Receipt(
                         SupplierNo, 
                         SupplierName,                
                         ReceiveCount,
@@ -288,13 +291,12 @@ namespace Appapi.Models
                         Company,
                         Plant,
                         IsPrint,
-                        ReceiptNo,
                         HeatNum,
                         ReturnOne,
                         ReturnTwo,
                         ReceiptDate
                         ) values({0}) ";
-                string values = ConstructValues(new ArrayList
+                    string values = ConstructValues(new ArrayList
                 {
                     para.SupplierNo,
                     para.SupplierName,
@@ -323,25 +325,49 @@ namespace Appapi.Models
                     HttpContext.Current.Session["Company"].ToString(),
                     HttpContext.Current.Session["Plant"].ToString(),
                     para.IsPrint,
-                    para.ReceiptNo,
                     para.HeatNum,
                     0,
                     0,
                     para.ReceiptDate
                 });
-                string.Format(sql, values);
-                #endregion
+                    string.Format(sql, values);
+                    #endregion
 
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                return "处理成功";
-            }
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    return "处理成功";
+                }
 
-            return "处理失败-3"; //超收
+                return "处理失败-3"; //超收
+            
         }
 
         public static IEnumerable<Receipt> GetRemainsOfReceiveUser()
         {
-            string sql = @"select ID from Receipt where FirstUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "' and status = 1";
+            string sql = @"select
+                        ID,
+                        SupplierNo, 
+                        SupplierName,                
+                        ReceiveCount,
+                        PartNum,
+                        PartDesc,
+                        JobNum, 
+                        Remark,
+                        SecondUserGroup,
+                        FirstUserID,
+                        PoNum,
+                        PoLine,
+                        PORelNum,
+                        BatchNo,
+                        Company,
+                        Plant,
+                        HeatNum,
+                        ReceiptDate
+                        from receipt
+                        where FirstUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "' and status = 1";
+
+            List<Receipt> Remains = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
+
+            return Remains;
         }
         #endregion
 
@@ -383,9 +409,9 @@ namespace Appapi.Models
                         from Receipt where SecondUserGroup like '%"+ HttpContext.Current.Session["UserId"].ToString() + "%' and status = 2 ";
             #endregion
 
-            List<Receipt> POs = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
+            List<Receipt> Remains = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
 
-            return POs;
+            return Remains;
         }
 
         public static string IQCCommit(Receipt para)
@@ -402,8 +428,8 @@ namespace Appapi.Models
 
             if(para.QualifiedCount <= (decimal)NotReceiptQty)
             {
-                sql = @"update Receipt set IQCDate = getdate(), IsAllCheck = {0}, SpotCheckCount = {1}, QualifiedCount = {2}, UnqualifiedCount = {3}, Result = '{4}'，Remark = '{5}'，Status=3，ThirdUserGroup = '{6}', SecondUserID = '{7}' where ID = {8}";
-                string.Format(sql, para.IsAllCheck, para.SpotCheckCount, para.QualifiedCount, para.UnqualifiedCount, para.Result, para.Remark, para.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(),  para.ID);
+                sql = @"update Receipt set IQCDate = getdate(), IsAllCheck = {0}, SpotCheckCount = {1}, QualifiedCount = {2}, UnqualifiedCount = {3}, Result = '{4}'，Remark = '{5}'，Status=3，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}' where ID = {9}";
+                string.Format(sql, para.IsAllCheck, para.SpotCheckCount, para.QualifiedCount, para.UnqualifiedCount, para.Result, para.Remark, para.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), para.ReceiptNo, para.ID);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 return "处理成功";
@@ -457,9 +483,9 @@ namespace Appapi.Models
                         from Receipt where ThirdUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' and status = 3 ";
             #endregion
 
-            List<Receipt> POs = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
+            List<Receipt> Remains = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
 
-            return POs;
+            return Remains;
         }
 
         public static string AcceptCommit(Receipt para)
@@ -514,9 +540,12 @@ namespace Appapi.Models
 
             if ((int)currstatus < oristatus) return "处理失败-1"; //已被退回至某个节点。
             if ((int)currstatus > oristatus) return "处理失败-2"; //该节点已被处理完毕
+            
+            if(oristatus == 3)
+                sql = @"update Receipt set status = 2, ReturnTwo = ReturnTwo+1, where ID = " + ReceiptID +"";
+            else //oristatus == 2
+                sql = @"update Receipt set status = 1, ReturnOne = ReturnOne+1, where ID = " + ReceiptID + "";
 
-
-            sql = @"update Receipt set ThirdUserGroup = null, status = 2, ReturnTwo = ReturnTwo+1, where ID = " + ReceiptID +"";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             return "处理成功";
         }
