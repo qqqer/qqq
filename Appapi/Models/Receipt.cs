@@ -54,7 +54,7 @@ namespace Appapi.Models
         public string BinNum { get; set; }
         public string SecondUserGroup { get; set; }
         public string ThirdUserGroup { get; set; }
-        public int ReturnOne { get; set; }
-        public int ReturnTwo { get; set; }
+        public int? ReturnOne { get; set; }
+        public int? ReturnTwo { get; set; }
     }
 }

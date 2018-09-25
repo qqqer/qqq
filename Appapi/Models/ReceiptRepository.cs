@@ -8,15 +8,15 @@ using System.Collections;
 namespace Appapi.Models
 {
     public static class ReceiptRepository
-    {       
+    {
         private static string ConstructValues(ArrayList array)
         {
             string values = "";
-            for(int i = 0; i < array.Count; i++)
+            for (int i = 0; i < array.Count; i++)
             {
                 if (array[i] == null)
                     values += "null,";
-                else if(array[i].GetType() == typeof(int) || array[i].GetType() == typeof(decimal))
+                else if (array[i].GetType() == typeof(int) || array[i].GetType() == typeof(decimal))
                 {
                     values += array[i].ToString() + (i == array.Count - 1 ? "" : ",");
                 }
@@ -24,7 +24,7 @@ namespace Appapi.Models
                 {
                     values += "'" + array[i] + "'" + (i == array.Count - 1 ? "" : ",");
                 }
-                else if(array[i].GetType() == typeof(bool))
+                else if (array[i].GetType() == typeof(bool))
                 {
                     values += Convert.ToInt32(array[i]).ToString() + (i == array.Count - 1 ? "" : ",");
                 }
@@ -32,7 +32,7 @@ namespace Appapi.Models
                 {
                     values += "getdate()" + (i == array.Count - 1 ? "" : ",");
                 }
-            }         
+            }
             return values;
         }//根据待拆入的字段值来生成sql语句中的values部分。
 
@@ -68,15 +68,14 @@ namespace Appapi.Models
                 left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum                 
                 left join erp.part pa       on pd.PartNum = pa.PartNum
                 left join erp.partclass pc  on pc.classid = pd.ClassID
-                where pr.Company = '" + HttpContext.Current.Session["Company"].ToString() + "' and pr.Plant = '"+ HttpContext.Current.Session["Plant"].ToString() + "' ";
-
+                where pr.Company = '" + HttpContext.Current.Session["Company"].ToString() + "' and pr.Plant = '" + HttpContext.Current.Session["Plant"].ToString() + "' ";
 
             if (Condition.PoNum != null)
-                sql += "and pr.ponum = "+ Condition.PoNum +" "; 
+                sql += "and pr.ponum = " + Condition.PoNum + " ";
             if (Condition.PoLine != null)
                 sql += "and pr.poline = " + Condition.PoLine + " ";
             if (Condition.PartNum != null)
-                sql += "and pr.partnum like '%"+ Condition.PartNum + "%' ";
+                sql += "and pr.partnum like '%" + Condition.PartNum + "%' ";
             if (Condition.PartDesc != null)
                 sql += "and pd.LineDesc like '%" + Condition.PartDesc + "%' ";
             #endregion
@@ -97,24 +96,26 @@ namespace Appapi.Models
             return POs;
         }
 
-        public static string ReceiveCommitWithNonQRCode(Receipt para)
+        public static string ReceiveCommitWithNonQRCode(Receipt para) //001
         {
-            string sql = "select count(PoNum, PoLine, PORelNum, Plant, Company) from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
+            string OpDate = DateTime.Now.ToString();
+            string sql = "select status from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
             string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
 
-            bool isOperating = (bool)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            if (isOperating) return "处理失败-1"; //订单在该节点已被处理
+            object status = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            if (status != null && (int)status > 1)//该收货该流程已有一条receipt记录， 且已在该节点已被处理
+            {
+                return "处理失败-1"; //在该节点已被处理
+            }
 
             #region 计算批次号
             sql = "select * from SerialNumber where name = 'BAT'";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
-
-            if (dt == null) return "处理失败-2"; // SerialNumber表中未找到有BAT的记录行
-
-            string time = dt.Rows[0]["time"].ToString().Substring(0, 10);//截取年月日部分
+            
+            string OriDay = dt.Rows[0]["time"].ToString().Substring(0, 10);//截取年月日部分
             string today = DateTime.Now.ToString().Substring(0, 10);
 
-            if (time == today)
+            if (OriDay == today)
             {
                 para.BatchNo = "P" + DateTime.Now.ToString("yyyyMMdd") + ((int)dt.Rows[0]["Current"]).ToString("d4");
                 dt.Rows[0]["Current"] = (int)dt.Rows[0]["Current"] + 1;
@@ -142,7 +143,7 @@ namespace Appapi.Models
                 para.Status = 2;
             }
             else
-                return "处理失败-3"; //打印失败
+                return "处理失败-2"; //打印失败
             #endregion
 
             #region 回写数据到APP.Receipt表中
@@ -223,6 +224,12 @@ namespace Appapi.Models
             }
             #endregion
 
+            sql = "select ID from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
+            string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
+
+            int ID = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            AddOpLog(ID, 101, "insert", OpDate);
             return "处理成功";
         }
 
@@ -235,17 +242,70 @@ namespace Appapi.Models
 
         public static string ReceiveCommitWithQRCode(Receipt para)
         {
-            
-                string sql = "select count(PoNum, PoLine, PORelNum, Plant, Company) from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
-                string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
+            string OpDate = DateTime.Now.ToString();
 
-                bool isOperating = (bool)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                if (isOperating) return "处理失败-1"; //订单在该节点已被处理
+            string sql = "select status from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
+            string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
 
+            object status = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+            if (status != null && (int)status > 1) //该收货该流程已有一条receipt记录，且当前位置在第一个节点之后
+                return "处理失败-1"; //在该节点已被处理
+            else if (status != null && (int)status == 1) //该收货该流程已有一条receipt记录，且该流程在第二节点被退回。
+            {
+                #region 构造sql语句
+                sql = @"update Receipt set
+                        SupplierNo = {0}, 
+                        SupplierName = {1},                
+                        ReceiveCount = {3},
+                        PartNum = {4},
+                        PartDesc = {5},
+                        JobNum = {6}, 
+                        Remark = {7},
+                        SecondUserGroup = {8},
+                        FirstUserID = {9},
+                        PoNum = {10},
+                        PoLine = 11},
+                        PORelNum = {12},
+                        BatchNo = {13},
+                        Company = {14},
+                        Plant = {15},
+                        HeatNum = {16},
+                        ReceiptDate = {17}
+                        where ID = {18}";
+                string.Format(sql,
+                    para.SupplierNo,
+                    para.SupplierName,
+                    para.ReceiveCount,
+                    para.PartNum,
+                    para.PartDesc,
+                    para.JobNum,
+                    para.Remark,
+                    para.SecondUserGroup,
+                    para.FirstUserID,
+                    para.PoNum,
+                    para.PoLine,
+                    para.PORelNum,
+                    para.BatchNo,
+                    para.Company,
+                    para.Plant,
+                    para.HeatNum,
+                    para.ReceiptDate,
+                    para.ID);
+                #endregion
+
+                //此处待添加检测超收的代码， 若超收 return "处理失败-3"
+
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                AddOpLog((int)para.ID, 102, "update", OpDate);
+                return "处理成功"; //更改提交成功
+            }
+            else //该流程是新的，因此为其生成一条receipt记录
+            {
                 Receipt temp = GetPO(para).ElementAt(0);
 
-                if (temp == null) return "处理失败-2"; // 根据para中的参数 未找到相关数据
+                if (temp == null) return "处理失败-2"; // 未在erp中找到其余相关数据
 
                 if (para.ReceiveCount <= temp.NotReceiptQty)
                 {
@@ -334,11 +394,17 @@ namespace Appapi.Models
                     #endregion
 
                     SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    sql = "select ID from Receipt where PoNum = {0}, PoLine = {1}, PORelNum = {2}, Plant = '{3}', Company = '{4}'";
+                    string.Format(sql, para.PoNum, para.PoLine, para.PORelNum, para.Plant, para.Company);
+
+                    int ID = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    AddOpLog((int)para.ID, 102, "insert", OpDate);
                     return "处理成功";
                 }
-
                 return "处理失败-3"; //超收
-            
+            }
         }
 
         public static IEnumerable<Receipt> GetRemainsOfReceiveUser()
@@ -406,7 +472,7 @@ namespace Appapi.Models
                         ReceiptNo,
                         HeatNum,
                         ReceiptDate
-                        from Receipt where SecondUserGroup like '%"+ HttpContext.Current.Session["UserId"].ToString() + "%' and status = 2 ";
+                        from Receipt where SecondUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' and status = 2 ";
             #endregion
 
             List<Receipt> Remains = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
@@ -416,6 +482,8 @@ namespace Appapi.Models
 
         public static string IQCCommit(Receipt para)
         {
+            string OpDate = DateTime.Now.ToString();
+
             string sql = "select status from Receipt where ID = " + para.ID + " ";
             object status = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -426,11 +494,13 @@ namespace Appapi.Models
             sql = "select NotReceiptQty from Receipt where ID = " + para.ID + " ";
             object NotReceiptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            if(para.QualifiedCount <= (decimal)NotReceiptQty)
+            if (para.QualifiedCount <= (decimal)NotReceiptQty)
             {
                 sql = @"update Receipt set IQCDate = getdate(), IsAllCheck = {0}, SpotCheckCount = {1}, QualifiedCount = {2}, UnqualifiedCount = {3}, Result = '{4}'，Remark = '{5}'，Status=3，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}' where ID = {9}";
                 string.Format(sql, para.IsAllCheck, para.SpotCheckCount, para.QualifiedCount, para.UnqualifiedCount, para.Result, para.Remark, para.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), para.ReceiptNo, para.ID);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                AddOpLog((int)para.ID, 201, "update", OpDate);
 
                 return "处理成功";
             }
@@ -490,6 +560,7 @@ namespace Appapi.Models
 
         public static string AcceptCommit(Receipt para)
         {
+            string OpDate = DateTime.Now.ToString();
             string sql = "select status from Receipt where ID = " + para.ID + " ";
             object status = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -506,8 +577,11 @@ namespace Appapi.Models
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 //调用反写接口。     若反写erp失败，返回"处理失败-2" //反写数据进erp时失败
+
+                //AddOpLog((int)para.ID, 301, "update", OpDate);
+                //return "处理成功";
             }
-        
+
             return "处理失败-3"; //para.ActCount <= NotReceiptQty 超收
         }
         #endregion
@@ -525,7 +599,7 @@ namespace Appapi.Models
             string.Format(sql, dt.Rows[0][3].ToString(), dt.Rows[0][4].ToString(), (int)dt.Rows[0][1] + 1);
             dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
 
-            for(int i = 0; i < dt.Rows.Count; i++)
+            for (int i = 0; i < dt.Rows.Count; i++)
             {
                 NextUserGroup += dt.Rows[i][0].ToString() + ",";
             }
@@ -540,14 +614,19 @@ namespace Appapi.Models
 
             if ((int)currstatus < oristatus) return "处理失败-1"; //已被退回至某个节点。
             if ((int)currstatus > oristatus) return "处理失败-2"; //该节点已被处理完毕
-            
-            if(oristatus == 3)
-                sql = @"update Receipt set status = 2, ReturnTwo = ReturnTwo+1, where ID = " + ReceiptID +"";
+
+            if (oristatus == 3)
+                sql = @"update Receipt set status = 2, ReturnTwo = ReturnTwo+1, where ID = " + ReceiptID + "";
             else //oristatus == 2
                 sql = @"update Receipt set status = 1, ReturnOne = ReturnOne+1, where ID = " + ReceiptID + "";
 
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             return "处理成功";
+        }
+
+        private static void AddOpLog(int ReceiptID, int ApiNum, string OpType, string OpDate)
+        {
+
         }
     }
 }
