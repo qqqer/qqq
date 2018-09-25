@@ -630,7 +630,7 @@ namespace Appapi.Models
             object currstatus = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             if ((int)currstatus < oristatus) return "处理失败-1"; //已被退回至某个节点。
-            if ((int)currstatus > oristatus) return "处理失败-2"; //该节点已被处理完毕
+            if ((int)currstatus > oristatus) return "处理失败-2"; //该节点已被处理完毕。
 
             int ApiNum;
             if (oristatus == 3)
@@ -638,15 +638,27 @@ namespace Appapi.Models
                 ApiNum = 300;
                 sql = @"update Receipt set status = 2, ReturnTwo = ReturnTwo+1 where ID = " + ReceiptID + " ";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                sql = @"insert into ReasonRecord(ReceiptId, ReturnTwo, ReturnReasonId, Date) Values("+ ReceiptID + ", )";
+
+                sql = "select ReturnTwo from Receipt where ID = " + ReceiptID + " ";
+                int ReturnTwo = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                sql = @"insert into ReasonRecord(ReceiptId, ReturnTwo, ReturnReasonId, Date) Values("+ ReceiptID + ", "+ ReturnTwo + ", "+ ReasonID + ", '"+ OpDate + "')";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
             }
             else //if (oristatus == 2)
             {
                 ApiNum = 200;
                 sql = @"update Receipt set status = 1, ReturnOne = ReturnOne+1 where ID = " + ReceiptID + "";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                sql = "select ReturnOne from Receipt where ID = " + ReceiptID + " ";
+                int ReturnOne = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                sql = @"insert into ReasonRecord(ReceiptId, ReturnOne, ReturnReasonId, Date) Values(" + ReceiptID + ", " + ReturnOne + ", " + ReasonID + ", '" + OpDate + "')";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
    
-            SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             AddOpLog(ReceiptID, ApiNum, "return", OpDate);
             return "处理成功";
