@@ -110,5 +110,12 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
+
+
+        //Post:  /api/Receipt/ReturnStatus
+        public static string ReturnStatus(dynamic para) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ReceiptID, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }//流程回退到上一个节点
     }
 }
