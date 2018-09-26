@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web.Http;
 using System.Web;
+using System.Data;
 
 namespace Appapi.Controllers
 {
@@ -117,5 +118,12 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ReceiptID, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
+
+
+        //Get:  /api/Receipt/GetWarehouse
+        public static DataTable GetWarehouse(string partnum) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetWarehouse(partnum) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }//返回该物料可存放的所有仓库号
     }
 }

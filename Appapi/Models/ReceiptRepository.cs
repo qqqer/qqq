@@ -69,13 +69,15 @@ namespace Appapi.Models
                 pc.description,
                 (pr.XRelQty-pr.PassedQty) NeedReceiptQty, 
                 (pr.XRelQty-pr.PassedQty) NotReceiptQty
+                pp.PrimWhse as Warehouse
                  from erp.PORel pr
                 left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
                 left join erp.POHeader ph   on ph.Company = pd.Company   and   ph.PONum = pd.PONUM 
                 left join erp.JobOper jo    on pr.JobNum = jo.JobNum   and   pr.Company = jo.Company
-                left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum                 
+                left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum   and   ph.company = vd.company             
                 left join erp.part pa       on pd.PartNum = pa.PartNum   and   pa.company = pd.company
-                left join erp.partclass pc  on pc.classid = pd.ClassID
+                left join erp.partclass pc  on pc.classid = pd.ClassID   and   pc.company = pd.company
+                left join erp.partplant pp  on pp.company = pr.Company   and   pp.plant = pr.plant   and   pp.PartNum = pd.PartNum
                 where pr.Company = '" + HttpContext.Current.Session["Company"].ToString() + "'   and    pr.Plant = '" + HttpContext.Current.Session["Plant"].ToString() + "' ";
 
             if (Condition.PoNum != null)
@@ -442,7 +444,8 @@ namespace Appapi.Models
                         Company,
                         Plant,
                         HeatNum,
-                        ReceiptDate
+                        ReceiptDate,
+                        Warehouse
                         from receipt
                         where FirstUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "' and status = 1";
 
@@ -486,7 +489,8 @@ namespace Appapi.Models
                         IsPrint,
                         ReceiptNo,
                         HeatNum,
-                        ReceiptDate
+                        ReceiptDate,
+                        Warehouse
                         from Receipt where SecondUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' and status = 2 ";
             #endregion
 
@@ -509,7 +513,7 @@ namespace Appapi.Models
             sql = "select NotReceiptQty from Receipt where ID = " + para.ID + " ";
             object NotReceiptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            if (para.QualifiedCount <= (decimal)NotReceiptQty)
+            if (para.Status == 2 || para.QualifiedCount <= (decimal)NotReceiptQty)
             {
                 sql = @"update Receipt set IQCDate = getdate(), IsAllCheck = {0}, SpotCheckCount = {1}, QualifiedCount = {2}, UnqualifiedCount = {3}, Result = '{4}'，Remark = '{5}'，Status="+para.Status+"，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}' where ID = {9}";
                 string.Format(sql, para.IsAllCheck, para.SpotCheckCount, para.QualifiedCount, para.UnqualifiedCount, para.Result, para.Remark, para.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), para.ReceiptNo, para.ID);
@@ -521,7 +525,7 @@ namespace Appapi.Models
                 return "处理成功";
             }
 
-            return "处理失败-3"; //para.QualifiedCount <= NotReceiptQty IQC超收
+            return "处理失败-3"; //(para.QualifiedCount <= NotReceiptQty IQC超收)
         }
         #endregion
 
@@ -565,7 +569,8 @@ namespace Appapi.Models
                         SpotCheckCount,
                         QualifiedCount,
                         UnqualifiedCount,
-                        Result
+                        Result,
+                        Warehouse
                         from Receipt where ThirdUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' and status = 3 ";
             #endregion
 
@@ -671,6 +676,17 @@ namespace Appapi.Models
             List<Reason> Reasons = CommonRepository.DataTableToList<Reason>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql));
 
             return Reasons;
+        }
+
+        public static DataTable GetWarehouse(string partnum)
+        {
+            string sql = @"select pw.WarehouseCode from erp.PartWhse pw
+                           left join erp.Warehse wh 
+                           on  pw.Company=wh.Company  and pw.WarehouseCode=wh.WarehouseCode
+                           where Plant = '{0}' and pw.Company = '{1}' and pw.PartNum = '{2}'";
+            string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString(), partnum);
+
+            return SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql); ;
         }
     }
 }

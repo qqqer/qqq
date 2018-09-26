@@ -41,7 +41,7 @@ namespace Appapi.Models
         public string HeatNum { get; set; }
         public DateTime ReceiptDate { get; set; }
         public DateTime IQCDate { get; set; }
-        public int? ID { get; set; }
+        public int ID { get; set; }
         public bool? IsAllCheck { get; set; }
         public decimal? SpotCheckCount { get; set; }
         public decimal? QualifiedCount { get; set; }
