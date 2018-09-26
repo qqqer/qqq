@@ -511,11 +511,12 @@ namespace Appapi.Models
 
             if (para.QualifiedCount <= (decimal)NotReceiptQty)
             {
-                sql = @"update Receipt set IQCDate = getdate(), IsAllCheck = {0}, SpotCheckCount = {1}, QualifiedCount = {2}, UnqualifiedCount = {3}, Result = '{4}'，Remark = '{5}'，Status=3，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}' where ID = {9}";
+                sql = @"update Receipt set IQCDate = getdate(), IsAllCheck = {0}, SpotCheckCount = {1}, QualifiedCount = {2}, UnqualifiedCount = {3}, Result = '{4}'，Remark = '{5}'，Status="+para.Status+"，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}' where ID = {9}";
                 string.Format(sql, para.IsAllCheck, para.SpotCheckCount, para.QualifiedCount, para.UnqualifiedCount, para.Result, para.Remark, para.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), para.ReceiptNo, para.ID);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog((int)para.ID, 201, "update", OpDate);
+                
+                AddOpLog((int)para.ID, 201, para.Status == 3 ? "update" : "save", OpDate);
 
                 return "处理成功";
             }
