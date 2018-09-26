@@ -69,14 +69,14 @@ namespace Appapi.Models
                 pc.description,
                 (pr.XRelQty-pr.PassedQty) NeedReceiptQty, 
                 (pr.XRelQty-pr.PassedQty) NotReceiptQty
-                 from erp.PORel pr 
-                left join erp.PODetail pd   on pr.PONum = pd.PONUM and pr.Company = pd.Company and pr.POLine = pd.POLine 
-                left join erp.POHeader ph   on ph.Company = pd.Company and ph.PONum = pd.PONUM 
-                left join erp.JobOper jo    on pr.JobNum = jo.JobNum and pr.Company = jo.Company
+                 from erp.PORel pr
+                left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
+                left join erp.POHeader ph   on ph.Company = pd.Company   and   ph.PONum = pd.PONUM 
+                left join erp.JobOper jo    on pr.JobNum = jo.JobNum   and   pr.Company = jo.Company
                 left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum                 
-                left join erp.part pa       on pd.PartNum = pa.PartNum
+                left join erp.part pa       on pd.PartNum = pa.PartNum   and   pa.company = pd.company
                 left join erp.partclass pc  on pc.classid = pd.ClassID
-                where pr.Company = '" + HttpContext.Current.Session["Company"].ToString() + "' and pr.Plant = '" + HttpContext.Current.Session["Plant"].ToString() + "' ";
+                where pr.Company = '" + HttpContext.Current.Session["Company"].ToString() + "'   and    pr.Plant = '" + HttpContext.Current.Session["Plant"].ToString() + "' ";
 
             if (Condition.PoNum != null)
                 sql += "and pr.ponum = " + Condition.PoNum + " ";
@@ -587,7 +587,7 @@ namespace Appapi.Models
 
             if (para.ActCount <= (decimal)NotReceiptQty)
             {
-                sql = @"update Receipt set ActReceiptDate = getdate(), ActCount = {0}, Warehouse = '{1}', BinNum = '{2}', ThirdUserID = '{3}' where ID = {4}";
+                sql = @"update Receipt set StockDate = getdate(), ActCount = {0}, Warehouse = '{1}', BinNum = '{2}', ThirdUserID = '{3}' where ID = {4}";
                 string.Format(sql, para.ActCount, para.Warehouse, para.BinNum, HttpContext.Current.Session["UserId"].ToString(), para.ID);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
