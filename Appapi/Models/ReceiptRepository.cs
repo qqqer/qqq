@@ -68,7 +68,7 @@ namespace Appapi.Models
                 jo.OpDesc,
                 pc.description,
                 (pr.XRelQty-pr.PassedQty) NeedReceiptQty, 
-                (pr.XRelQty-pr.PassedQty) NotReceiptQty
+                (pr.XRelQty-pr.PassedQty) NotReceiptQty,
                 pp.PrimWhse as Warehouse
                  from erp.PORel pr
                 left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
@@ -190,9 +190,10 @@ namespace Appapi.Models
                 Plant,
                 IsPrint,
                 ReturnOne,
-                ReturnTwo,
-                ReceiptDate
+                ReturnTwo,              
                 HeatNum,
+                Warehouse,
+                ReceiptDate
                 ) values({0}) ";
                 string values = ConstructValues(new ArrayList
                 {
@@ -226,6 +227,7 @@ namespace Appapi.Models
                     0,
                     0,
                     para.HeatNum,
+                    para.Warehouse,
                     para.ReceiptDate
                 });
                 string.Format(sql, values);
@@ -272,7 +274,7 @@ namespace Appapi.Models
                     #region 构造sql语句
                     sql = @"update Receipt set
                         SupplierNo = {0}, 
-                        SupplierName = {1},                
+                        SupplierName = {1},
                         ReceiveCount = {3},
                         PartNum = {4},
                         PartDesc = {5},
@@ -287,8 +289,9 @@ namespace Appapi.Models
                         Company = {14},
                         Plant = {15},
                         HeatNum = {16},
-                        ReceiptDate = {17}
-                        where ID = {18}";
+                        Warehouse = {17},
+                        ReceiptDate = {18}
+                        where ID = {19}";
                     string.Format(sql,
                         para.SupplierNo,
                         para.SupplierName,
@@ -306,6 +309,7 @@ namespace Appapi.Models
                         para.Company,
                         para.Plant,
                         para.HeatNum,
+                        para.Warehouse,
                         para.ReceiptDate,
                         para.ID);
                     #endregion
@@ -338,6 +342,7 @@ namespace Appapi.Models
                     para.NotReceiptQty = temp.NotReceiptQty;
                     para.Status = 2;
                     para.IsPrint = true;
+                    para.Warehouse = temp.Warehouse;
 
                     #region 构造sql语句
                     sql = @"insert into Receipt(
@@ -371,6 +376,7 @@ namespace Appapi.Models
                         HeatNum,
                         ReturnOne,
                         ReturnTwo,
+                        Warehouse,
                         ReceiptDate
                         ) values({0}) ";
                     string values = ConstructValues(new ArrayList
@@ -405,6 +411,7 @@ namespace Appapi.Models
                     para.HeatNum,
                     0,
                     0,
+                    para.Warehouse,
                     para.ReceiptDate
                 });
                     string.Format(sql, values);
@@ -673,7 +680,7 @@ namespace Appapi.Models
         public static IEnumerable<Reason> GetReason()
         {
             string sql = "select * from Reason";
-            List<Reason> Reasons = CommonRepository.DataTableToList<Reason>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql));
+            List<Reason> Reasons = CommonRepository.DataTableToList<Reason>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
 
             return Reasons;
         }
@@ -682,11 +689,11 @@ namespace Appapi.Models
         {
             string sql = @"select pw.WarehouseCode from erp.PartWhse pw
                            left join erp.Warehse wh 
-                           on  pw.Company=wh.Company  and pw.WarehouseCode=wh.WarehouseCode
+                           on  pw.Company=wh.Company  and  pw.WarehouseCode = wh.WarehouseCode
                            where Plant = '{0}' and pw.Company = '{1}' and pw.PartNum = '{2}'";
-            string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString(), partnum);
+            string.Format(sql, HttpContext.Current.Session["Plant"].ToString(), HttpContext.Current.Session["Company"].ToString(), partnum);
 
-            return SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql); ;
+            return SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
         }
     }
 }

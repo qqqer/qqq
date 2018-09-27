@@ -14,20 +14,22 @@ namespace Appapi.Controllers
     {
         #region 登录验证接口
         //Post:  /api/Receipt/Login
-        [HttpPost]
+        [System.Web.Http.HttpPost]
         public string Login(dynamic Account)
         {
-            bool isvalid = false; // = 账号认证接口（）
-            
+            string sql = "select * from Userfile where userid = '" + Account.userid + "' and disabled = 0";
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+            bool isvalid = dt.Rows.Count > 0 ? true : false;   // = 账号认证接口（）
+        
             if (isvalid)
-            {
-                HttpContext.Current.Session.Add("Company", Convert.ToString(Account.company));
-                HttpContext.Current.Session.Add("Plant", Convert.ToString(Account.plant));
+            {        
+                HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
+                HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
                 HttpContext.Current.Session.Add("UserId", Convert.ToString(Account.userid));
-                HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
+                //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
+                return "登录成功";
             }
-
-            return Convert.ToString(Account.company);
+            return "登录失败";
         }//登录验证
         #endregion
         
