@@ -148,7 +148,7 @@ namespace Appapi.Models
 'text20': '', 'text21': '', 'text22': '', 'text23': '', 'text24': '', 'text25': '', 'text26': '', 'text27': '', 'text28': '', 'text29': '', 'text30': '' }";
             string.Format(jsonStr, para.PartNum, para.BatchNo, para.JobNum, para.AssemblySeq, para.SupplierNo, para.PoNum, para.PoLine, para.ReceiveCount, para.PORelNum, para.Company, para.JobSeq, para.HeatNum);
 
-            if (PrintRepository.PrintQR("C:\\D0201.btw", HttpContext.Current.Session["UserPrinter"].ToString(), 1, jsonStr) == "1|处理成功")
+            if (PrintRepository.PrintQR("C:\\btw\\D0201.btw", HttpContext.Current.Session["UserPrinter"].ToString(), 1, jsonStr) == "1|处理成功")
             {
                 para.IsPrint = true;
                 para.Status = 2;
