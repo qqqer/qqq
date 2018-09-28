@@ -4,6 +4,7 @@ using System.Linq;
 using System.Web;
 using System.Data;
 using System.Collections;
+using System.Net; //ftp
 
 namespace Appapi.Models
 {
@@ -494,10 +495,19 @@ namespace Appapi.Models
                         Company,
                         Plant,
                         IsPrint,
-                        ReceiptNo,
                         HeatNum,
                         ReceiptDate,
-                        Warehouse
+                        Warehouse,
+
+                        IQCDate,
+                        IsAllCheck, 
+                        SpotCheckCount, 
+                        QualifiedCount, 
+                        UnqualifiedCount, 
+                        Result，
+                        ThirdUserGroup, 
+                        SecondUserID, 
+                        ReceiptNo 
                         from Receipt where SecondUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' and status = 2 ";
             #endregion
 
@@ -541,6 +551,7 @@ namespace Appapi.Models
         {
             #region 构造sql语句
             string sql = @"select 
+                        ID,
                         SupplierNo, 
                         SupplierName,                
                         ReceiveCount,
@@ -577,7 +588,11 @@ namespace Appapi.Models
                         QualifiedCount,
                         UnqualifiedCount,
                         Result,
-                        Warehouse
+                        Warehouse,
+                        StockDate,
+                        ActCount, 
+                        BinNum, 
+                        ThirdUserID
                         from Receipt where ThirdUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' and status = 3 ";
             #endregion
 
