@@ -6,7 +6,10 @@ using System.Web;
 namespace Appapi.Models
 {
     /// <summary>
-    /// PoNum、PoLine、PORelNum、Plant、Company确定唯一PO
+    /// PoNum、PoLine、PORelNum、Plant、Company确定一个唯一的收货依据ReceivingBasis（erp数据库查询得到）
+    /// PoNum、PoLine、PORelNum、Plant、Company、 batchNo 确定某个收货依据的某次收货记录（查询Receipt表得到）
+    /// 
+    /// 收货记录中包含它所属的收货依据的所有信息
     /// </summary>
     public class Receipt 
     {
@@ -49,7 +52,7 @@ namespace Appapi.Models
         public string Result { get; set; }
         public string ThirdUserID { get; set; }
         public DateTime StockDate { get; set; }
-        public decimal? ActCount { get; set; }
+        public decimal? StockCount { get; set; }
         public string Warehouse { get; set; }
         public string BinNum { get; set; }
         public string SecondUserGroup { get; set; }
