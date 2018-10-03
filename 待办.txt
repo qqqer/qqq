@@ -1,0 +1,8 @@
+GetReceivingBasis()      中的           pa.PartDescription  as  Partdesc      和          and pd.LineDesc like '%" + Condition.PartDesc + "%' ";
+
+ ReasonRecord  中  ReceiptID  改成  BatchNo
+
+
+GetNextUserGroup() 需判断3个方向
+
+第二节点回退清空信息

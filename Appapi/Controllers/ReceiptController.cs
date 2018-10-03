@@ -26,21 +26,23 @@ namespace Appapi.Controllers
                 HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
                 HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
                 HttpContext.Current.Session.Add("UserId", Convert.ToString(Account.userid));
+                HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
                 //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
+
                 return "登录成功";
             }
             return "登录失败";
         }//登录验证
         #endregion
-        
+
 
         #region 接收接口
-        //Post:  /api/Receipt/GetPOByCondition
+        //Post:  /api/Receipt/GetReceivingBasis
         [HttpPost]
-        public IEnumerable<Receipt> GetPOByCondition(Receipt Condition)
+        public IEnumerable<Receipt> GetReceivingBasis(Receipt Condition)
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetPO(Condition) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
-        }//根据Condition 返回匹配的采购单信息
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetReceivingBasis(Condition) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
+        }//根据Condition 返回所有匹配的收货依据
 
 
         //Post:  /api/Receipt/ReceiveCommitWithNonQRCode
@@ -109,23 +111,32 @@ namespace Appapi.Controllers
 
 
         //Get:  /api/Receipt/GetNextUserGroup
-        public static string GetNextUserGroup()
+        public string GetNextUserGroup()
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
 
 
         //Post:  /api/Receipt/ReturnStatus
-        public static string ReturnStatus(dynamic para) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
+        [HttpPost]
+        public string ReturnStatus(dynamic para) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ReceiptID, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((string)para.BatchNo, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
 
 
         //Get:  /api/Receipt/GetWarehouse
-        public static DataTable GetWarehouse(string partnum) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
+        public DataTable GetWarehouse(string partnum) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetWarehouse(partnum) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回该物料可存放的所有仓库号
+
+
+        //Get:  /api/Receipt/GetTs
+        public string GetTs()
+        {
+            //ReceiptRepository.ts()
+            return ReceiptRepository.ts().FirstOrDefault() == null ? "asd" : "123";
+        }
     }
 }

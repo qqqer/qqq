@@ -191,6 +191,7 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\FtpRepository.cs" />
     <Compile Include="Models\Reason.cs" />
     <Compile Include="Models\CommonRepository.cs" />
     <Compile Include="Models\Receipt.cs" />

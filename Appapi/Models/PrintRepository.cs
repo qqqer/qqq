@@ -77,6 +77,7 @@ namespace Appapi.Models
             }
         }
 
+
         private static string PrintRow(DataRow dt, string fileName, string printer, int qty)
         {
             string message = Print(dt, fileName, printer, qty);
@@ -91,12 +92,9 @@ namespace Appapi.Models
             }
         }
 
+
         private static string PrintDT(DataTable dt, string fileName, string printer, int qty)
         {
-            //if (dt.Columns.Count != 35)
-            //{
-            //    return false;
-            //}
             string info;
             for (int i = 0; i < dt.Rows.Count; i++)
             {
@@ -110,6 +108,7 @@ namespace Appapi.Models
             KillProcess("bartend");
             return "ok";
         }
+
 
         private static void KillProcess(string processName)
         {
@@ -132,9 +131,9 @@ namespace Appapi.Models
             }
         }
 
+
         public static string PrintQR(string btwPath, string printer, int printQty, string jsonStr)
         {
-
             try
             {
                 JObject ja = (JObject)JsonConvert.DeserializeObject(jsonStr);
@@ -210,7 +209,6 @@ namespace Appapi.Models
                 #endregion
 
 
-
                 if (printQty == 0) { return "0|打印出错," + "打印份数不正确"; }
                 if (printer == "") { return "0|打印出错," + "打印机不正确"; }
                 if (btwPath.Trim() == "") { return "0|打印出错," + "打印模板btw路径不正确"; }
@@ -227,17 +225,6 @@ namespace Appapi.Models
                 }
 
                 if (printerExit == false) { return "0|打印出错,打印机:" + printer + "不存在"; }
-
-
-                //printer = @"/PRN=" + '"' + "Gprinter  GP-3150T" + '"' + " /p/x";
-                // dos命令方式打印
-                //runDos(@"C:\Program Files (x86)\Seagull\BarTender Suite\bartend.exe", @"c:\test.btw " + printer);
-
-
-
-                //dll方式打印
-                //printer = @"Gprinter  GP-3150T";
-
 
 
                 #region add drColumn
@@ -276,13 +263,7 @@ namespace Appapi.Models
 
                 #region add dr
                 DataRow dr = dt2.NewRow();
-                //以后增加替换%的功能
-                //dr["text1"] = partnum;
-                //dr["text2"] = partdesc;
-                //dr["text3"] = jobnum;
-                ////dr["text4"] = "part123%法兰一二三abc%part123%F1111%F1111%0%1";
-                //dr["text4"] = partnum + "%" + partdesc + "%" + jobnum + "%" + jobnum + asseq.ToString() + "%" + "";
-                //dr["text5"] = "";
+                
                 dr["text1"] = text1;
                 dr["text2"] = text2;
                 dr["text3"] = text3;
