@@ -15,11 +15,13 @@ namespace Appapi.Controllers
         #region 登录验证接口
         //Post:  /api/Receipt/Login
         [System.Web.Http.HttpPost]
-        public string Login(dynamic Account)
+        public string Login(dynamic Account) //ApiNum: 123
         {
+            string OpDetail = "", OpDate = DateTime.Now.ToString();
+
             string sql = "select * from Userfile where userid = '" + Account.userid + "' and disabled = 0";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
-            bool isvalid = dt.Rows.Count > 0 ? true : false;   // = 账号认证接口（）
+            bool isvalid = dt != null  ? true : false;   // = 账号认证接口（）
         
             if (isvalid)
             {        
@@ -29,8 +31,11 @@ namespace Appapi.Controllers
                 HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
                 //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
 
+                ReceiptRepository.AddOpLog(-1, 123, "login", OpDate, OpDetail);
+
                 return "登录成功";
             }
+
             return "登录失败";
         }//登录验证
         #endregion
@@ -121,7 +126,7 @@ namespace Appapi.Controllers
         [HttpPost]
         public string ReturnStatus(dynamic para) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((string)para.BatchNo, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ID, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
 
 
@@ -130,13 +135,6 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetWarehouse(partnum) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回该物料可存放的所有仓库号
-
-
-        //Get:  /api/Receipt/GetTs
-        public string GetTs()
-        {
-            //ReceiptRepository.ts()
-            return ReceiptRepository.ts().FirstOrDefault() == null ? "asd" : "123";
-        }
+       
     }
 }
