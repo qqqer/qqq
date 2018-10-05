@@ -98,15 +98,18 @@ namespace Appapi.Models
         }
 
 
-        private static void Return(int returnTo, string returnNum, int ID, string OpDate, int ReasonID)
+        private static void Return(int previousStatus, string returnNum, int ID, string OpDate, int ReasonID)
         {
-            string sql = @"update Receipt set status = "+ returnTo +", "+ returnNum + " = "+ returnNum + "+1 where where ID = " + ID + " ";
+            //更新该批次的status为上一个节点值，指定的回退编号次数+1
+            string sql = @"update Receipt set status = "+ previousStatus +", "+ returnNum + " = "+ returnNum + "+1 where where ID = " + ID + " ";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+            //获取更新后的回退编号
             sql = "select " + returnNum + " from Receipt where where ID = " + ID + " ";
-            int ReturnThree = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            int c = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            sql = @"insert into ReasonRecord(ReceiptId, " + returnNum + ", ReturnReasonId, Date) Values(" + ID + ", " + ReturnThree + ", " + ReasonID + ", '" + OpDate + "')";
+            //把该回退编号的原因插入到ReasonRecord表中
+            sql = @"insert into ReasonRecord(ReceiptId, " + returnNum + ", ReturnReasonId, Date) Values(" + ID + ", " + c + ", " + ReasonID + ", '" + OpDate + "')";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
 
@@ -259,7 +262,6 @@ namespace Appapi.Models
             if (PrintRepository.PrintQR("C:\\btw\\D0201.btw", HttpContext.Current.Session["UserPrinter"].ToString(), 1, jsonStr) == "1|处理成功")
             {
                 batInfo.IsPrint = true;
-                batInfo.Status = 2;
             }
             else
                 return "错误：打印失败"; //打印失败
@@ -325,7 +327,7 @@ namespace Appapi.Models
                     batInfo.NotReceiptQty,
                     batInfo.SecondUserGroup,
                     HttpContext.Current.Session["UserId"].ToString(),//
-                    batInfo.Status,
+                    2,
                     batInfo.PoNum,
                     batInfo.PoLine,
                     batInfo.PORelNum,
@@ -500,9 +502,10 @@ namespace Appapi.Models
                         Company = '{14}',
                         Plant = '{15}',
                         HeatNum = '{16}',
-                        Warehouse = '{17}',
+                        Warehouse = '{17}',                       
                         ReceiptDate = '{18}'
-                        where ID = {19}";
+                        Status = {19}
+                        where ID = {20}";
                 string.Format(sql,
                     batInfo.SupplierNo,
                     batInfo.SupplierName,
@@ -522,6 +525,7 @@ namespace Appapi.Models
                     batInfo.HeatNum,
                     batInfo.Warehouse,
                     OpDate,
+                    2,
                     batInfo.ID);
                 #endregion
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -857,12 +861,12 @@ namespace Appapi.Models
             if ((int)theBatch.Rows[0]["isdelete"] == 1)
                 return "错误：该批次的流程已删除";
 
-            else if ((int)theBatch.Rows[0]["status"] != 3)
+            else if ((int)theBatch.Rows[0]["status"] != 4)
                 return "错误：流程未在当前节点上";
 
-            else //status == 3  更新批次信息。
+            else //status == 4  更新批次信息。
             { 
-                sql = @"update Receipt set StockDate = '"+ OpDate +"', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', ThirdUserID = '{3}' where ID = " + batInfo.ID + "";
+                sql = @"update Receipt set StockDate = '"+ OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', status = 5  where ID = " + batInfo.ID + "";
                 string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString());
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -884,20 +888,46 @@ namespace Appapi.Models
         /// 返回下个节点的可选人员
         /// </summary>
         /// <returns></returns>
-        public static string GetNextUserGroup()
+        public static string GetNextUserGroup(int ID)
         {
-            DataTable dt;
-            string sql, NextUserGroup = null;
+            DataTable dt = null;
+            string sql= null, NextUserGroup = null;
 
-            
-            sql = "select userid from userfile where company = '{0}' and plant = '{1}' and disabled = 0 and RoleID = {2}";
-            string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString(), (int)HttpContext.Current.Session["RoleId"]);
-            dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+            sql = "select status from Receipt where ID = " + ID + ""; 
+            int status = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+
+            if (status > 3) //流程在节点3之前，下一步流转节点唯一
+            {
+                sql = "select userid from userfile where company = '{0}' and plant = '{1}' and disabled = 0 and RoleID = "+ status + 1 + "";
+            }
+            else // status == 3   流程在节点3
+            {
+                sql  = "select TranType from Receipt where ID = " + ID + ""; //获取该该批次的交易类型
+                string TranType = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                if (TranType == "PUR-STK") //流转给库存接收人， 库存接收人的RoleID为41
+                {
+                    sql = "select userid from userfile where company = '{0}' and plant = '{1}' and disabled = 0 and RoleID = 41";
+                    
+                }
+                else if (TranType == "PUR-SUB") //流转给现场接收人， 现场接收人的RoleID为42
+                {
+                    sql = "select userid from userfile where company = '{0}' and plant = '{1}' and disabled = 0 and RoleID = 42";
+                }
+                else if(TranType == "PUR-UKN") //流转给其他申购人， 其他申购人的RoleID为43
+                {
+                    sql = "select userid from userfile where company = '{0}' and plant = '{1}' and disabled = 0 and RoleID = 43";
+
+                }
+                string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
+                dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql); //根据sql，获取指定人员表
+            }
 
 
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                NextUserGroup += dt.Rows[i][0].ToString() + ","; //用逗号把可选的userid拼接起来
+                NextUserGroup += dt.Rows[i][0].ToString() + ","; //把每行的userid拼接起来，以逗号分隔
             }
 
             return NextUserGroup;
@@ -948,9 +978,9 @@ namespace Appapi.Models
 
                 //OpDetail = GetOpDetail("")
             }
-            else //oristatus == 1
+            else //oristatus == 1  
             {
-                sql = @"update Receipt set isdelete = 1 where where ID = " + ID + " ";
+                sql = @"update Receipt set isdelete = 1 where where ID = " + ID + " ";   // 把该批次的流程标记为已删除
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
