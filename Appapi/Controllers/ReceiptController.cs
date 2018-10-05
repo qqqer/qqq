@@ -116,9 +116,9 @@ namespace Appapi.Controllers
 
 
         //Get:  /api/Receipt/GetNextUserGroup
-        public string GetNextUserGroup()
+        public string GetNextUserGroup(int ID)
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup() : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(ID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
 
 

@@ -146,6 +146,7 @@ namespace Appapi.Models
                 jo.OpDesc,
                 jh.jobClosed,
                 jh.jobComplete,
+                jh.JobHeld,
                 pc.PartClassDesc,
                 (pr.XRelQty-pr.ArrivedQty) NeedReceiptQty, 
                 pp.PrimWhse as Warehouse
@@ -182,8 +183,8 @@ namespace Appapi.Models
             //筛选可能有效的收货依据，以得到最终有效的收货依据表。     
             for (int i = 0;i < dt.Rows.Count; i++)
             {
-                //如果该收货依据是外协 且关联的工单已完成或关闭 则排除该收货依据
-                if (dt.Rows[i]["TranType"].ToString() == "PUR-SUB" && ((int)dt.Rows[i]["jobClosed"] == 1 || (int)dt.Rows[i]["jobComplete"] == 1))
+                //如果该收货依据是外协 且关联的工单已完成或关闭或冻结 则排除该收货依据
+                if (dt.Rows[i]["TranType"].ToString() == "PUR-SUB" && ((int)dt.Rows[i]["jobClosed"] == 1 || (int)dt.Rows[i]["jobComplete"] == 1 || (int)dt.Rows[i]["JobHeld"] == 1))
                     dt.Rows[i].Delete();
             }
             List<Receipt> RBs = CommonRepository.DataTableToList<Receipt>(dt); 
