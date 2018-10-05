@@ -17,7 +17,8 @@ namespace Appapi.Models
         public int? PoLine { get; set; }
         public int? JobSeq { get; set; }
         public int? AssemblySeq { get; set; }
-        public int? ReceiveCount { get; set; }
+        public int? ReceiveQty1 { get; set; }
+        public int? ReceiveQty2 { get; set; }
         public int? PORelNum { get; set; }
         public int? Status { get; set; }
         public bool? IsPrint { get; set; }
@@ -33,7 +34,7 @@ namespace Appapi.Models
         public string IUM { get; set; }
         public string JobNum { get; set; }
         public string CommentText { get; set; }
-        public string Description { get; set; }
+        public string PartClassDesc { get; set; }
         public string Plant { get; set; }
         public string Company { get; set; }
         public string Remark { get; set; }
@@ -46,18 +47,23 @@ namespace Appapi.Models
         public DateTime IQCDate { get; set; }
         public int ID { get; set; }
         public bool? IsAllCheck { get; set; }
-        public decimal? SpotCheckCount { get; set; }
-        public decimal? QualifiedCount { get; set; }
-        public decimal? UnqualifiedCount { get; set; }
+        public decimal? InspectionQty { get; set; }
+        public decimal? PassedQty { get; set; }
+        public decimal? FailedQty { get; set; }
         public string Result { get; set; }
         public string ThirdUserID { get; set; }
+        public string FourthUserID { get; set; }
         public DateTime StockDate { get; set; }
-        public decimal? StockCount { get; set; }
+        public DateTime ChooseDate { get; set; }
+        public decimal? ArrivedQty { get; set; }
         public string Warehouse { get; set; }
         public string BinNum { get; set; }
         public string SecondUserGroup { get; set; }
         public string ThirdUserGroup { get; set; }
+        public string FourthUserGroup { get; set; }
+       
         public int? ReturnOne { get; set; }
         public int? ReturnTwo { get; set; }
+        public int? ReturnThree { get; set; }
     }
 }

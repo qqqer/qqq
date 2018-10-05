@@ -67,7 +67,7 @@ namespace Appapi.Models
         /// <returns></returns>
         private static decimal GetNotReceiptQty(Receipt batInfo)
         {
-            string sql = "select sum(case when  ActCount is null then receivecount else ActCount end) from Receipt " +
+            string sql = "select sum(case when ArrivedQty is null then(case when  ReceiveQty2 is null then ReceiveQty1 else ReceiveQty2 end) else ArrivedQty end) from Receipt " +
                         "where isdelete != 1 and ponum = " + batInfo.PoNum + " and poline = " + batInfo.PoLine + " and  PORelNum = " + batInfo.PORelNum + " and company = " + batInfo.Company + " and plant = " + batInfo.Plant + "";
 
             object sum = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -112,6 +112,7 @@ namespace Appapi.Models
         }        
 
 
+
         #region 接收
         /// <summary>
         /// 根据条件，返回有效收货依据列表
@@ -141,8 +142,8 @@ namespace Appapi.Models
                 jo.OpDesc,
                 jh.jobClosed,
                 jh.jobComplete,
-                pc.description,
-                (pr.XRelQty-pr.PassedQty) NeedReceiptQty, 
+                pc.PartClassDesc,
+                (pr.XRelQty-pr.ArrivedQty) NeedReceiptQty, 
                 pp.PrimWhse as Warehouse
                  from erp.PORel pr
                 left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
@@ -168,22 +169,21 @@ namespace Appapi.Models
                 sql += "and pd.LineDesc like '%" + Condition.PartDesc + "%' ";
             #endregion
 
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql); //获取收货依据
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql); //获取可能有效的收货依据
 
-            if (dt == null) //没有找到可能合格的收货依据
+            if (dt == null) //没有找到可能有效的收货依据
                 return null;
 
 
-            //筛选可能合格的收货依据，以得到最终合格的收货依据列表。     
+            //筛选可能有效的收货依据，以得到最终有效的收货依据表。     
             for (int i = 0;i < dt.Rows.Count; i++)
             {
                 //如果该收货依据是外协 且关联的工单已完成或关闭 则排除该收货依据
                 if (dt.Rows[i]["TranType"].ToString() == "PUR-SUB" && ((int)dt.Rows[i]["jobClosed"] == 1 || (int)dt.Rows[i]["jobComplete"] == 1))
                     dt.Rows[i].Delete();
             }
-
-
             List<Receipt> RBs = CommonRepository.DataTableToList<Receipt>(dt); 
+
 
 
             if (RBs != null)//若经过筛选后收货依据列表不为空
@@ -205,7 +205,7 @@ namespace Appapi.Models
         /// <returns></returns>
         public static string ReceiveCommitWithNonQRCode(Receipt batInfo)
         {
-            string OpDate = (batInfo.ReceiptDate = DateTime.Now).ToString(); // 获取当前操作时间
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"); // 获取当前操作时间
 
 
             IEnumerable<Receipt> RB = GetReceivingBasis(batInfo); //根据批次信息 获取该批次所属的收货依据
@@ -213,8 +213,8 @@ namespace Appapi.Models
             if (RB == null)
                 return "错误：该批次所属的收货依据已失效";
 
-            if (batInfo.ReceiveCount > RB.First().NotReceiptQty)//若超收
-                return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveCount - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
+            if (batInfo.ReceiveQty1 > RB.First().NotReceiptQty)//若超收
+                return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty1 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
 
 
             #region 计算批次号
@@ -247,7 +247,7 @@ namespace Appapi.Models
             string jsonStr = @"{ 'text1': '{0}', 'text2': '', 'text3': '{1}', 'text4': '{2}', 'text5': {3}, 'text6': '', 'text7': '{4}', 'text8': {5}, 'text9': {6}, 
 'text10': {7}, 'text11': {8}, 'text12': '{9}', 'text13': '', 'text14': {10}, 'text15': '{11}', 'text16': '', 'text17': '', 'text18': '', 'text19': '', 
 'text20': '', 'text21': '', 'text22': '', 'text23': '', 'text24': '', 'text25': '', 'text26': '', 'text27': '', 'text28': '', 'text29': '', 'text30': '' }";
-            string.Format(jsonStr, batInfo.PartNum, batInfo.BatchNo, batInfo.JobNum, batInfo.AssemblySeq, batInfo.SupplierNo, batInfo.PoNum, batInfo.PoLine, batInfo.ReceiveCount, batInfo.PORelNum, batInfo.Company, batInfo.JobSeq, batInfo.HeatNum);
+            string.Format(jsonStr, batInfo.PartNum, batInfo.BatchNo, batInfo.JobNum, batInfo.AssemblySeq, batInfo.SupplierNo, batInfo.PoNum, batInfo.PoLine, batInfo.ReceiveQty1, batInfo.PORelNum, batInfo.Company, batInfo.JobSeq, batInfo.HeatNum);
 
             if (PrintRepository.PrintQR("C:\\btw\\D0201.btw", HttpContext.Current.Session["UserPrinter"].ToString(), 1, jsonStr) == "1|处理成功")
             {
@@ -265,7 +265,7 @@ namespace Appapi.Models
                 sql = @"insert into Receipt(
                 SupplierNo, 
                 SupplierName,                
-                ReceiveCount,
+                ReceiveQty1,
                 AssemblySeq, 
                 JobSeq,
                 PartNum,
@@ -277,7 +277,7 @@ namespace Appapi.Models
                 PartType,           
                 OpDesc,
                 CommentText,
-                Description,
+                PartClassDesc,
                 NeedReceiptQty,
                 NotReceiptQty,
                 SecondUserGroup,
@@ -301,7 +301,7 @@ namespace Appapi.Models
                 {
                     batInfo.SupplierNo,
                     batInfo.SupplierName,
-                    batInfo.ReceiveCount,
+                    batInfo.ReceiveQty1,
                     batInfo.AssemblySeq,
                     batInfo.JobSeq,
                     batInfo.PartNum,
@@ -313,7 +313,7 @@ namespace Appapi.Models
                     batInfo.PartType,
                     batInfo.OpDesc,
                     batInfo.CommentText,
-                    batInfo.Description,
+                    batInfo.PartClassDesc,
                     batInfo.NeedReceiptQty,
                     batInfo.NotReceiptQty,
                     batInfo.SecondUserGroup,
@@ -331,7 +331,7 @@ namespace Appapi.Models
                     batInfo.HeatNum,
                     batInfo.Warehouse,
                     0,
-                    batInfo.ReceiptDate
+                    OpDate
                 });
                 string.Format(sql, values);
                 #endregion
@@ -368,18 +368,18 @@ namespace Appapi.Models
         /// <returns></returns>
         public static string ReceiveCommitWithQRCode(Receipt batInfo)
         {
-            string OpDate = (batInfo.ReceiptDate = DateTime.Now).ToString(); //获取当前操作时间点
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"); //获取当前操作时间点
 
             IEnumerable<Receipt> RB = GetReceivingBasis(batInfo); //获取该批次所属的收货依据
 
             if (RB == null)
                 return "错误：该批次所属的收货依据已失效";
 
-            if (batInfo.ReceiveCount > RB.First().NotReceiptQty)//若超收
-                return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveCount - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
+            if (batInfo.ReceiveQty1 > RB.First().NotReceiptQty)//若超收
+                return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty1 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
 
 
-            string sql = "select status，isdelete from Receipt where BatchNo = '"+ batInfo.BatchNo + "'";
+            string sql = "select status，isdelete from Receipt where ID = "+ batInfo.ID + " ";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);//获取batInfo所指定的批次的status，isdelete字段值
 
             if (theBatch == null) //batInfo所指定的批次不存在，为该批次生成一条新的receipt记录
@@ -388,7 +388,7 @@ namespace Appapi.Models
                 sql = @"insert into Receipt(
                         SupplierNo, 
                         SupplierName,                
-                        ReceiveCount,
+                        ReceiveQty1,
                         AssemblySeq, 
                         JobSeq,
                         PartNum,
@@ -400,7 +400,7 @@ namespace Appapi.Models
                         PartType,           
                         OpDesc,
                         CommentText,
-                        Description,
+                        PartClassDesc,
                         NeedReceiptQty,
                         NotReceiptQty,
                         SecondUserGroup,
@@ -424,7 +424,7 @@ namespace Appapi.Models
                 {
                     batInfo.SupplierNo,
                     batInfo.SupplierName,
-                    batInfo.ReceiveCount,
+                    batInfo.ReceiveQty1,
                     RB.First().AssemblySeq,
                     RB.First().JobSeq,
                     batInfo.PartNum,
@@ -436,7 +436,7 @@ namespace Appapi.Models
                     RB.First().PartType,
                     RB.First().OpDesc,
                     RB.First().CommentText,
-                    RB.First().Description,
+                    RB.First().PartClassDesc,
                     RB.First().NeedReceiptQty,
                     RB.First().NotReceiptQty,
                     batInfo.SecondUserGroup,
@@ -454,7 +454,7 @@ namespace Appapi.Models
                     0,
                     RB.First().Warehouse,
                     0,
-                    batInfo.ReceiptDate
+                    OpDate
                 });
                 string.Format(sql, values);
                 #endregion
@@ -479,7 +479,7 @@ namespace Appapi.Models
                 sql = @"update Receipt set
                         SupplierNo = '{0}', 
                         SupplierName = '{1}',
-                        ReceiveCount = {3},
+                        ReceiveQty1 = {3},
                         PartNum = '{4}',
                         PartDesc = '{5}',
                         JobNum = '{6}', 
@@ -499,7 +499,7 @@ namespace Appapi.Models
                 string.Format(sql,
                     batInfo.SupplierNo,
                     batInfo.SupplierName,
-                    batInfo.ReceiveCount,
+                    batInfo.ReceiveQty1,
                     batInfo.PartNum,
                     batInfo.PartDesc,
                     batInfo.JobNum,
@@ -514,7 +514,7 @@ namespace Appapi.Models
                     batInfo.Plant,
                     batInfo.HeatNum,
                     batInfo.Warehouse,
-                    batInfo.ReceiptDate,
+                    OpDate,
                     batInfo.ID);
                 #endregion
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -535,7 +535,7 @@ namespace Appapi.Models
                         ID,
                         SupplierNo, 
                         SupplierName,                
-                        ReceiveCount,
+                        ReceiveQty1,
                         PartNum,
                         PartDesc,
                         JobNum, 
@@ -563,6 +563,7 @@ namespace Appapi.Models
         #endregion
 
 
+
         #region 进料检验
         /// <summary>
         /// 返回节点2的待办批次
@@ -575,7 +576,7 @@ namespace Appapi.Models
                         ID,
                         SupplierNo, 
                         SupplierName,                
-                        ReceiveCount,
+                        ReceiveQty1,
                         AssemblySeq, 
                         JobSeq,
                         PartNum,
@@ -587,7 +588,7 @@ namespace Appapi.Models
                         PartType,           
                         OpDesc,
                         CommentText,
-                        Description,
+                        PartClassDesc,
                         NeedReceiptQty,
                         NotReceiptQty,
                         FirstUserID,
@@ -605,9 +606,9 @@ namespace Appapi.Models
 
                         IQCDate,
                         IsAllCheck, 
-                        SpotCheckCount, 
-                        QualifiedCount, 
-                        UnqualifiedCount, 
+                        InspectionQty, 
+                        PassedQty, 
+                        FailedQty, 
                         Result，
                         ThirdUserGroup, 
                         SecondUserID, 
@@ -629,7 +630,7 @@ namespace Appapi.Models
         /// <returns></returns>
         public static string IQCCommit(Receipt batInfo)
         {
-            string OpDate = DateTime.Now.ToString();
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
 
             IEnumerable<Receipt> RB = GetReceivingBasis(batInfo); //获取该批次所属的收货依据
@@ -637,11 +638,11 @@ namespace Appapi.Models
             if (RB == null)
                 return "错误：该批次所属的收货依据已失效";
 
-            if (batInfo.QualifiedCount > RB.First().NotReceiptQty)//若超收
-                return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.QualifiedCount - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
+            if (batInfo.ReceiveQty2 > RB.First().NotReceiptQty)//若超收
+                return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty2 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
 
 
-            string sql = "select status，isdelete from Receipt where BatchNo = '" + batInfo.BatchNo + "'";
+            string sql = "select status，isdelete from Receipt where ID = " + batInfo.ID + "";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取batInfo所指定的批次的status，isdelete字段值
 
 
@@ -653,8 +654,8 @@ namespace Appapi.Models
 
             else //status == 2  更新批次信息。
             {         
-                sql = @"update Receipt set IQCDate = getdate(), IsAllCheck = {0}, SpotCheckCount = {1}, QualifiedCount = {2}, UnqualifiedCount = {3}, Result = '{4}'，Remark = '{5}'，Status=" + batInfo.Status + "，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}' where BatchNo = '{9}'";
-                string.Format(sql, batInfo.IsAllCheck, batInfo.SpotCheckCount, batInfo.QualifiedCount, batInfo.UnqualifiedCount, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.BatchNo);
+                sql = @"update Receipt set IQCDate = '"+ OpDate +"', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}'，Remark = '{5}'，Status=" + batInfo.Status + "，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9} where ID = {10}";
+                string.Format(sql, batInfo.IsAllCheck, batInfo.InspectionQty, batInfo.PassedQty, batInfo.FailedQty, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.ReceiveQty2, batInfo.ID);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
@@ -664,22 +665,20 @@ namespace Appapi.Models
                 return "处理成功";
             }
         }
+
         #endregion
 
 
-        /// <summary>
-        /// 返回节点4的待办批次
-        /// </summary>
-        /// <returns></returns>
-        #region 入库
-        public static IEnumerable<Receipt> GetRemainsOfAcceptUser()
+
+        #region 确认
+        public static IEnumerable<Receipt> GetRemainsOfConfirmUser()
         {
             #region 构造sql语句
             string sql = @"select 
                         ID,
                         SupplierNo, 
                         SupplierName,                
-                        ReceiveCount,
+                        ReceiveQty1,
                         AssemblySeq, 
                         JobSeq,
                         PartNum,
@@ -691,7 +690,7 @@ namespace Appapi.Models
                         PartType,           
                         OpDesc,
                         CommentText,
-                        Description,
+                        PartClassDesc,
                         NeedReceiptQty,
                         NotReceiptQty,
                         SecondUserID,
@@ -709,17 +708,119 @@ namespace Appapi.Models
                         ReceiptDate,
                         IQCDate,
                         IsAllCheck,
-                        SpotCheckCount,
-                        QualifiedCount,
-                        UnqualifiedCount,
+                        InspectionQty,
+                        PassedQty,
+                        FailedQty,
                         Result,
                         Warehouse,
                         StockDate,
-                        StockCount, 
+                        ArrivedQty, 
+                        BinNum, 
+                        SecondUserID,
+                        FourthUserGroup
+                        from Receipt where 
+                        ThirdUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' " +
+                        "and status = " + (int)HttpContext.Current.Session["RoleId"] + " and isdelete != 1 " +
+                        "and Company = '" + HttpContext.Current.Session["Company"].ToString() + "'   and   Plant = '" + HttpContext.Current.Session["Plant"].ToString() + "' ";
+            #endregion
+
+            //获取与该用户有关的有效待办批次
+            return GetValidBatchs(CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)));
+        }
+
+
+        public static string ConfirmCommit(Receipt batInfo)
+        {
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+
+            IEnumerable<Receipt> RB = GetReceivingBasis(batInfo); //获取该批次所属的收货依据
+
+            if (RB == null)
+                return "错误：该批次所属的收货依据已失效";
+
+
+            string sql = "select status，isdelete from Receipt where ID = " + batInfo.ID + "";
+            DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取batInfo所指定的批次的status，isdelete字段值
+
+
+            if ((int)theBatch.Rows[0]["isdelete"] == 1)
+                return "错误：该批次的流程已删除";
+
+            else if ((int)theBatch.Rows[0]["status"] != 3)
+                return "错误：流程未在当前节点上";
+
+            else //status == 3  选人。
+            {
+                sql = @"update Receipt set ChooseDate = '"+ OpDate +"'，Status=" + batInfo.Status + "，FourthUserGroup = '{0}', ThirdUserID = '{1}' where ID = " + batInfo.ID + "";
+                string.Format(sql,  batInfo.FourthUserGroup, HttpContext.Current.Session["UserId"].ToString());
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+
+                //string OpDetail  =  GetOpDetail("")
+                //AddOpLog(batInfo.ID, 201, "update", OpDate, OpDetail);
+
+                return "处理成功";
+            }
+        }
+        #endregion
+
+
+
+        #region 入库
+
+        /// <summary>
+        /// 返回节点4的待办批次
+        /// </summary>
+        /// <returns></returns>
+        public static IEnumerable<Receipt> GetRemainsOfAcceptUser()
+        {
+            #region 构造sql语句
+            string sql = @"select 
+                        ID,
+                        SupplierNo, 
+                        SupplierName,                
+                        ReceiveQty1,
+                        AssemblySeq, 
+                        JobSeq,
+                        PartNum,
+                        PartDesc,
+                        IUM, 
+                        JobNum, 
+                        Remark,
+                        TranType,
+                        PartType,           
+                        OpDesc,
+                        CommentText,
+                        PartClassDesc,
+                        NeedReceiptQty,
+                        NotReceiptQty,
+                        SecondUserID,
+                        FirstUserID,
+                        Status,
+                        PoNum,
+                        PoLine,
+                        PORelNum,
+                        BatchNo,
+                        Company,
+                        Plant,
+                        IsPrint,
+                        ReceiptNo,
+                        HeatNum,
+                        ReceiptDate,
+                        IQCDate,
+                        IsAllCheck,
+                        InspectionQty,
+                        PassedQty,
+                        FailedQty,
+                        Result,
+                        Warehouse,
+                        StockDate,
+                        ArrivedQty, 
                         BinNum, 
                         ThirdUserID
                         from Receipt where 
-                        ThirdUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' " +
+                        FourthUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' " +
                         "and status = "+ (int)HttpContext.Current.Session["RoleId"] + " and isdelete != 1 " +
                         "and Company = '" + HttpContext.Current.Session["Company"].ToString() + "'   and   Plant = '" + HttpContext.Current.Session["Plant"].ToString() + "' ";
             #endregion
@@ -731,7 +832,7 @@ namespace Appapi.Models
 
         public static string AcceptCommit(Receipt batInfo)
         {
-            string OpDate = DateTime.Now.ToString();
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
 
             IEnumerable<Receipt> RB = GetReceivingBasis(batInfo); //获取该批次所属的收货依据
@@ -739,11 +840,11 @@ namespace Appapi.Models
             if (RB == null)
                 return "错误：该批次所属的收货依据已失效";
 
-            if (batInfo.StockCount > RB.First().NotReceiptQty)//若超收
-                return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.StockCount - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
+            if (batInfo.ArrivedQty > RB.First().NotReceiptQty)//若超收
+                return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ArrivedQty - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
 
 
-            string sql = "select status，isdelete from Receipt where BatchNo = '" + batInfo.BatchNo + "'";
+            string sql = "select status，isdelete from Receipt where ID = " + batInfo.ID + "";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取batInfo所指定的批次的status，isdelete字段值
 
             if ((int)theBatch.Rows[0]["isdelete"] == 1)
@@ -754,8 +855,8 @@ namespace Appapi.Models
 
             else //status == 3  更新批次信息。
             { 
-                sql = @"update Receipt set StockDate = getdate(), StockCount = {0}, Warehouse = '{1}', BinNum = '{2}', ThirdUserID = '{3}' where BatchNo = '{4}'";
-                string.Format(sql, batInfo.StockCount, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), batInfo.BatchNo);
+                sql = @"update Receipt set StockDate = '"+ OpDate +"', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', ThirdUserID = '{3}' where ID = " + batInfo.ID + "";
+                string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString());
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 //调用反写接口。     若反写erp失败，返回"处理失败-2" //反写数据进erp时失败
@@ -767,6 +868,8 @@ namespace Appapi.Models
             }
         }
         #endregion
+
+
 
 
         /// <summary>
@@ -802,7 +905,7 @@ namespace Appapi.Models
         /// <returns></returns>
         public static string ReturnStatus(int ID, int oristatus, int ReasonID)
         {
-            string OpDetail = "", OpDate = DateTime.Now.ToString();
+            string OpDetail = "", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             
             string sql = "select status，isdelete from Receipt where ID = " + ID + " ";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取ID所指定的批次的 status，isdelete字段值
