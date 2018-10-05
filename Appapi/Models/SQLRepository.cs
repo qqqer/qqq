@@ -17,12 +17,19 @@ namespace Appapi.Models
 
             SqlCommand cmd = new SqlCommand();
 
-            using (SqlConnection conn = new SqlConnection(connectionString))
+            try
             {
-                PrepareCommand(cmd, conn, null, cmdType, cmdText, commandParameters);
-                int val = cmd.ExecuteNonQuery();
-                cmd.Parameters.Clear();
-                return val;
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    PrepareCommand(cmd, conn, null, cmdType, cmdText, commandParameters);
+                    int val = cmd.ExecuteNonQuery();
+                    cmd.Parameters.Clear();
+                    return val;
+                }
+            }
+            catch
+            {
+                throw;
             }
         }
 
@@ -51,13 +58,19 @@ namespace Appapi.Models
         {
             SqlCommand cmd = new SqlCommand();
 
-            using (SqlConnection connection = new SqlConnection(connectionString))
+            try
             {
-                PrepareCommand(cmd, connection, null, cmdType, cmdText, commandParameters);
-                object val = null;
-                val = cmd.ExecuteScalar();
-                cmd.Parameters.Clear();
-                return val;
+                using (SqlConnection connection = new SqlConnection(connectionString))
+                {
+                    PrepareCommand(cmd, connection, null, cmdType, cmdText, commandParameters);
+                    object val = cmd.ExecuteScalar();
+                    cmd.Parameters.Clear();
+                    return val;
+                }
+            }
+            catch
+            {
+                throw;
             }
         }
 

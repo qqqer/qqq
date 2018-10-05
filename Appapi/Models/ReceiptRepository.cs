@@ -10,6 +10,7 @@ namespace Appapi.Models
 {
     public static class ReceiptRepository
     {
+        #region  重用函数
         private static string ConstructValues(ArrayList array)
         {
             string values = "";
@@ -59,21 +60,6 @@ namespace Appapi.Models
             return OpDetail;
         }
 
-     
-        /// <summary>
-        /// 计算该批次的收货依据中的还可接收数量。  计算方法参考收货文档
-        /// </summary>
-        /// <param name="batInfo"></param>
-        /// <returns></returns>
-        private static decimal GetNotReceiptQty(Receipt batInfo)
-        {
-            string sql = "select sum(case when ArrivedQty is null then(case when  ReceiveQty2 is null then ReceiveQty1 else ReceiveQty2 end) else ArrivedQty end) from Receipt " +
-                        "where isdelete != 1 and ponum = " + batInfo.PoNum + " and poline = " + batInfo.PoLine + " and  PORelNum = " + batInfo.PORelNum + " and company = " + batInfo.Company + " and plant = " + batInfo.Plant + "";
-
-            object sum = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-            return (decimal)batInfo.NeedReceiptQty - (sum != null ? (decimal)sum : 0);
-        }
 
         
         /// <summary>
@@ -109,7 +95,22 @@ namespace Appapi.Models
             }//筛选待办批次。
 
             return batchs.Count > 0 ? batchs : null;
-        }        
+        }
+
+
+        private static void Return(int returnTo, string returnNum, int ID, string OpDate, int ReasonID)
+        {
+            string sql = @"update Receipt set status = "+ returnTo +", "+ returnNum + " = "+ returnNum + "+1 where where ID = " + ID + " ";
+            SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            sql = "select " + returnNum + " from Receipt where where ID = " + ID + " ";
+            int ReturnThree = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            sql = @"insert into ReasonRecord(ReceiptId, " + returnNum + ", ReturnReasonId, Date) Values(" + ID + ", " + ReturnThree + ", " + ReasonID + ", '" + OpDate + "')";
+            SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+        }
+
+        #endregion
 
 
 
@@ -186,12 +187,18 @@ namespace Appapi.Models
 
 
 
-            if (RBs != null)//若经过筛选后收货依据列表不为空
+            if (RBs != null)//若经过筛选后收货依据列表不为空， 则计算每个有效收货依据中的还可接收数量NotReceiptQty
             {
                 for (int i = 0; i < RBs.Count; i++)
                 {
-                    RBs[i].NotReceiptQty = GetNotReceiptQty(RBs[i]);
-                }//计算每个收货依据中的还可接收数量NotReceiptQty
+                    sql = "select sum(case when ArrivedQty is null then(case when  ReceiveQty2 is null then ReceiveQty1 else ReceiveQty2 end) else ArrivedQty end) from Receipt " +
+                        "where isdelete != 1 and ponum = " + RBs[i].PoNum + " and poline = " + RBs[i].PoLine + " and  PORelNum = " + RBs[i].PORelNum + " and company = " + RBs[i].Company + " and plant = " + RBs[i].Plant + "";
+
+                    object sum = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    RBs[i].NotReceiptQty = (decimal)RBs[i].NeedReceiptQty - (sum != null ? (decimal)sum : 0);
+
+                }//计算每个有效收货依据中的还可接收数量NotReceiptQty
             }
 
             return RBs;
@@ -695,6 +702,7 @@ namespace Appapi.Models
                         NotReceiptQty,
                         SecondUserID,
                         FirstUserID,
+                        ThirdUserID,
                         Status,
                         PoNum,
                         PoLine,
@@ -716,7 +724,6 @@ namespace Appapi.Models
                         StockDate,
                         ArrivedQty, 
                         BinNum, 
-                        SecondUserID,
                         FourthUserGroup
                         from Receipt where 
                         ThirdUserGroup like '%" + HttpContext.Current.Session["UserId"].ToString() + "%' " +
@@ -871,6 +878,7 @@ namespace Appapi.Models
 
 
 
+        #region 功能
 
         /// <summary>
         /// 返回下个节点的可选人员
@@ -918,41 +926,39 @@ namespace Appapi.Models
                 return "错误：流程未在当前节点上";
 
 
-            int ApiNum;
-            if (oristatus == 3)
+
+            if (oristatus == 41 || oristatus == 42 || oristatus == 43)
             {
-                ApiNum = 300;
-                sql = @"update Receipt set status = 2, ReturnTwo = ReturnTwo+1 where where ID = " + ID + " ";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                sql = "select ReturnTwo from Receipt where where ID = " + ID + " ";
-                int ReturnTwo = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                sql = @"insert into ReasonRecord(ReceiptId, ReturnTwo, ReturnReasonId, Date) Values(" + ID + ", " + ReturnTwo + ", " + ReasonID + ", '" + OpDate + "')";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                Return(3, "ReturnThree", ID, OpDate, ReasonID);
 
                 //OpDetail = GetOpDetail("")
 
             }
-            else //if (oristatus == 2)
+            else if (oristatus == 3)
             {
-                ApiNum = 200;
-                sql = @"update Receipt set status = 1, ReturnOne = ReturnOne+1 where where ID = " + ID + " ";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                sql = "select ReturnOne from Receipt where where ID = " + ID + " ";
-                int ReturnOne = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                sql = @"insert into ReasonRecord(ReceiptId, ReturnOne, ReturnReasonId, Date) Values(" + ID + ", " + ReturnOne + ", " + ReasonID + ", '" + OpDate + "')";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                Return(2, "ReturnTwo", ID, OpDate, ReasonID);
 
                 //OpDetail = GetOpDetail("")
+            }
+            else if (oristatus == 2)
+            {
+                Return(1, "ReturnOne", ID, OpDate, ReasonID);
+
+                //清空报告
+
+                //OpDetail = GetOpDetail("")
+            }
+            else //oristatus == 1
+            {
+                sql = @"update Receipt set isdelete = 1 where where ID = " + ID + " ";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
 
             // AddOpLog(ID, ApiNum, "return", OpDate, OpDetail);
             return "处理成功";
         }
+
 
         public static IEnumerable<Reason> GetReason()
         {
@@ -973,6 +979,9 @@ namespace Appapi.Models
 
             return SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
         }
+
+        #endregion
+
 
 
         public static void AddOpLog(int ReceiptId, int ApiNum, string OpType, string OpDate, string OpDetail)
