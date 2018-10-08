@@ -20,7 +20,6 @@ namespace Appapi.Controllers
         public string Login(dynamic Account) //ApiNum: 123
         {
             string OpDetail = "", OpDate = DateTime.Now.ToString();
-            //HttpContext.Current.Session.SessionID.
 
             string sql = "select * from Userfile where userid = '" + Convert.ToString(Account.userid) + "' and disabled = 0";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
