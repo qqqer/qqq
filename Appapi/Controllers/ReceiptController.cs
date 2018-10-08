@@ -7,9 +7,11 @@ using System.Net.Http;
 using System.Web.Http;
 using System.Web;
 using System.Data;
+using System.Web.Services;
 
 namespace Appapi.Controllers
 {
+    //[System.Web.Script.Services.ScriptService]
     public class ReceiptController : ApiController
     {
         #region 登录验证接口
@@ -18,8 +20,9 @@ namespace Appapi.Controllers
         public string Login(dynamic Account) //ApiNum: 123
         {
             string OpDetail = "", OpDate = DateTime.Now.ToString();
+            //HttpContext.Current.Session.SessionID.
 
-            string sql = "select * from Userfile where userid = '" + Account.userid + "' and disabled = 0";
+            string sql = "select * from Userfile where userid = '" + Convert.ToString(Account.userid) + "' and disabled = 0";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
             bool isvalid = dt != null  ? true : false;   // = 账号认证接口（）
         
@@ -31,7 +34,7 @@ namespace Appapi.Controllers
                 HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
                 //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
 
-                ReceiptRepository.AddOpLog(-1, 123, "login", OpDate, OpDetail);
+                //ReceiptRepository.AddOpLog(-1, 123, "login", OpDate, OpDetail);
 
                 return "登录成功";
             }
@@ -58,10 +61,11 @@ namespace Appapi.Controllers
         }//根据Para提供的参数，打印收货二维码并新增收货流程记录， 并把流程转到第2节点
 
 
+        [HttpGet]
         //Get:  /api/Receipt/GetSupplierNameBySupplierNo
         public string GetSupplierNameBySupplierNo(string SupplierNo)
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetSupplierName(SupplierNo) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetSupplierName(SupplierNo) : throw new HttpResponseException(HttpStatusCode.Forbidden) ;
         }//根据供应商ID，返回供应商名称
 
 
@@ -74,7 +78,7 @@ namespace Appapi.Controllers
 
 
         //Get:  /api/Receipt/GetRemainsOfReceiveUser
-        public static IEnumerable<Receipt> GetRemainsOfReceiveUser()
+        public IEnumerable<Receipt> GetRemainsOfReceiveUser()
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRemainsOfReceiveUser() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//获取节点1的代办事项
@@ -115,10 +119,11 @@ namespace Appapi.Controllers
         #endregion
 
 
-        //Get:  /api/Receipt/GetNextUserGroup
-        public string GetNextUserGroup(int ID)
+        //Post:  /api/Receipt/GetNextUserGroup
+        [HttpGet]
+        public string GetNextUserGroup(int nextStatus)
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(ID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(Convert.ToInt32(nextStatus)) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
 
 

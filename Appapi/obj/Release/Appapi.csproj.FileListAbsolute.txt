@@ -212,3 +212,4 @@ C:\Users\qqqer\Desktop\APP\Appapi\obj\Release\Appapi.csproj.CoreCompileInputs.ca
 C:\Users\qqqer\Desktop\APP\Appapi\obj\Release\Appapi.csproj.CopyComplete
 C:\Users\qqqer\Desktop\APP\Appapi\obj\Release\Appapi.dll
 C:\Users\qqqer\Desktop\APP\Appapi\obj\Release\Appapi.pdb
+E:\Git\APPapi\Appapi\bin\Microsoft.SqlServer.TxScript.dll

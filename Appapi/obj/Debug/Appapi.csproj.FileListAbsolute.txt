@@ -337,3 +337,4 @@ C:\Users\qqqer\Desktop\APP\Appapi\obj\Debug\Appapi.csproj.CoreCompileInputs.cach
 C:\Users\qqqer\Desktop\APP\Appapi\obj\Debug\Appapi.csproj.CopyComplete
 C:\Users\qqqer\Desktop\APP\Appapi\obj\Debug\Appapi.dll
 C:\Users\qqqer\Desktop\APP\Appapi\obj\Debug\Appapi.pdb
+E:\Git\APPapi\Appapi\bin\Microsoft.SqlServer.TxScript.dll
