@@ -25,21 +25,21 @@ namespace Appapi
             this.PostAuthenticateRequest += (sender, e) => HttpContext.Current.SetSessionStateBehavior(SessionStateBehavior.Required);
             base.Init();
         }
-
+        /*
         protected void Application_BeginRequest(object sender, EventArgs e)
         {
-            if (HttpContext.Current.Request.HttpMethod == "OPTIONS")
+            //if (HttpContext.Current.Request.HttpMethod == "OPTIONS")
             {
                 //These headers are handling the "pre-flight" OPTIONS call sent by the browser
                 //HttpContext.Current.Response.AddHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
                 //HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
                 //HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
                 //HttpContext.Current.Response.AddHeader("Access-Control-Allow-Origin", HttpContext.Current.Request.Headers.GetValues("Origin").First());
-                //HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
+               // HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
                 //HttpContext.Current.Response.AddHeader("Access-Control-Max-Age", "1728000");
                 //HttpContext.Current.Response.End();
             }
-        }
+        }*/
 
         /*
         void Session_Start(object sender, EventArgs e)
