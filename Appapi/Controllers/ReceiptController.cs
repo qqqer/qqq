@@ -8,10 +8,10 @@ using System.Web.Http;
 using System.Web;
 using System.Data;
 using System.Web.Services;
+using System.IO;
 
 namespace Appapi.Controllers
 {
-    //[System.Web.Script.Services.ScriptService]
     public class ReceiptController : ApiController
     {
         #region 登录验证接口
@@ -23,10 +23,10 @@ namespace Appapi.Controllers
 
             string sql = "select * from Userfile where userid = '" + Convert.ToString(Account.userid) + "' and disabled = 0";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
-            bool isvalid = dt != null  ? true : false;   // = 账号认证接口（）
-        
+            bool isvalid = dt != null ? true : false;   // = 账号认证接口（）
+
             if (isvalid)
-            {        
+            {
                 HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
                 HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
                 HttpContext.Current.Session.Add("UserId", Convert.ToString(Account.userid));
@@ -41,6 +41,7 @@ namespace Appapi.Controllers
             return "登录失败";
         }//登录验证
         #endregion
+
 
 
         #region 接收接口
@@ -64,7 +65,7 @@ namespace Appapi.Controllers
         //Get:  /api/Receipt/GetSupplierNameBySupplierNo
         public string GetSupplierNameBySupplierNo(string SupplierNo)
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetSupplierName(SupplierNo) : throw new HttpResponseException(HttpStatusCode.Forbidden) ;
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetSupplierName(SupplierNo) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//根据供应商ID，返回供应商名称
 
 
@@ -84,6 +85,7 @@ namespace Appapi.Controllers
         #endregion
 
 
+
         #region 进料检验接口
         //Get:  /api/Receipt/GetRemainsOfIQCUser
         public IEnumerable<Receipt> GetRemainsOfIQCUser()
@@ -99,6 +101,7 @@ namespace Appapi.Controllers
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.IQCCommit(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//根据Para提供的参数，更新指定的收货流程记录，并把收货流程转到第3节点
         #endregion
+
 
 
         #region 入库接口
@@ -118,13 +121,15 @@ namespace Appapi.Controllers
         #endregion
 
 
-        //Post:  /api/Receipt/GetNextUserGroup
+
+        #region 功能
+        //Get:  /api/Receipt/GetNextUserGroup
         [HttpGet]
         public string GetNextUserGroup(int nextStatus)
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(Convert.ToInt32(nextStatus)) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
-
+        
 
         //Post:  /api/Receipt/ReturnStatus
         [HttpPost]
@@ -139,6 +144,29 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetWarehouse(partnum) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回该物料可存放的所有仓库号
-       
+        #endregion
+
+
+
+
+
+
+        #region test
+        [HttpPost]
+        public bool UpLoadFile()
+        {
+            if (HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+            byte[] fileContents = new byte[HttpContext.Current.Request.InputStream.Length];
+            HttpContext.Current.Request.InputStream.Read(fileContents, 0, fileContents.Length);
+
+            string fn = HttpContext.Current.Request.Headers.Get("FileName");
+
+            return FtpRepository.UploadFile(fileContents, "", fn);         
+        }
+
+        #endregion
+
     }
 }
