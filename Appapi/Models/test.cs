@@ -5,9 +5,9 @@ using System.Web;
 
 namespace Appapi.Models
 {
-    public class test
+    public class ScanResult
     {
-        public string PartNum { get; set; }
-        public string PartDescription { get; set; }
+        public Receipt batch { get; set; }
+        public string error { get; set; }
     }
 }

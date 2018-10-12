@@ -11,7 +11,7 @@ namespace Appapi.Models
     {
         public static List<T> DataTableToList<T>(DataTable dt) where T : class, new()
         {
-            if (dt == null) return null;
+            if (dt == null || dt.Rows.Count == 0) return null;
 
             List<T> ts = new List<T>();
             string tempName = string.Empty;

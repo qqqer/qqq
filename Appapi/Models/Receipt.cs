@@ -61,9 +61,19 @@ namespace Appapi.Models
         public string SecondUserGroup { get; set; }
         public string ThirdUserGroup { get; set; }
         public string FourthUserGroup { get; set; }
-       
         public int? ReturnOne { get; set; }
         public int? ReturnTwo { get; set; }
         public int? ReturnThree { get; set; }
+
+
+        /* 判断收货依据状态所需的字段 
+        public bool OpenOrder { get; set; }
+        public bool orderHeld { get; set; }
+        public bool openLine { get; set; }
+        public bool openRelease { get; set; }
+        public bool jobClosed { get; set; }
+        public bool jobComplete { get; set; }
+        public bool JobHeld { get; set; }
+        */
     }
 }

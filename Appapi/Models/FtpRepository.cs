@@ -11,19 +11,19 @@ namespace Appapi.Models
 {
     public static class FtpRepository
     {
-        static readonly string ftpUserName = ConfigurationManager.ConnectionStrings["ftpUserName"].ToString();
-        static readonly string ftpPassword = ConfigurationManager.ConnectionStrings["ftpPassword"].ToString();
-        static readonly string ftpServer = ConfigurationManager.ConnectionStrings["ftpServer"].ToString();
+        public static readonly string ftpUserName = ConfigurationManager.ConnectionStrings["ftpUserName"].ToString();
+        public static readonly string ftpPassword = ConfigurationManager.ConnectionStrings["ftpPassword"].ToString();
+        public static readonly string ftpServer = ConfigurationManager.ConnectionStrings["ftpServer"].ToString();
 
 
         /// 获取根目录下明细(包含文件和文件夹)
-        private static string[] GetFilesDetailList()
+        private static string[] GetFilesDetailList(string folderPath)
         {
             try
             {
                 StringBuilder result = new StringBuilder();
                 FtpWebRequest ftp;
-                ftp = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer));
+                ftp = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + folderPath));
                 ftp.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
                 ftp.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                 WebResponse response = ftp.GetResponse();
@@ -46,15 +46,15 @@ namespace Appapi.Models
             }
             catch
             {
-                return null;
+                throw;
             }
         }
 
 
         /// 获取根目录下所有的文件夹列表(仅文件夹)
-        private static string[] GetDirectoryList()
+        private static string[] GetDirectoryList(string folderPath)
         {
-            string[] drectory = GetFilesDetailList();
+            string[] drectory = GetFilesDetailList(folderPath);
 
             if (drectory == null)
                 return null;
@@ -73,9 +73,9 @@ namespace Appapi.Models
 
 
         /// 判断根目录下指定的文件夹是否存在
-        public static bool IsFolderExist(string folderName)
+        public static bool IsFolderExist(string folderPath, string folderName)
         {
-            string[] dirList = GetDirectoryList();
+            string[] dirList = GetDirectoryList(folderPath);
             if (dirList != null)
             {
                 foreach (string str in dirList)
@@ -89,9 +89,9 @@ namespace Appapi.Models
         }
 
 
-        public static bool UploadFile(byte[] fileContent, string folderName, string filename)
+        public static bool UploadFile(byte[] fileContent, string folderPath, string filename)
         {
-            string uri = ftpServer + "/" + folderName + "/" + filename;
+            string uri = ftpServer  + folderPath  + filename;
             FtpWebRequest reqFTP;
 
             reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
@@ -116,12 +116,12 @@ namespace Appapi.Models
         }
 
 
-        public static bool MakeFolder(string folderName)
+        public static bool MakeFolder(string folderPath, string folderName)
         {
             FtpWebRequest reqFTP;
             try
             {
-                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + "/" + folderName));
+                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + folderPath + folderName));
                 reqFTP.Method = WebRequestMethods.Ftp.MakeDirectory;
                 reqFTP.UseBinary = true;
                 reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);

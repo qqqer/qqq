@@ -17,7 +17,7 @@ namespace Appapi.Controllers
         #region 登录验证接口
         //Post:  /api/Receipt/Login
         [System.Web.Http.HttpPost]
-        public string Login(dynamic Account) //ApiNum: 123
+        public bool Login(dynamic Account) //ApiNum: 0
         {
             string OpDetail = "", OpDate = DateTime.Now.ToString();
 
@@ -35,10 +35,10 @@ namespace Appapi.Controllers
 
                 //ReceiptRepository.AddOpLog(-1, 123, "login", OpDate, OpDetail);
 
-                return "登录成功";
+                return true;
             }
 
-            return "登录失败";
+            return false;
         }//登录验证
         #endregion
 
@@ -47,7 +47,7 @@ namespace Appapi.Controllers
         #region 接收接口
         //Post:  /api/Receipt/GetReceivingBasis
         [HttpPost]
-        public IEnumerable<Receipt> GetReceivingBasis(Receipt Condition)
+        public IEnumerable<Receipt> GetReceivingBasis(Receipt Condition)//ApiNum: 101
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetReceivingBasis(Condition) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
         }//根据Condition 返回所有匹配的收货依据
@@ -55,66 +55,63 @@ namespace Appapi.Controllers
 
         //Post:  /api/Receipt/ReceiveCommitWithNonQRCode
         [HttpPost]
-        public string ReceiveCommitWithNonQRCode(Receipt Para) //ApiNum: 101
+        public string ReceiveCommitWithNonQRCode(Receipt Para) //ApiNum: 102
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReceiveCommitWithNonQRCode(Para) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
         }//根据Para提供的参数，打印收货二维码并新增收货流程记录， 并把流程转到第2节点
 
 
-        [HttpGet]
-        //Get:  /api/Receipt/GetSupplierNameBySupplierNo
-        public string GetSupplierNameBySupplierNo(string SupplierNo)
-        {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetSupplierName(SupplierNo) : throw new HttpResponseException(HttpStatusCode.Forbidden);
-        }//根据供应商ID，返回供应商名称
-
 
         //Post:  /api/Receipt/ReceiveCommitWithQRCode
         [HttpPost]
-        public string ReceiveCommitWithQRCode(Receipt Para) //ApiNum: 102
+        public string ReceiveCommitWithQRCode(Receipt Para) //ApiNum: 103
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReceiveCommitWithQRCode(Para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//根据Para提供的参数，新增收货流程记录或更新指定的收货流程记录，并把收货流程转到第2节点
 
 
-        //Get:  /api/Receipt/GetRemainsOfReceiveUser
-        public IEnumerable<Receipt> GetRemainsOfReceiveUser()
-        {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRemainsOfReceiveUser() : throw new HttpResponseException(HttpStatusCode.Forbidden);
-        }//获取节点1的代办事项
         #endregion
 
 
 
         #region 进料检验接口
-        //Get:  /api/Receipt/GetRemainsOfIQCUser
-        public IEnumerable<Receipt> GetRemainsOfIQCUser()
-        {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRemainsOfIQCUser() : throw new HttpResponseException(HttpStatusCode.Forbidden);
-        }//获取节点2的代办事项
-
-
+       
         //Post:  /api/Receipt/IQCCommit
         [HttpPost]
         public string IQCCommit(Receipt para) //ApiNum: 201
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.IQCCommit(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//根据Para提供的参数，更新指定的收货流程记录，并把收货流程转到第3节点
+
+
+        [HttpPost]
+        //Post:  /api/Receipt/UpLoadIQCFile
+        public bool UpLoadIQCFile() //ApiNum: 202
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.UploadIQCFile() : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
+
+        #endregion
+
+        
+
+        #region 流转
+
+        //Post:  /api/Receipt/TransferCommit
+        [HttpPost]
+        public string TransferCommit(Receipt para)//ApiNum: 301
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.TransferCommit(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
+
         #endregion
 
 
 
         #region 入库接口
-        //Get:  /api/Receipt/GetRemainsOfAcceptUser
-        public IEnumerable<Receipt> GetRemainsOfAcceptUser()
-        {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRemainsOfAcceptUser() : throw new HttpResponseException(HttpStatusCode.Forbidden);
-        }//获取节点3的代办事项
-
-
         //Post:  /api/Receipt/AcceptCommit
         [HttpPost]
-        public string AcceptCommit(Receipt para) //ApiNum: 301
+        public string AcceptCommit(Receipt para) //ApiNum: 401
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.AcceptCommit(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//根据Para提供的参数，更新指定的收货流程记录，并把收货流程转到第4节点（结束状态）
@@ -125,46 +122,51 @@ namespace Appapi.Controllers
         #region 功能
         //Get:  /api/Receipt/GetNextUserGroup
         [HttpGet]
-        public string GetNextUserGroup(int nextStatus)
+        public string GetNextUserGroup(int nextStatus, string company, string plant)//ApiNum: 1
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(Convert.ToInt32(nextStatus)) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(nextStatus, company, plant) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
         
 
         //Post:  /api/Receipt/ReturnStatus
         [HttpPost]
-        public string ReturnStatus(dynamic para) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
+        public string ReturnStatus(dynamic para) //ApiNum: 2 
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ID, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
 
 
         //Get:  /api/Receipt/GetWarehouse
-        public DataTable GetWarehouse(string partnum) //ApiNum: 300(节点3的回退接口) or  ApiNum: 200（节点2的回退接口)
+        [HttpGet]
+        public DataTable GetWarehouse(string partnum) //ApiNum: 3 
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetWarehouse(partnum) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回该物料可存放的所有仓库号
+
+
+
+        [HttpGet]
+        //Get:  /api/Receipt/ParseQRValues
+        public string ParseQRValues(string values)//ApiNum: 4
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ParseQRValues(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }//values末尾追加了工厂值和供应商名， 并且用~替换%作为分隔符
+
+
+        [HttpGet]
+        //Get:  /api/Receipt/GetRemainsOfUser
+        public IEnumerable<Receipt> GetRemainsOfUser()//ApiNum: 5
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRemainsOfUser() : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
         #endregion
 
 
 
 
 
-
         #region test
-        [HttpPost]
-        public bool UpLoadFile()
-        {
-            if (HttpContext.Current.Session.Count == 0)
-                throw new HttpResponseException(HttpStatusCode.Forbidden);
 
-            byte[] fileContents = new byte[HttpContext.Current.Request.InputStream.Length];
-            HttpContext.Current.Request.InputStream.Read(fileContents, 0, fileContents.Length);
-
-            string fn = HttpContext.Current.Request.Headers.Get("FileName");
-
-            return FtpRepository.UploadFile(fileContents, "", fn);         
-        }
 
         #endregion
 
