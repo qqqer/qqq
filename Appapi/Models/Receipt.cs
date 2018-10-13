@@ -64,6 +64,8 @@ namespace Appapi.Models
         public int? ReturnOne { get; set; }
         public int? ReturnTwo { get; set; }
         public int? ReturnThree { get; set; }
+        public bool IsAuto { get; set; }
+        public bool IsComplete { get; set; }
 
 
         /* 判断收货依据状态所需的字段 

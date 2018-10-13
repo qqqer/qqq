@@ -159,6 +159,14 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRemainsOfUser() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
+
+
+        [HttpGet]
+        //Get:  /api/Receipt/GetRecordByID
+        public DataTable GetRecordByID(int ReceiptID)//ApiNum: 6
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRecordByID(ReceiptID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
         #endregion
 
 

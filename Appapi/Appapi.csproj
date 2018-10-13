@@ -313,6 +313,12 @@
   <ItemGroup>
     <WCFMetadataStorage Include="Connected Services\ServiceReference_Print\" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EpicorAPIManager\EpicorAPIManager.csproj">
+      <Project>{607970a3-e420-4e5b-af3f-ebb832e1f521}</Project>
+      <Name>EpicorAPIManager</Name>
+    </ProjectReference>
+  </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
     <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>

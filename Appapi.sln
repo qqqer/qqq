@@ -5,6 +5,10 @@ VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Appapi", "Appapi\Appapi.csproj", "{5AB9420D-F168-4979-815A-95F229A64787}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EpicorAPIManager", "EpicorAPIManager\EpicorAPIManager.csproj", "{607970A3-E420-4E5B-AF3F-EBB832E1F521}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CommonClass", "CommonClass\CommonClass.csproj", "{EF05CCF8-B008-410C-A8B6-FF1E1355E45C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +19,14 @@ Global
 		{5AB9420D-F168-4979-815A-95F229A64787}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5AB9420D-F168-4979-815A-95F229A64787}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5AB9420D-F168-4979-815A-95F229A64787}.Release|Any CPU.Build.0 = Release|Any CPU
+		{607970A3-E420-4E5B-AF3F-EBB832E1F521}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{607970A3-E420-4E5B-AF3F-EBB832E1F521}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{607970A3-E420-4E5B-AF3F-EBB832E1F521}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{607970A3-E420-4E5B-AF3F-EBB832E1F521}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EF05CCF8-B008-410C-A8B6-FF1E1355E45C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EF05CCF8-B008-410C-A8B6-FF1E1355E45C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EF05CCF8-B008-410C-A8B6-FF1E1355E45C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EF05CCF8-B008-410C-A8B6-FF1E1355E45C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

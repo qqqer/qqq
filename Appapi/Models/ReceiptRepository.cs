@@ -7,13 +7,14 @@ using System.Collections;
 using System.Timers;
 using System.Net; //ftp
 using System.Threading;
+using EpicorAPIManager;
 
 namespace Appapi.Models
 {
     //[System.Web.Script.Services.ScriptService]
     public static class ReceiptRepository
     {
-
+        
         #region  重用函数（非接口）
         private static string ConstructValues(ArrayList array)
         {
@@ -102,21 +103,20 @@ namespace Appapi.Models
         }
 
 
-        private static void Return(int previousStatus, string returnNum, int ID, string OpDate, int ReasonID)
+        private static void Return(int previousStatus, string returnNum, string batchno, string OpDate, int ReasonID)
         {
             //更新该批次的status为上一个节点值，指定的回退编号次数+1
-            string sql = @"update Receipt set status = " + previousStatus + ", " + returnNum + " = " + returnNum + "+1 where where ID = " + ID + " ";
+            string sql = @"update Receipt set status = " + previousStatus + ", " + returnNum + " = " + returnNum + "+1 where where batchno = '" + batchno + "' ";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             //获取更新后的回退编号
-            sql = "select " + returnNum + " from Receipt where where ID = " + ID + " ";
+            sql = "select " + returnNum + " from Receipt where where batchno = '" + batchno + "' ";
             int c = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             //把该回退编号的原因插入到ReasonRecord表中
-            sql = @"insert into ReasonRecord(ReceiptId, " + returnNum + ", ReturnReasonId, Date) Values(" + ID + ", " + c + ", " + ReasonID + ", '" + OpDate + "')";
+            sql = @"insert into ReasonRecord(batchno, " + returnNum + ", ReturnReasonId, Date) Values('" + batchno + "', " + c + ", " + ReasonID + ", '" + OpDate + "')";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
-
 
 
         private static string GetErrorInfo(Receipt batInfo)
@@ -755,6 +755,7 @@ namespace Appapi.Models
 
         #region 入库
 
+
         public static string AcceptCommit(Receipt batInfo)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -772,28 +773,57 @@ namespace Appapi.Models
             string sql = "select status，isdelete, isComplete from Receipt where ID = " + batInfo.ID + "";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取batInfo所指定的批次的status，isdelete字段值
 
+
             if ((bool)theBatch.Rows[0]["isdelete"] == true)
                 return "错误：该批次的流程已删除";
 
             else if ((bool)theBatch.Rows[0]["isComplete"] == true)
                 return "错误：该批次的流程已结束";
 
-            else if ((int)theBatch.Rows[0]["status"] != 8)
+            else if (((int)theBatch.Rows[0]["status"] & 8+16+32)  == 0)
                 return "错误：流程未在当前节点上";
 
-            else //status == 8  更新批次信息。
+
+            if(batInfo.TranType == "PUR-SUB")
             {
-                sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1  where ID = " + batInfo.ID + "";
-                sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString());
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                // 调用erp接口回写
+                JobManager jobManager = new JobManager();
 
-                //调用反写接口。     若反写erp失败，返回"处理失败-2" //反写数据进erp时失败
+                if (jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId) == "true")//若回写成功， 则更新Receipt记录
+                {                   
+                    string Location = jobManager.poDes((int)batInfo.PoNum, (int)batInfo.PoLine, (int)batInfo.PORelNum, batInfo.Company);
+                    sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
+                    sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                }
 
 
-                //string OpDetail  =  GetOpDetail("")
-                //AddOpLog(batInfo.ID, 301, "update", OpDate, OpDetail);
-                return "处理成功";
+
+
+                sql = @" Select *  from Receipt where ID = "+batInfo.ID+"";
+                theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+
+                sql = @"  Select jobseq, poline,porelnum ,OpDesc from erp.porel pr 
+                          left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
+                          where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}' and jobseq!= {4} ";
+                sql = string.Format(sql, batInfo.PoNum, batInfo.JobNum, batInfo.AssemblySeq, batInfo.Company, batInfo.JobSeq);
+                DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+
+
+                for(int i =0;i<dt.Rows.Count;i++)
+                {
+                    theBatch.Rows[0]["PoLine"] = (int)dt.Rows[i]["poline"];
+                    theBatch.Rows[0]["PORelNum"] = (int)dt.Rows[i]["porelnum"];
+                    theBatch.Rows[0]["JobSeq"] = (int)dt.Rows[i]["jobseq"];
+                    theBatch.Rows[0]["IsAuto"] = true;
+                    theBatch.Rows[0]["OpDesc"] = (int)dt.Rows[i]["OpDesc"];
+
+                }
             }
+
+            return null;
         }
 
         #endregion
@@ -836,7 +866,7 @@ namespace Appapi.Models
         {
             string OpDetail = "", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string sql = "select status，isdelete, iscomplete from Receipt where ID = " + ID + " ";
+            string sql = "select status，isdelete, batchno iscomplete from Receipt where ID = " + ID + " ";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取ID所指定的批次的 status，isdelete字段值
 
 
@@ -853,20 +883,20 @@ namespace Appapi.Models
 
             if (oristatus == 41 || oristatus == 42 || oristatus == 43)
             {
-                Return(3, "ReturnThree", ID, OpDate, ReasonID);
+                Return(3, "ReturnThree", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
 
                 //OpDetail = GetOpDetail("")
 
             }
             else if (oristatus == 3)
             {
-                Return(2, "ReturnTwo", ID, OpDate, ReasonID);
+                Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
 
                 //OpDetail = GetOpDetail("")
             }
             else if (oristatus == 2)
             {
-                Return(1, "ReturnOne", ID, OpDate, ReasonID);
+                Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
 
                 //清空报告
 
@@ -911,7 +941,7 @@ namespace Appapi.Models
         {
             string[] arr = values.Split('~');
 
-            if (arr.Length == 14) //刚好13个百分号
+            if (arr.Length == 14) //刚好13个波浪线， 扫码收货时解析
             {
                 string sql = @"select 
                 pr.plant,
@@ -929,6 +959,9 @@ namespace Appapi.Models
 
                 return values;
             }
+            else if(arr.Length == 4) //3个波浪线， 无二维码获取数据
+            {
+                            }
 
             return null; //不是13个百分号
         }
@@ -1020,6 +1053,16 @@ namespace Appapi.Models
 
 
             return GetValidBatchs(RBs);
+        }
+
+
+
+        public static DataTable GetRecordByID(int ReceiptID)
+        {
+            string sql = "select * from Receipt where ID = " + ReceiptID + "";
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+
+            return dt;
         }
 
         #endregion
