@@ -74,8 +74,8 @@ namespace Appapi.Models
         /// <returns></returns>
         private static int GetReceiptID(Receipt batInfo)
         {
-            string sql = "select ID from Receipt where PoNum = {0} and  PoLine = {1} and PORelNum = {2} and Plant = '{3}'and Company = '{4}' and  BatchNo = '{5}' ";
-            sql = string.Format(sql, batInfo.PoNum, batInfo.PoLine, batInfo.PORelNum, batInfo.Plant, batInfo.Company, batInfo.BatchNo);
+            string sql = "select ID from Receipt where PoNum = {0} and  PoLine = {1} and PORelNum = {2} and Company = '{3}' and  BatchNo = '{4}' ";
+            sql = string.Format(sql, batInfo.PoNum, batInfo.PoLine, batInfo.PORelNum,  batInfo.Company, batInfo.BatchNo);
 
             return (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
@@ -786,17 +786,14 @@ namespace Appapi.Models
 
             if(batInfo.TranType == "PUR-SUB")
             {
-                // 调用erp接口回写
                 JobManager jobManager = new JobManager();
-
-                if (jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId) == "true")//若回写成功， 则更新Receipt记录
+                if (jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId) == "true")//若回写erp成功， 则更新Receipt记录
                 {                   
                     string Location = jobManager.poDes((int)batInfo.PoNum, (int)batInfo.PoLine, (int)batInfo.PORelNum, batInfo.Company);
                     sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
                     sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
                     SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
-
 
 
 
@@ -881,14 +878,14 @@ namespace Appapi.Models
 
 
 
-            if (oristatus == 41 || oristatus == 42 || oristatus == 43)
+            if ((oristatus & (8+16+32)) != 0)
             {
                 Return(3, "ReturnThree", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
 
                 //OpDetail = GetOpDetail("")
 
             }
-            else if (oristatus == 3)
+            else if (oristatus == 4)
             {
                 Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
 
@@ -959,9 +956,58 @@ namespace Appapi.Models
 
                 return values;
             }
-            else if(arr.Length == 4) //3个波浪线， 无二维码获取数据
+            else if(arr.Length == 4) //3个波浪线， 无二维码获取详情页面数据
             {
-                            }
+                string sql = @"select 
+                pr.JobNum, 
+                pr.PORelNum,
+                pr.PoNum,
+                pr.TranType,
+                pr.JobSeq,
+                pr.PoLine ,
+                pr.Plant,
+                pr.Company,
+                pd.CommentText,
+                pd.PartNum,
+                vd.VendorID  as SupplierNo,
+                vd.Name as SupplierName,
+                pa.TypeCode  as  PartType,
+                pa.PartDescription  as  PartDesc,
+                pr.AssemblySeq,                                       
+                from erp.PORel pr
+                left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
+                left join erp.POHeader ph   on ph.Company = pd.Company   and   ph.PONum = pd.PONUM                 
+                left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum   and   ph.company = vd.company             
+                left join erp.part pa       on pd.PartNum = pa.PartNum   and   pa.company = pd.company
+                where pr.ponum = {0} and pr.poline = {1} and pr.porelnum = {2} and pr.company = '{3}'";
+                sql = string.Format(sql, arr[0], arr[1], arr[2], arr[3]);
+
+                DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+                values = "";
+
+                values += (string)dt.Rows[0]["Company"] + "~";
+                values += (string)dt.Rows[0]["PartNum"] + "~";
+                values += (string)dt.Rows[0]["PartDesc"] + "~";
+                values += "~";  //batchno
+
+                values += (string)dt.Rows[0]["JobNum"] + "~"; 
+                values += (string)dt.Rows[0]["AssemblySeq"] + "~";
+                values += "~"; //textid
+                values += (string)dt.Rows[0]["SupplierNo"] + "~";
+
+                values += (string)dt.Rows[0]["PoNum"] + "~"; 
+                values += (string)dt.Rows[0]["PoLine"] + "~";
+                values += "~"; //receivQty
+                values += (string)dt.Rows[0]["PORelNum"] + "~";
+
+                values += (string)dt.Rows[0]["JobSeq"] + "~"; 
+                values += "~"; //heatnum
+                values += (string)dt.Rows[0]["Plant"] + "~";
+                values += (string)dt.Rows[0]["SupplierName"];
+
+                return values;
+            }
 
             return null; //不是13个百分号
         }
