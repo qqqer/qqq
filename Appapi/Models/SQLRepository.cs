@@ -12,7 +12,7 @@ namespace Appapi.Models
         public static readonly string ERP_strConn = ConfigurationManager.ConnectionStrings["E10TESTConnString"].ToString();
         public static readonly string APP_strConn = ConfigurationManager.ConnectionStrings["APPConnString"].ToString();
 
-        public static int ExecuteNonQuery(string connectionString, CommandType cmdType, string cmdText, params SqlParameter[] commandParameters)
+        public static int ExecuteNonQuery(string connectionString, CommandType cmdType, string cmdText,  params SqlParameter[] commandParameters)
         {
 
             SqlCommand cmd = new SqlCommand();

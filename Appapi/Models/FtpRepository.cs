@@ -214,11 +214,11 @@ namespace Appapi.Models
 
 
         /// 删除文件
-        private static void Delete(string fileName, string folderName)
+        public static bool DeleteFile(string filePath,string fileName )
         {
             try
             {
-                string uri = ftpServer + "/" + folderName + "/" + fileName;
+                string uri = filePath + fileName;
                 FtpWebRequest reqFTP;
                 reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
 
@@ -235,10 +235,12 @@ namespace Appapi.Models
                 sr.Close();
                 datastream.Close();
                 response.Close();
+
+                return true;
             }
-            catch (Exception ex)
+            catch
             {
-                throw ex;
+                return false;
             }
         }
 
@@ -252,7 +254,7 @@ namespace Appapi.Models
             {
                 foreach (string fileName in fileList)
                 {
-                    Delete(folderName, fileName);
+                    DeleteFile(folderName, fileName);
                 }
             }
 

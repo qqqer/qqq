@@ -72,7 +72,7 @@ namespace Appapi.Models
         /// </summary>
         /// <param name="batInfo"></param>
         /// <returns></returns>
-        private static int GetReceiptID(Receipt batInfo)
+        public static int GetReceiptID(Receipt batInfo)
         {
             string sql = "select ID from Receipt where PoNum = {0} and  PoLine = {1} and PORelNum = {2} and Company = '{3}' and  BatchNo = '{4}' ";
             sql = string.Format(sql, batInfo.PoNum, batInfo.PoLine, batInfo.PORelNum,  batInfo.Company, batInfo.BatchNo);
@@ -173,6 +173,12 @@ namespace Appapi.Models
             return "其他错误";
         }
 
+
+
+        private static string GetValueAsString(object o)
+        {
+            return o != null ? o.ToString() : "";
+        }
         #endregion
 
 
@@ -288,6 +294,9 @@ namespace Appapi.Models
                 return GetErrorInfo(batInfo);
             }
 
+            if (batInfo.ReceiveQty1 == null || batInfo.ReceiveQty1 == 0)
+                return "错误：数量不能为空或0";
+
             if (batInfo.ReceiveQty1 > RB.First().NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty1 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
 
@@ -303,37 +312,37 @@ namespace Appapi.Models
 
             if (OriDay == today) // 如果从数据库获得的日期 是今天 
             {
-                batInfo.BatchNo = "P" + DateTime.Now.ToString("yyyyMMdd") + ((int)dt.Rows[0]["Current"]).ToString("d4");
-                dt.Rows[0]["Current"] = (int)dt.Rows[0]["Current"] + 1; //计数器递增1
+                batInfo.BatchNo = "P" + DateTime.Now.ToString("yyyyMMdd") + ((int)dt.Rows[0]["Curr"]).ToString("d4");
+                dt.Rows[0]["Curr"] = (int)dt.Rows[0]["Curr"] + 1; //计数器递增1
             }
             else // 不是今天 
             {
                 batInfo.BatchNo = "P" + DateTime.Now.ToString("yyyyMMdd") + "0001";
-                dt.Rows[0]["Current"] = 1; //计数器重置为1
+                dt.Rows[0]["Curr"] = 1; //计数器重置为1
             }
 
 
-            sql = "UPDATE SerialNumber SET time = getdate(), current = " + Convert.ToInt32(dt.Rows[0]["Current"]) + " where name = 'BAT'";
+            sql = "UPDATE SerialNumber SET time = getdate(), curr = " + Convert.ToInt32(dt.Rows[0]["Curr"]) + " where name = 'BAT'";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             #endregion
 
             #region 调用现有接口打印
 
-            string jsonStr = @"{ 'text1': '{0}', 'text2': '', 'text3': '{1}', 'text4': '{2}', 'text5': {3}, 'text6': '', 'text7': '{4}', 'text8': {5}, 'text9': {6}, 
-'text10': {7}, 'text11': {8}, 'text12': '{9}', 'text13': '', 'text14': {10}, 'text15': '{11}', 'text16': '', 'text17': '', 'text18': '', 'text19': '', 
-'text20': '', 'text21': '', 'text22': '', 'text23': '', 'text24': '', 'text25': '', 'text26': '', 'text27': '', 'text28': '', 'text29': '', 'text30': '' }";
-            jsonStr = string.Format(jsonStr, batInfo.PartNum, batInfo.BatchNo, batInfo.JobNum, batInfo.AssemblySeq, batInfo.SupplierNo, batInfo.PoNum, batInfo.PoLine, batInfo.ReceiveQty1, batInfo.PORelNum, batInfo.Company, batInfo.JobSeq, batInfo.HeatNum);
+            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
+            jsonStr = string.Format(jsonStr, batInfo.PartNum, batInfo.BatchNo, GetValueAsString(batInfo.JobNum), GetValueAsString(batInfo.AssemblySeq), batInfo.SupplierNo, batInfo.PoNum, batInfo.PoLine, batInfo.ReceiveQty1, batInfo.PORelNum, batInfo.Company, GetValueAsString(batInfo.JobSeq), batInfo.HeatNum, batInfo.PartDesc);
+            jsonStr = "[{" + jsonStr + "}]";
 
 
 
+            string res = "";
             batInfo.IsPrint = false;
             ServiceReference_Print.WebServiceSoapClient client = new ServiceReference_Print.WebServiceSoapClient();
-            if (client.Print(@"c:\test.btw", HttpContext.Current.Session["UserPrinter"].ToString(), 1, jsonStr) == "1|处理成功")
+            if ((res=client.Print(@"C:\D0201.btw", "P052", 1, jsonStr)) == "1|处理成功")
             {
                 batInfo.IsPrint = true;
             }
             else
-                return "错误：打印失败"; //打印失败
+                return "错误：打印失败"+res;
             #endregion
 
             #region 回写数据到APP.Receipt表中
@@ -367,10 +376,10 @@ namespace Appapi.Models
                 BatchNo,
                 Company,
                 Plant,
-                IsPrint,
-                ReturnOne,
-                ReturnTwo,              
+                IsPrint,                      
                 HeatNum,
+                ReturnOne,
+                ReturnTwo,    
                 Warehouse,
                 isdelete,
                 isAuto,
@@ -382,34 +391,34 @@ namespace Appapi.Models
                     batInfo.SupplierNo,
                     batInfo.SupplierName,
                     batInfo.ReceiveQty1,
-                    batInfo.AssemblySeq,
-                    batInfo.JobSeq,
+                    RB.First().AssemblySeq,
+                    RB.First().JobSeq,
                     batInfo.PartNum,
                     batInfo.PartDesc,
-                    batInfo.IUM,
+                    RB.First().IUM,
                     batInfo.JobNum,
                     batInfo.Remark,
-                    batInfo.TranType,
-                    batInfo.PartType,
-                    batInfo.OpDesc,
-                    batInfo.CommentText,
-                    batInfo.PartClassDesc,
-                    batInfo.NeedReceiptQty,
-                    batInfo.NotReceiptQty,
+                    RB.First().TranType,
+                    RB.First().PartType,
+                    RB.First().OpDesc,
+                    RB.First().CommentText,
+                    RB.First().PartClassDesc,
+                    RB.First().NeedReceiptQty,
+                    RB.First().NotReceiptQty,
                     batInfo.SecondUserGroup,
-                    HttpContext.Current.Session["UserId"].ToString(),//
+                    HttpContext.Current.Session["UserId"].ToString(),
                     2,
                     batInfo.PoNum,
                     batInfo.PoLine,
                     batInfo.PORelNum,
                     batInfo.BatchNo,
-                    batInfo.Company ,
-                    batInfo.Plant ,
-                    batInfo.IsPrint,
-                    0,
-                    0,
+                    batInfo.Company,
+                    batInfo.Plant,
+                    1,
                     batInfo.HeatNum,
-                    batInfo.Warehouse,
+                    0,
+                    0,
+                    RB.First().Warehouse,
                     0,
                     0,
                     0,
@@ -443,6 +452,9 @@ namespace Appapi.Models
 
             if (RB == null)//该批次的收货依据错误
                 return GetErrorInfo(batInfo);
+
+            if (batInfo.ReceiveQty1 == null || batInfo.ReceiveQty1 == 0)
+                return "错误：数量不能为空或0";
 
             if (batInfo.ReceiveQty1 > RB.First().NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty1 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
@@ -626,6 +638,9 @@ namespace Appapi.Models
             if (RB == null)
                 return GetErrorInfo(batInfo);
 
+            if (batInfo.ReceiveQty2 == null || batInfo.ReceiveQty2 == 0)
+                return "错误：数量不能为空或0";
+
             if (batInfo.ReceiveQty2 > RB.First().NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty2 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
 
@@ -676,6 +691,7 @@ namespace Appapi.Models
 
             string sql = "select batchNo, SupplierName, ponum  from Receipt where ID = " + ReceiptID + " ";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+
 
 
             if (!FtpRepository.IsFolderExist("/", (string)dt.Rows[0]["SupplierName"]))
@@ -785,9 +801,9 @@ namespace Appapi.Models
 
 
             if(batInfo.TranType == "PUR-SUB")
-            {
+            {//jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId)
                 JobManager jobManager = new JobManager();
-                if (jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId) == "true")//若回写erp成功， 则更新Receipt记录
+                if ("" == "true")//若回写erp成功， 则更新Receipt记录
                 {                   
                     string Location = jobManager.poDes((int)batInfo.PoNum, (int)batInfo.PoLine, (int)batInfo.PORelNum, batInfo.Company);
                     sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
@@ -895,7 +911,20 @@ namespace Appapi.Models
             {
                 Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
 
-                //清空报告
+                sql = "select * from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "' ";
+                DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+
+                for(int i = 0; i < dt.Rows.Count; i++)
+                {
+                    if (FtpRepository.DeleteFile((string)theBatch.Rows[i]["FilePath"], (string)theBatch.Rows[i]["FileName"]) == true)
+                    {
+                        
+                    }
+                    else
+                        return "错误：回退失败，删除现有报告时出错，请重试";                  
+                }
+                sql = "delete from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "'";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 //OpDetail = GetOpDetail("")
             }
@@ -934,6 +963,11 @@ namespace Appapi.Models
 
 
 
+        /// <summary>
+        /// 补全扫描原始数据
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns>返回16个值，用~隔开</returns>
         public static string ParseQRValues(string values)
         {
             string[] arr = values.Split('~');
@@ -956,7 +990,7 @@ namespace Appapi.Models
 
                 return values;
             }
-            else if(arr.Length == 4) //3个波浪线， 无二维码获取详情页面数据
+            else if(arr.Length == 5) //3个波浪线， 无二维码获取详情页面数据
             {
                 string sql = @"select 
                 pr.JobNum, 
@@ -973,14 +1007,14 @@ namespace Appapi.Models
                 vd.Name as SupplierName,
                 pa.TypeCode  as  PartType,
                 pa.PartDescription  as  PartDesc,
-                pr.AssemblySeq,                                       
+                pr.AssemblySeq                                       
                 from erp.PORel pr
                 left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
                 left join erp.POHeader ph   on ph.Company = pd.Company   and   ph.PONum = pd.PONUM                 
                 left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum   and   ph.company = vd.company             
                 left join erp.part pa       on pd.PartNum = pa.PartNum   and   pa.company = pd.company
                 where pr.ponum = {0} and pr.poline = {1} and pr.porelnum = {2} and pr.company = '{3}'";
-                sql = string.Format(sql, arr[0], arr[1], arr[2], arr[3]);
+                sql = string.Format(sql, int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2]), arr[3]);
 
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
 
@@ -992,16 +1026,16 @@ namespace Appapi.Models
                 values += "~";  //batchno
 
                 values += (string)dt.Rows[0]["JobNum"] + "~"; 
-                values += (string)dt.Rows[0]["AssemblySeq"] + "~";
+                values += dt.Rows[0]["AssemblySeq"] != null ? dt.Rows[0]["AssemblySeq"].ToString() + "~" : "~";
                 values += "~"; //textid
                 values += (string)dt.Rows[0]["SupplierNo"] + "~";
 
-                values += (string)dt.Rows[0]["PoNum"] + "~"; 
-                values += (string)dt.Rows[0]["PoLine"] + "~";
-                values += "~"; //receivQty
-                values += (string)dt.Rows[0]["PORelNum"] + "~";
+                values += dt.Rows[0]["PoNum"] != null ? dt.Rows[0]["PoNum"].ToString() + "~" : "~"; 
+                values += dt.Rows[0]["PoLine"] != null ? dt.Rows[0]["PoLine"].ToString() + "~" : "~";
+                values += arr[4] + "~"; //receivQty
+                values += dt.Rows[0]["PORelNum"] != null ? dt.Rows[0]["PORelNum"].ToString() + "~" : "~";
 
-                values += (string)dt.Rows[0]["JobSeq"] + "~"; 
+                values += dt.Rows[0]["JobSeq"] != null ? dt.Rows[0]["JobSeq"].ToString() + "~" : "~";
                 values += "~"; //heatnum
                 values += (string)dt.Rows[0]["Plant"] + "~";
                 values += (string)dt.Rows[0]["SupplierName"];
@@ -1064,9 +1098,9 @@ namespace Appapi.Models
                         StockDate,
                         ArrivedQty, 
                         BinNum, 
-                        ThirdUserID，
-                        ReturnOne，
-                        ReturnTwo，
+                        ThirdUserID,
+                        ReturnOne,
+                        ReturnTwo,
                         ReturnThree,
                         FourthUserGroup,
                         SecondUserGroup,

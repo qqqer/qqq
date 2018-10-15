@@ -17,8 +17,8 @@ namespace Appapi.Models
         public int? PoLine { get; set; }
         public int? JobSeq { get; set; }
         public int? AssemblySeq { get; set; }
-        public int? ReceiveQty1 { get; set; }
-        public int? ReceiveQty2 { get; set; }
+        public decimal? ReceiveQty1 { get; set; }
+        public decimal? ReceiveQty2 { get; set; }
         public int? PORelNum { get; set; }
         public int? Status { get; set; }
         public bool? IsPrint { get; set; }

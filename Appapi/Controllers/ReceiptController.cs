@@ -155,7 +155,7 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/Receipt/GetRemainsOfUser
-        public IEnumerable<Receipt> GetRemainsOfUser()//ApiNum: 5
+        public IEnumerable<Receipt> GetRemainsOfUser()//ApiNum: 5   获取当前用户的待办事项
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRemainsOfUser() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
@@ -163,9 +163,21 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/Receipt/GetRecordByID
-        public DataTable GetRecordByID(int ReceiptID)//ApiNum: 6
+        public DataTable GetRecordByID(int ReceiptID)//ApiNum: 6   从receipt表中获取ID指定的记录行
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRecordByID(ReceiptID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
+
+
+
+        [HttpGet]
+        //Get:  /api/Receipt/GetRecordByQR
+        public DataTable GetRecordByQR(string values) //ApiNum: 7
+        {
+            if(HttpContext.Current.Session.Count == 0) throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+            string[] arr = values.Split('~');
+            return  ReceiptRepository.GetRecordByID(ReceiptRepository.GetReceiptID(new Receipt { PoNum = int.Parse(arr[8]), PoLine = int.Parse(arr[9]), PORelNum = int.Parse(arr[11]), Company = arr[0], BatchNo = arr[3] }));
         }
         #endregion
 
