@@ -7,7 +7,7 @@ namespace Appapi.Models
 {
     public class Reason
     {
-        public int ReasonID { get; set; }
+        public int ID { get; set; }
         public string ReasonDesc { get; set; }
     }
 }

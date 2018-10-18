@@ -21,7 +21,9 @@ namespace Appapi.Controllers
         {
             string OpDetail = "", OpDate = DateTime.Now.ToString();
 
-            string sql = "select * from Userfile where userid = '" + Convert.ToString(Account.userid) + "' and disabled = 0";
+            string userid = Convert.ToString(Account.userid);
+            
+            string sql = "select * from Userfile where userid = '" + userid.ToUpper() + "' and disabled = 0";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
             bool isvalid = dt != null ? true : false;   // = 账号认证接口（）
 
@@ -29,7 +31,7 @@ namespace Appapi.Controllers
             {
                 HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
                 HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
-                HttpContext.Current.Session.Add("UserId", Convert.ToString(Account.userid));
+                HttpContext.Current.Session.Add("UserId", userid.ToUpper());
                 HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
                 //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
 
@@ -126,7 +128,8 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(nextStatus, company, plant) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
-        
+
+
 
         //Post:  /api/Receipt/ReturnStatus
         [HttpPost]
@@ -175,6 +178,14 @@ namespace Appapi.Controllers
         public ScanResult GetRecordByQR(string values) //ApiNum: 7
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
+
+
+        //Get:  /api/Receipt/GetReason
+        [HttpGet]
+        public IEnumerable<Reason> GetReason()//ApiNum: 8
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetReason() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
         #endregion
 
