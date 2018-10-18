@@ -77,7 +77,8 @@ namespace Appapi.Models
             string sql = "select ID from Receipt where PoNum = {0} and  PoLine = {1} and PORelNum = {2} and Company = '{3}' and  BatchNo = '{4}' ";
             sql = string.Format(sql, batInfo.PoNum, batInfo.PoLine, batInfo.PORelNum,  batInfo.Company, batInfo.BatchNo);
 
-            return (int)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object o = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            return o == null ? -1 : (int)o;
         }
 
 
@@ -103,10 +104,16 @@ namespace Appapi.Models
         }
 
 
-        private static void Return(int previousStatus, string returnNum, string batchno, string OpDate, int ReasonID)
+        private static void Return(int previousStatus, string returnNum, string batchno, string OpDate, int ReasonID, int AtRole)
         {
+            string SetUserIDtoNULL = "";
+            if (previousStatus == 2)
+                SetUserIDtoNULL = "ThirdUserID  = null";  //清空当前节点的操作人， 若未清空会导致正常流转时只有改操作人接收到待办事项
+            if (previousStatus == 1)
+                SetUserIDtoNULL = "SecondUserID  = null";
+
             //更新该批次的status为上一个节点值，指定的回退编号次数+1
-            string sql = @"update Receipt set status = " + previousStatus + ", " + returnNum + " = " + returnNum + "+1 where where batchno = '" + batchno + "' ";
+            string sql = @"update Receipt set AtRole = "+ AtRole +", status = " + previousStatus + ", " + returnNum + " = " + returnNum + "+1, "+ SetUserIDtoNULL + "   where where batchno = '" + batchno + "' ";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             //获取更新后的回退编号
@@ -370,6 +377,7 @@ namespace Appapi.Models
                 SecondUserGroup,
                 FirstUserID,
                 Status,
+                AtRole,
                 PoNum,
                 PoLine,
                 PORelNum,
@@ -407,6 +415,7 @@ namespace Appapi.Models
                     RB.First().NotReceiptQty,
                     batInfo.SecondUserGroup,
                     HttpContext.Current.Session["UserId"].ToString(),
+                    2,
                     2,
                     batInfo.PoNum,
                     batInfo.PoLine,
@@ -487,6 +496,7 @@ namespace Appapi.Models
                         SecondUserGroup,
                         FirstUserID,
                         Status,
+                        AtRole,
                         PoNum,
                         PoLine,
                         PORelNum,
@@ -524,6 +534,7 @@ namespace Appapi.Models
                     RB.First().NotReceiptQty,
                     batInfo.SecondUserGroup,
                     HttpContext.Current.Session["UserId"].ToString(),
+                    2,
                     2,
                     batInfo.PoNum,
                     batInfo.PoLine,
@@ -564,48 +575,21 @@ namespace Appapi.Models
             else //status == 1  表明在第二届点被退回， 更新批次信息。
             {
                 #region 构造sql语句:
-                sql = @"update Receipt set
-                        SupplierNo = '{0}', 
-                        SupplierName = '{1}',
-                        ReceiveQty1 = {3},
-                        PartNum = '{4}',
-                        PartDesc = '{5}',
-                        JobNum = '{6}', 
-                        Remark = '{7}',
-                        SecondUserGroup = '{8}',
-                        FirstUserID = '{9}',
-                        PoNum = {10},
-                        PoLine = 11},
-                        PORelNum = {12},
-                        BatchNo = '{13}',
-                        Company = '{14}',
-                        Plant = '{15}',
-                        HeatNum = '{16}',
-                        Warehouse = '{17}',                       
-                        ReceiptDate = '{18}'
-                        Status = {19}
-                        where ID = {20}";
+                sql = @"update Receipt set                      
+                        ReceiveQty1 = {0},                      
+                        Remark = '{1}',
+                        SecondUserGroup = '{2}',                        
+                        ReceiptDate = '{3}',
+                        Status = {4},
+                        AtRole = {9}
+                        where Company = '{5}' and  ponum = {6} and poline = {7} and porelnum = {8}";
                 sql = string.Format(sql,
-                    batInfo.SupplierNo,
-                    batInfo.SupplierName,
                     batInfo.ReceiveQty1,
-                    batInfo.PartNum,
-                    batInfo.PartDesc,
-                    batInfo.JobNum,
                     batInfo.Remark,
                     batInfo.SecondUserGroup,
-                    batInfo.FirstUserID,
-                    batInfo.PoNum,
-                    batInfo.PoLine,
-                    batInfo.PORelNum,
-                    batInfo.BatchNo,
-                    batInfo.Company,
-                    batInfo.Plant,
-                    batInfo.HeatNum,
-                    batInfo.Warehouse,
                     OpDate,
                     2,
-                    batInfo.ID);
+                    batInfo.Company, batInfo.PoNum, batInfo.PoLine, batInfo.PORelNum, 2);
                 #endregion
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -660,8 +644,8 @@ namespace Appapi.Models
 
             else //status == 2  更新批次信息。
             {
-                sql = @"update Receipt set IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}'，Remark = '{5}'，Status=" + batInfo.Status + "，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9} where ID = {10}";
-                sql = string.Format(sql, batInfo.IsAllCheck, batInfo.InspectionQty, batInfo.PassedQty, batInfo.FailedQty, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.ReceiveQty2, batInfo.ID);
+                sql = @"update Receipt set IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}'，Remark = '{5}'，Status=" + batInfo.Status + "，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9}, AtRole = {11} where ID = {10}";
+                sql = string.Format(sql, batInfo.IsAllCheck, batInfo.InspectionQty, batInfo.PassedQty, batInfo.FailedQty, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.ReceiveQty2, batInfo.ID, 4);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
@@ -738,7 +722,7 @@ namespace Appapi.Models
                 return GetErrorInfo(batInfo);
 
 
-            string sql = "select status，isdelete, iscomplete from Receipt where ID = " + batInfo.ID + "";
+            string sql = "select status，isdelete, trantype , iscomplete from Receipt where ID = " + batInfo.ID + "";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取batInfo所指定的批次的status，isdelete字段值
 
 
@@ -748,13 +732,20 @@ namespace Appapi.Models
             else if ((bool)theBatch.Rows[0]["isComplete"] == true)
                 return "错误：该批次的流程已结束";
 
-            else if ((int)theBatch.Rows[0]["status"] != 4)
+            else if ((int)theBatch.Rows[0]["status"] != 3)
                 return "错误：流程未在当前节点上";
 
             else //status == 4  选人。
             {
-                sql = @"update Receipt set ChooseDate = '" + OpDate + "'，Status=" + batInfo.Status + "，FourthUserGroup = '{0}', ThirdUserID = '{1}' where ID = " + batInfo.ID + "";
-                sql = string.Format(sql, batInfo.FourthUserGroup, HttpContext.Current.Session["UserId"].ToString());
+                if ((string)theBatch.Rows[0]["trantype"] == "PUR-STK")
+                    batInfo.AtRole = 8;
+                else if ((string)theBatch.Rows[0]["trantype"] == "PUR-SUB")
+                    batInfo.AtRole = 16;
+                else if ((string)theBatch.Rows[0]["trantype"] == "PUR-UKN")
+                    batInfo.AtRole = 32;
+                       
+                sql = @"update Receipt set ChooseDate = '" + OpDate + "'，Status = 4，FourthUserGroup = '{0}', ThirdUserID = '{1}', AtRole = {2} where ID = " + batInfo.ID + "";
+                sql = string.Format(sql, batInfo.FourthUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.AtRole);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
@@ -786,23 +777,76 @@ namespace Appapi.Models
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ArrivedQty - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
 
 
-            string sql = "select status，isdelete, isComplete from Receipt where ID = " + batInfo.ID + "";
+            string sql = "select * from Receipt where ID = " + batInfo.ID + "";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取batInfo所指定的批次的status，isdelete字段值
 
 
-            if ((bool)theBatch.Rows[0]["isdelete"] == true)
+            if ((bool)theBatch.Rows[0]["IsDelete"] == true)
                 return "错误：该批次的流程已删除";
 
-            else if ((bool)theBatch.Rows[0]["isComplete"] == true)
+            else if ((bool)theBatch.Rows[0]["IsComplete"] == true)
                 return "错误：该批次的流程已结束";
 
-            else if (((int)theBatch.Rows[0]["status"] & 8+16+32)  == 0)
+            else if ((int)theBatch.Rows[0]["Status"] != 4)
                 return "错误：流程未在当前节点上";
 
 
-            if(batInfo.TranType == "PUR-SUB")
-            {//jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId)
-                JobManager jobManager = new JobManager();
+            JobManager jobManager = new JobManager();
+            string packnum, recdate, vendorid = (string)theBatch.Rows[0]["SupplierNo"], rcvdtlStr, companyId = (string)theBatch.Rows[0]["Company"];
+
+            if (batInfo.TranType == "PUR-STK")
+            {
+                recdate = DateTime.Now.ToString("yyyymmddhhssfff");
+                packnum = vendorid + recdate;
+                rcvdtlStr = "'ponum':'{0}',   " +
+                            "'poline':'{1}', " +
+                            "'porel':'{2}',  " +
+                            "'partnum':'{3}'," +
+                            "'recqty':'{4}'," +
+                            "'pum':'{5}'," +
+                            "'warehousecode':'{6}'," +
+                            "'binnum':'{7}'," +
+                            "'lotnum':'{8}'," +
+                            "'jobnum':'{9}'," +
+                            "'assemblyseq':'{10}'," +
+                            "'jobseq':'{11}'," +
+                            "'commenttext':'{12}'," +
+                            "'ordertype':'{13}'";
+                rcvdtlStr = string.Format(rcvdtlStr,
+                   GetValueAsString(theBatch.Rows[0]["PoNum"]),
+                   GetValueAsString(theBatch.Rows[0]["PoLine"]),
+                   GetValueAsString(theBatch.Rows[0]["PORelNum"]),
+                   GetValueAsString(theBatch.Rows[0]["PartNum"]),
+                   GetValueAsString(batInfo.ArrivedQty),
+                   GetValueAsString(theBatch.Rows[0]["IUM"]),
+                   GetValueAsString(batInfo.Warehouse),
+                   GetValueAsString(batInfo.BinNum),
+                   GetValueAsString(theBatch.Rows[0]["HeatNum"]),
+                   GetValueAsString(theBatch.Rows[0]["JobNum"]),
+                   GetValueAsString(theBatch.Rows[0]["AssemblySeq"]),
+                   GetValueAsString(theBatch.Rows[0]["JobSeq"]),
+                   GetValueAsString(theBatch.Rows[0]["CommentText"]),
+                   GetValueAsString(theBatch.Rows[0]["TranType"])
+                   );
+
+                rcvdtlStr = "[{" + rcvdtlStr + "}]";
+
+
+                if(jobManager.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")
+                {
+                    string Location = jobManager.poDes((int)theBatch.Rows[0]["PONum"], (int)theBatch.Rows[0]["POLine"], (int)theBatch.Rows[0]["PORelNum"], (string)theBatch.Rows[0]["Company"]);
+                    sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
+                    sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    return "处理成功";
+                }
+            }
+
+            else if(batInfo.TranType == "PUR-SUB")
+            {
+                //jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId)
+                
                 if ("" == "true")//若回写erp成功， 则更新Receipt记录
                 {                   
                     string Location = jobManager.poDes((int)batInfo.PoNum, (int)batInfo.PoLine, (int)batInfo.PORelNum, batInfo.Company);
@@ -836,7 +880,7 @@ namespace Appapi.Models
                 }
             }
 
-            return null;
+            return "处理失败";
         }
 
         #endregion
@@ -848,12 +892,12 @@ namespace Appapi.Models
         /// 返回下个节点的可选人员
         /// </summary>
         /// <returns></returns>
-        public static string GetNextUserGroup(int nextStatus, string company, string plant)
+        public static string GetNextUserGroup(int nextRole, string company, string plant)
         {
             DataTable dt = null;
             string sql = null, NextUserGroup = null;
 
-            sql = "select userid from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextStatus + " != 0 ";
+            sql = "select userid from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 ";
 
 
             dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
@@ -894,22 +938,22 @@ namespace Appapi.Models
 
 
 
-            if ((oristatus & (8+16+32)) != 0)
+            if (oristatus == 4)
             {
-                Return(3, "ReturnThree", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
+                Return(3, "ReturnThree", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 4);
 
                 //OpDetail = GetOpDetail("")
 
             }
-            else if (oristatus == 4)
+            else if (oristatus == 3)
             {
-                Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
+                Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 2);
 
                 //OpDetail = GetOpDetail("")
             }
             else if (oristatus == 2)
             {
-                Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID);
+                Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 1);
 
                 sql = "select * from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "' ";
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
@@ -918,7 +962,7 @@ namespace Appapi.Models
                 {
                     if (FtpRepository.DeleteFile((string)theBatch.Rows[i]["FilePath"], (string)theBatch.Rows[i]["FileName"]) == true)
                     {
-                        
+                        continue;
                     }
                     else
                         return "错误：回退失败，删除现有报告时出错，请重试";                  
@@ -930,7 +974,7 @@ namespace Appapi.Models
             }
             else //oristatus == 1  
             {
-                sql = @"update Receipt set isdelete = 1 where where ID = " + ID + " ";   // 把该批次的流程标记为已删除
+                sql = @"update Receipt set isdelete = 1  where ID = " + ID + " ";   // 把该批次的流程标记为已删除
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
@@ -1078,6 +1122,7 @@ namespace Appapi.Models
                         SecondUserID,
                         FirstUserID,
                         Status,
+                        AtRole,
                         PoNum,
                         PoLine,
                         PORelNum,
@@ -1106,7 +1151,7 @@ namespace Appapi.Models
                         SecondUserGroup,
                         ThirdUserGroup
                         from Receipt where 
-                        status & {0} != 0 and isdelete != 1 and isComplete != 1
+                        AtRole & {0} != 0 and isdelete != 1 and isComplete != 1
                         and CHARINDEX(Company, '{1}') > 0   and   CHARINDEX(Plant, '{2}') > 0 ";
             sql = string.Format(sql, (int)HttpContext.Current.Session["RoleId"], HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
             #endregion
@@ -1116,18 +1161,33 @@ namespace Appapi.Models
             if (dt == null)
                 return null;
 
+
             for (int i = 0; i < dt.Rows.Count; i++)
             {
-                if ((int)dt.Rows[i]["Status"] == 1 && (string)dt.Rows[i]["FirstUserID"] == (string)HttpContext.Current.Session["UserId"])
+                if ((int)(dt.Rows[i]["Status"]) == 1 && (string)dt.Rows[i]["FirstUserID"] == (string)HttpContext.Current.Session["UserId"])
                     continue;
+
                 else if ((int)dt.Rows[i]["Status"] == 2 && ((string)dt.Rows[i]["SecondUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
+                {
+                    if(  !Convert.IsDBNull(dt.Rows[i]["SecondUserID"])  && (string)HttpContext.Current.Session["UserId"] != (string)dt.Rows[i]["SecondUserID"])
+                        dt.Rows.RemoveAt(i);
+                    else
+                        continue;
+                }
+                  
+                else if ((int)dt.Rows[i]["Status"] == 3 && ((string)dt.Rows[i]["ThirdUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
+                {
+                    if (!Convert.IsDBNull(dt.Rows[i]["ThirdUserID"]) && (string)HttpContext.Current.Session["UserId"] != (string)dt.Rows[i]["ThirdUserID"])
+                        dt.Rows.RemoveAt(i);
+                    else
+                        continue;
+                }
+                else if ((int)dt.Rows[i]["Status"] == 4 && ((string)dt.Rows[i]["FourthUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
                     continue;
-                else if ((int)dt.Rows[i]["Status"] == 4 && ((string)dt.Rows[i]["ThirdUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
-                    continue;
-                else if (((int)dt.Rows[i]["Status"] == 8 || (int)dt.Rows[i]["Status"] == 16 || (int)dt.Rows[i]["Status"] == 32) && ((string)dt.Rows[i]["FourthUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
-                    continue;
+
                 else
-                    dt.Rows.RemoveAt(i);
+                    dt.Rows.RemoveAt(i); //当前节点群组未包含改用户
+                
             }
             List<Receipt> RBs = CommonRepository.DataTableToList<Receipt>(dt);
 
@@ -1145,6 +1205,55 @@ namespace Appapi.Models
             return dt;
         }
 
+
+        public static ScanResult GetRecordByQR(string values)
+        {
+            ScanResult sr = new ScanResult();
+            sr.batch = null;
+            sr.error = null;
+            
+            string[] arr = values.Split('~');
+            DataTable dt = GetRecordByID(GetReceiptID(new Receipt { PoNum = int.Parse(arr[8]), PoLine = int.Parse(arr[9]), PORelNum = int.Parse(arr[11]), Company = arr[0], BatchNo = arr[3] }));
+        
+            if(dt == null)
+            {
+                sr.error = "错误：不存在该批次记录";
+            }
+
+            else if (((int)dt.Rows[0]["AtRole"] & (int)HttpContext.Current.Session["RoleId"]) == 0)
+            {
+                sr.error = "错误：无权操作当前批次";
+            }
+
+            else
+            {
+                if ((int)dt.Rows[0]["Status"] == 1 && (string)dt.Rows[0]["FirstUserID"] == (string)HttpContext.Current.Session["UserId"])
+                    sr.batch = CommonRepository.DataTableToList<Receipt>(dt); 
+
+                else if ((int)dt.Rows[0]["Status"] == 2 && ((string)dt.Rows[0]["SecondUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
+                {
+                    if (!Convert.IsDBNull(dt.Rows[0]["SecondUserID"]) && (string)HttpContext.Current.Session["UserId"] != (string)dt.Rows[0]["SecondUserID"])
+                        sr.error = "错误：无权操作当前批次";
+                    else
+                        sr.batch = CommonRepository.DataTableToList<Receipt>(dt);
+                }
+
+                else if ((int)dt.Rows[0]["Status"] == 3 && ((string)dt.Rows[0]["ThirdUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
+                {
+                    if (!Convert.IsDBNull(dt.Rows[0]["ThirdUserID"]) && (string)HttpContext.Current.Session["UserId"] != (string)dt.Rows[0]["ThirdUserID"])
+                        sr.error = "错误：无权操作当前批次";
+                    else
+                        sr.batch = CommonRepository.DataTableToList<Receipt>(dt);
+                }
+                else if ((int)dt.Rows[0]["Status"] == 4 && ((string)dt.Rows[0]["FourthUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
+                    sr.batch = CommonRepository.DataTableToList<Receipt>(dt); 
+
+                else
+                    sr.error = "错误：无权操作当前批次";
+            }
+
+            return sr;
+        }
         #endregion
 
 

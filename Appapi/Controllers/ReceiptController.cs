@@ -172,12 +172,9 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/Receipt/GetRecordByQR
-        public DataTable GetRecordByQR(string values) //ApiNum: 7
+        public ScanResult GetRecordByQR(string values) //ApiNum: 7
         {
-            if(HttpContext.Current.Session.Count == 0) throw new HttpResponseException(HttpStatusCode.Forbidden);
-
-            string[] arr = values.Split('~');
-            return  ReceiptRepository.GetRecordByID(ReceiptRepository.GetReceiptID(new Receipt { PoNum = int.Parse(arr[8]), PoLine = int.Parse(arr[9]), PORelNum = int.Parse(arr[11]), Company = arr[0], BatchNo = arr[3] }));
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
         #endregion
 

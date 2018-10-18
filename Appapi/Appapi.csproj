@@ -207,7 +207,7 @@
     <Compile Include="Models\ReceiptRepository.cs" />
     <Compile Include="Models\PrintRepository.cs" />
     <Compile Include="Models\SQLRepository.cs" />
-    <Compile Include="Models\test.cs" />
+    <Compile Include="Models\ScanResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
