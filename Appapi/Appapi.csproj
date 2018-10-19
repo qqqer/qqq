@@ -314,9 +314,9 @@
     <WCFMetadataStorage Include="Connected Services\ServiceReference_Print\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\EpicorAPIManager\EpicorAPIManager.csproj">
-      <Project>{607970a3-e420-4e5b-af3f-ebb832e1f521}</Project>
-      <Name>EpicorAPIManager</Name>
+    <ProjectReference Include="..\ClassLibrary1\ErpAPI.csproj">
+      <Project>{5c6f0571-6a74-453e-a60e-3aeb7033751d}</Project>
+      <Name>ErpAPI</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup>

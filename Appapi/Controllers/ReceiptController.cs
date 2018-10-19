@@ -17,12 +17,50 @@ namespace Appapi.Controllers
         #region 登录验证接口
         //Post:  /api/Receipt/Login
         [System.Web.Http.HttpPost]
-        public bool Login(dynamic Account) //ApiNum: 0
+        public bool Login(dynamic Account) //ApiNum: 10000
         {
+            //HttpContext.Current.Session.Add("Company", 1);
+            //return false;
             string OpDetail = "", OpDate = DateTime.Now.ToString();
 
             string userid = Convert.ToString(Account.userid);
             
+            string sql = "select * from Userfile where userid = '" + userid.ToUpper() + "' and disabled = 0";
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+            bool isvalid = dt != null ? true : false;   // = 账号认证接口（）
+
+            if (isvalid)
+            {
+                HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
+                HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
+                HttpContext.Current.Session.Add("UserId", userid.ToUpper());
+                HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
+                //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
+
+                //ReceiptRepository.AddOpLog(-1, 123, "login", OpDate, OpDetail);
+
+                return true;
+            }
+
+            return false;
+        }//登录验证
+
+
+        //Post:  /api/Receipt/Login2
+        [System.Web.Http.HttpPost]
+        public bool Login2() //ApiNum: 10001   winform登录
+        {
+            string OpDetail = "", OpDate = DateTime.Now.ToString();
+
+
+            StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);         
+            string ss = reader.ReadToEnd();
+
+
+            string[] arr = ss.Split(',');
+            string userid = arr[0];
+
+
             string sql = "select * from Userfile where userid = '" + userid.ToUpper() + "' and disabled = 0";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
             bool isvalid = dt != null ? true : false;   // = 账号认证接口（）

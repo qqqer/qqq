@@ -7,7 +7,7 @@ using System.Collections;
 using System.Timers;
 using System.Net; //ftp
 using System.Threading;
-using EpicorAPIManager;
+using ErpAPI;
 
 namespace Appapi.Models
 {
@@ -804,7 +804,7 @@ namespace Appapi.Models
                 return "错误：流程未在当前节点上";
 
 
-            JobManager jobManager = new JobManager();
+
             string packnum, recdate, vendorid = (string)theBatch.Rows[0]["SupplierNo"], rcvdtlStr, companyId = (string)theBatch.Rows[0]["Company"];
 
             if ((string)theBatch.Rows[0]["TranType"] == "PUR-STK")
@@ -845,12 +845,12 @@ namespace Appapi.Models
                 rcvdtlStr = "[{" + rcvdtlStr + "}]";
 
 
-                if (jobManager.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")
+                if (ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")
                 {
-                    string Location = jobManager.poDes((int)theBatch.Rows[0]["PONum"], (int)theBatch.Rows[0]["POLine"], (int)theBatch.Rows[0]["PORelNum"], (string)theBatch.Rows[0]["Company"]);
-                    sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
-                    sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
-                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    //string Location = jobManager.poDes((int)theBatch.Rows[0]["PONum"], (int)theBatch.Rows[0]["POLine"], (int)theBatch.Rows[0]["PORelNum"], (string)theBatch.Rows[0]["Company"]);
+                    //sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
+                    //sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
+                    //SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                     return "处理成功";
                 }
@@ -862,10 +862,10 @@ namespace Appapi.Models
 
                 if ("" == "true")//若回写erp成功， 则更新Receipt记录
                 {
-                    string Location = jobManager.poDes((int)batInfo.PoNum, (int)batInfo.PoLine, (int)batInfo.PORelNum, batInfo.Company);
-                    sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
-                    sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
-                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    //string Location = jobManager.poDes((int)batInfo.PoNum, (int)batInfo.PoLine, (int)batInfo.PORelNum, batInfo.Company);
+                    //sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
+                    //sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
+                    //SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
 
 
@@ -893,7 +893,7 @@ namespace Appapi.Models
                 }
             }
 
-            return "处理失败";
+            return null;
         }
 
         #endregion
@@ -1180,7 +1180,7 @@ namespace Appapi.Models
                 if ((int)(dt.Rows[i]["Status"]) == 1 && (string)dt.Rows[i]["FirstUserID"] == (string)HttpContext.Current.Session["UserId"])
                     continue;
 
-                else if ((int)dt.Rows[i]["Status"] == 2 && ((string)dt.Rows[i]["SecondUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
+                else if ((int)dt.Rows[i]["Status"] == 2 && (dt.Rows[i]["SecondUserGroup"].ToString()).Contains(HttpContext.Current.Session["UserId"].ToString()))
                 {
                     if (!Convert.IsDBNull(dt.Rows[i]["SecondUserID"]) && (string)HttpContext.Current.Session["UserId"] != (string)dt.Rows[i]["SecondUserID"])
                         dt.Rows.RemoveAt(i);

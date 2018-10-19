@@ -82,13 +82,19 @@
       <publishTime>09/19/2018 13:30:42</publishTime>
     </File>
     <File Include="bin/Appapi.dll">
-      <publishTime>10/18/2018 14:48:05</publishTime>
+      <publishTime>10/19/2018 15:39:43</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
-      <publishTime>10/18/2018 14:48:05</publishTime>
+      <publishTime>10/19/2018 15:39:43</publishTime>
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>
+    </File>
+    <File Include="bin/ClassLibrary1.dll">
+      <publishTime>10/19/2018 15:39:43</publishTime>
+    </File>
+    <File Include="bin/ClassLibrary1.pdb">
+      <publishTime>10/19/2018 15:39:43</publishTime>
     </File>
     <File Include="bin/CommonClass.dll">
       <publishTime>10/18/2018 11:44:41</publishTime>
@@ -97,13 +103,13 @@
       <publishTime>10/18/2018 11:44:41</publishTime>
     </File>
     <File Include="bin/Epicor.App.Version.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>07/23/2018 18:54:52</publishTime>
     </File>
     <File Include="bin/Epicor.Ice.Version.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>07/23/2018 18:55:10</publishTime>
     </File>
     <File Include="bin/Epicor.ServiceModel.dll">
-      <publishTime>04/12/2017 00:47:44</publishTime>
+      <publishTime>04/12/2017 13:47:42</publishTime>
     </File>
     <File Include="bin/EpicorAPIManager.dll">
       <publishTime>10/18/2018 11:44:48</publishTime>
@@ -142,7 +148,7 @@
       <publishTime>04/12/2017 13:44:43</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.LotSelectUpdate.dll">
-      <publishTime>04/12/2017 00:44:46</publishTime>
+      <publishTime>04/12/2017 13:44:44</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.NonConf.dll">
       <publishTime>04/12/2017 00:44:50</publishTime>
@@ -154,7 +160,7 @@
       <publishTime>04/12/2017 13:44:50</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.PO.dll">
-      <publishTime>04/12/2017 13:44:56</publishTime>
+      <publishTime>07/23/2018 18:54:42</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.Receipt.dll">
       <publishTime>04/12/2017 13:45:01</publishTime>
@@ -169,25 +175,25 @@
       <publishTime>04/12/2017 13:48:10</publishTime>
     </File>
     <File Include="bin/Ice.Contracts.BO.UserFile.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>04/12/2017 00:48:24</publishTime>
     </File>
     <File Include="bin/Ice.Contracts.Lib.BOReader.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>04/12/2017 00:48:24</publishTime>
     </File>
     <File Include="bin/Ice.Contracts.Lib.SessionMod.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>04/12/2017 00:48:26</publishTime>
     </File>
     <File Include="bin/Ice.Core.Session.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>04/12/2017 00:48:28</publishTime>
     </File>
     <File Include="bin/Ice.Lib.AppSettingsHandler.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>04/12/2017 00:48:28</publishTime>
     </File>
     <File Include="bin/Ice.Lib.Cryptography.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>04/12/2017 00:48:30</publishTime>
     </File>
     <File Include="bin/Ice.Lib.Deployment.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>04/12/2017 00:48:30</publishTime>
     </File>
     <File Include="bin/Microsoft.AI.Agent.Intercept.dll">
       <publishTime>09/19/2018 13:30:42</publishTime>
@@ -420,14 +426,17 @@
     <File Include="bin/zh-CN/Erp.Contracts.BO.NonConf.resources.dll">
       <publishTime>03/23/2018 00:01:04</publishTime>
     </File>
+    <File Include="bin/zh-CN/Erp.Contracts.BO.PO.resources.dll">
+      <publishTime>12/19/2017 00:01:04</publishTime>
+    </File>
     <File Include="bin/zh-CN/Erp.Contracts.BO.Vendor.resources.dll">
       <publishTime>12/19/2017 00:01:04</publishTime>
     </File>
     <File Include="bin/zh-CN/Ice.Contracts.BO.UserFile.resources.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>12/30/2017 00:01:04</publishTime>
     </File>
     <File Include="bin/zh-CN/Ice.Lib.Deployment.resources.dll">
-      <publishTime>09/19/2018 13:30:41</publishTime>
+      <publishTime>12/07/2017 00:01:04</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Net.Http.Formatting.resources.dll">
       <publishTime>09/19/2018 13:30:42</publishTime>
@@ -550,7 +559,7 @@
       <publishTime>09/19/2018 13:30:41</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>10/18/2018 12:50:37</publishTime>
+      <publishTime>10/19/2018 12:46:24</publishTime>
     </File>
   </ItemGroup>
 </Project>
