@@ -82,10 +82,10 @@
       <publishTime>09/19/2018 13:30:42</publishTime>
     </File>
     <File Include="bin/Appapi.dll">
-      <publishTime>10/19/2018 15:39:43</publishTime>
+      <publishTime>10/19/2018 16:43:59</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
-      <publishTime>10/19/2018 15:39:43</publishTime>
+      <publishTime>10/19/2018 16:43:59</publishTime>
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>

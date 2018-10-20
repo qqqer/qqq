@@ -9,6 +9,7 @@ using System.Web;
 using System.Data;
 using System.Web.Services;
 using System.IO;
+using Newtonsoft.Json;
 
 namespace Appapi.Controllers
 {
@@ -97,7 +98,12 @@ namespace Appapi.Controllers
         [HttpPost]
         public string ReceiveCommitWithNonQRCode(Receipt Para) //ApiNum: 102
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReceiveCommitWithNonQRCode(Para) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
+            if(HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+            string res = ReceiptRepository.ReceiveCommitWithNonQRCode(Para);
+
+            return res == "处理成功" ? res : res + "|102";
         }//根据Para提供的参数，打印收货二维码并新增收货流程记录， 并把流程转到第2节点
 
 
@@ -106,7 +112,12 @@ namespace Appapi.Controllers
         [HttpPost]
         public string ReceiveCommitWithQRCode(Receipt Para) //ApiNum: 103
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReceiveCommitWithQRCode(Para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            if (HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+            string res = ReceiptRepository.ReceiveCommitWithQRCode(Para);
+
+            return res == "处理成功" ? res : res + "|103";
         }//根据Para提供的参数，新增收货流程记录或更新指定的收货流程记录，并把收货流程转到第2节点
 
 
@@ -118,9 +129,19 @@ namespace Appapi.Controllers
        
         //Post:  /api/Receipt/IQCCommit
         [HttpPost]
-        public string IQCCommit(Receipt para) //ApiNum: 201
+        public string IQCCommit() //ApiNum: 201
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.IQCCommit(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            if (HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+
+            StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);
+            string json = reader.ReadToEnd();
+            Receipt batch = JsonConvert.DeserializeObject<Receipt>(json);
+
+            string res = ReceiptRepository.IQCCommit(batch);
+
+            return res == "处理成功" ? res : res + "|201";
         }//根据Para提供的参数，更新指定的收货流程记录，并把收货流程转到第3节点
 
 
@@ -141,7 +162,12 @@ namespace Appapi.Controllers
         [HttpPost]
         public string TransferCommit(Receipt para)//ApiNum: 301
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.TransferCommit(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            if (HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+            string res = ReceiptRepository.TransferCommit(para);
+
+            return res == "处理成功" ? res : res + "|301";
         }
 
         #endregion
@@ -153,7 +179,12 @@ namespace Appapi.Controllers
         [HttpPost]
         public string AcceptCommit(Receipt para) //ApiNum: 401
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.AcceptCommit(para) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            if (HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+            string res = ReceiptRepository.AcceptCommit(para);
+
+            return res == "处理成功" ? res : res + "|401";
         }//根据Para提供的参数，更新指定的收货流程记录，并把收货流程转到第4节点（结束状态）
         #endregion
 

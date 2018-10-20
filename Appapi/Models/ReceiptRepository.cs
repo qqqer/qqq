@@ -11,7 +11,6 @@ using ErpAPI;
 
 namespace Appapi.Models
 {
-    //[System.Web.Script.Services.ScriptService]
     public static class ReceiptRepository
     {
 
@@ -648,7 +647,7 @@ namespace Appapi.Models
 
             else //status == 2  更新批次信息。
             {
-                sql = @"update Receipt set IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}'，Remark = '{5}'，Status=" + batInfo.Status + "，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9}, AtRole = {11} where ID = {10}";
+                sql = @"update Receipt set NBBatchNo = '"+ batInfo.NBBatchNo +"', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}'，Remark = '{5}'，Status=" + batInfo.Status + "，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9}, AtRole = {11} where ID = {10}";
                 sql = string.Format(sql, batInfo.IsAllCheck, batInfo.InspectionQty, batInfo.PassedQty, batInfo.FailedQty, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.ReceiveQty2, batInfo.ID, 4);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -805,11 +804,10 @@ namespace Appapi.Models
 
 
 
-            string packnum, recdate, vendorid = (string)theBatch.Rows[0]["SupplierNo"], rcvdtlStr, companyId = (string)theBatch.Rows[0]["Company"];
+            string packnum, recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), vendorid = (string)theBatch.Rows[0]["SupplierNo"], rcvdtlStr, companyId = (string)theBatch.Rows[0]["Company"];
 
             if ((string)theBatch.Rows[0]["TranType"] == "PUR-STK")
             {
-                recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
                 packnum = vendorid + recdate;
                 rcvdtlStr = "'ponum':'{0}',   " +
                             "'poline':'{1}', " +
@@ -845,12 +843,12 @@ namespace Appapi.Models
                 rcvdtlStr = "[{" + rcvdtlStr + "}]";
 
 
-                if (ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")
+                if (ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")//erp回写成功，更新对应的Receipt记录
                 {
-                    //string Location = jobManager.poDes((int)theBatch.Rows[0]["PONum"], (int)theBatch.Rows[0]["POLine"], (int)theBatch.Rows[0]["PORelNum"], (string)theBatch.Rows[0]["Company"]);
-                    //sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
-                    //sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
-                    //SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    string Location = ErpApi.poDes((int)theBatch.Rows[0]["PONum"], (int)theBatch.Rows[0]["POLine"], (int)theBatch.Rows[0]["PORelNum"], (string)theBatch.Rows[0]["Company"]);
+                    sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
+                    sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                     return "处理成功";
                 }
@@ -860,7 +858,7 @@ namespace Appapi.Models
             {
                 //jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId)
 
-                if ("" == "true")//若回写erp成功， 则更新Receipt记录
+                if ("" == "1|处理成功")//若回写erp成功， 则更新对应的Receipt记录
                 {
                     //string Location = jobManager.poDes((int)batInfo.PoNum, (int)batInfo.PoLine, (int)batInfo.PORelNum, batInfo.Company);
                     //sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
@@ -870,10 +868,11 @@ namespace Appapi.Models
 
 
 
+                //取出更新后的记录信息
                 sql = @" Select *  from Receipt where ID = " + batInfo.ID + "";
                 theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
 
-
+                //取出其余连续委外的工序号、poline、porelnum、工序描述
                 sql = @"  Select jobseq, poline,porelnum ,OpDesc from erp.porel pr 
                           left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
                           where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}' and jobseq!= {4} ";
@@ -1140,6 +1139,7 @@ namespace Appapi.Models
                         PoLine,
                         PORelNum,
                         BatchNo,
+                        NBBatchNo,
                         Company,
                         Plant,
                         IsPrint,

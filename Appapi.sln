@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.27703.2042
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AppAPI", "Appapi\AppAPI.csproj", "{5AB9420D-F168-4979-815A-95F229A64787}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErpAPI", "ClassLibrary1\ErpAPI.csproj", "{5C6F0571-6A74-453E-A60E-3AEB7033751D}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ErpAPI", "ERPAPI\ErpAPI.csproj", "{5C6F0571-6A74-453E-A60E-3AEB7033751D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
