@@ -10,6 +10,7 @@ using System.Data;
 using System.Web.Services;
 using System.IO;
 using Newtonsoft.Json;
+using System.Windows.Forms;
 
 namespace Appapi.Controllers
 {
@@ -131,6 +132,7 @@ namespace Appapi.Controllers
         [HttpPost]
         public string IQCCommit() //ApiNum: 201
         {
+            //MessageBox.Show(HttpContext.Current.Session.SessionID);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
@@ -200,12 +202,27 @@ namespace Appapi.Controllers
 
 
 
+
         //Post:  /api/Receipt/ReturnStatus
         [HttpPost]
         public string ReturnStatus(dynamic para) //ApiNum: 2 
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ID, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
+
+
+
+        //Post:  /api/Receipt/ReturnStatus2
+        [HttpPost]
+        public string ReturnStatus2() //ApiNum: 9 winform
+        {
+            StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);
+            string ss = reader.ReadToEnd();
+            string[] arr = ss.Split(',');
+
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus(int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2])) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }//流程回退到上一个节点
+
 
 
         //Get:  /api/Receipt/GetWarehouse
@@ -220,9 +237,12 @@ namespace Appapi.Controllers
         [HttpGet]
         //Get:  /api/Receipt/ParseQRValues
         public string ParseQRValues(string values)//ApiNum: 4
-        {
+        {        
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ParseQRValues(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//values末尾追加了工厂值和供应商名， 并且用~替换%作为分隔符
+
+
+
 
 
         [HttpGet]
@@ -242,12 +262,14 @@ namespace Appapi.Controllers
 
 
 
+
         [HttpGet]
         //Get:  /api/Receipt/GetRecordByQR
         public ScanResult GetRecordByQR(string values) //ApiNum: 7
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
+
 
 
         //Get:  /api/Receipt/GetReason

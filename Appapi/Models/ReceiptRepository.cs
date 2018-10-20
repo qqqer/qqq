@@ -632,7 +632,7 @@ namespace Appapi.Models
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty2 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
 
 
-            string sql = "select status，isdelete, iscomplete from Receipt where ID = " + batInfo.ID + "";
+            string sql = "select status, isdelete, iscomplete from Receipt where ID = " + batInfo.ID + "";
             DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取batInfo所指定的批次的status，isdelete字段值
 
 
@@ -647,8 +647,8 @@ namespace Appapi.Models
 
             else //status == 2  更新批次信息。
             {
-                sql = @"update Receipt set NBBatchNo = '"+ batInfo.NBBatchNo +"', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}'，Remark = '{5}'，Status=" + batInfo.Status + "，ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9}, AtRole = {11} where ID = {10}";
-                sql = string.Format(sql, batInfo.IsAllCheck, batInfo.InspectionQty, batInfo.PassedQty, batInfo.FailedQty, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.ReceiveQty2, batInfo.ID, 4);
+                sql = @"update Receipt set NBBatchNo = '"+ batInfo.NBBatchNo +"', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Remark = '{5}', Status=" + batInfo.Status + ",ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9}, AtRole = {11} where ID = {10}";
+                sql = string.Format(sql, Convert.ToInt32(batInfo.IsAllCheck), batInfo.InspectionQty, batInfo.PassedQty, batInfo.FailedQty, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.ReceiveQty2, batInfo.ID, batInfo.Status == 3 ? 4 : 2);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
@@ -970,18 +970,20 @@ namespace Appapi.Models
                 sql = "select * from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "' ";
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
-                for (int i = 0; i < dt.Rows.Count; i++)
+                if (dt != null)
                 {
-                    if (FtpRepository.DeleteFile((string)theBatch.Rows[i]["FilePath"], (string)theBatch.Rows[i]["FileName"]) == true)
+                    for (int i = 0; i < dt.Rows.Count; i++)
                     {
-                        continue;
+                        if (FtpRepository.DeleteFile((string)theBatch.Rows[i]["FilePath"], (string)theBatch.Rows[i]["FileName"]) == true)
+                        {
+                            continue;
+                        }
+                        else
+                            return "错误：回退失败，删除现有报告时出错，请重试";
                     }
-                    else
-                        return "错误：回退失败，删除现有报告时出错，请重试";
+                    sql = "delete from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "'";
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
-                sql = "delete from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "'";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
                 //OpDetail = GetOpDetail("")
             }
             else //oristatus == 1  

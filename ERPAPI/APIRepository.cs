@@ -13,7 +13,7 @@ using Ice.Core;
 using Erp.Proxy.BO;
 using Erp.BO;
 using Epicor.ServiceModel.Channels;
-using  Ice.Tablesets;
+using Ice.Tablesets;
 
 
 namespace ErpAPI
@@ -90,7 +90,6 @@ namespace ErpAPI
                             stype = "S|下工序外协:" + drNextdt.Rows[0]["Opdesc"].ToString();
                             OutAsm = asmSeq;
                             OutOprSeq = NextOperSeq;
-
                         }
                         else
                         { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString(); }
@@ -113,7 +112,6 @@ namespace ErpAPI
                             stype = "S|下工序外协" + drNextdt.Rows[0]["Opdesc"].ToString();
                             OutAsm = asmSeq;
                             OutOprSeq = NextOperSeq;
-
                         }
                         else
                         { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString(); }
@@ -124,13 +122,11 @@ namespace ErpAPI
                         DataTable relateddrdt = GetDataByERP("select AssemblySeq,Description,RelatedOperation,Parent ParentAssemblySeq from erp.JobAsmbl where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "'");
                         if (relateddrdt != null && relateddrdt.Rows.Count > 0)
                         {
-
                             NextOperSeq = Convert.ToInt32(relateddrdt.Rows[0]["RelatedOperation"]);
                             int parAsmSeq = Convert.ToInt32(relateddrdt.Rows[0]["ParentAssemblySeq"]);
                             if (NextOperSeq == 0)
                             {
                                 return "0|本半成品没有关联到父半成品的工序,取不到下工序类型";
-
                             }
                             else
                             {
@@ -144,29 +140,19 @@ namespace ErpAPI
                                         stype = "S|下工序外协" + drNextdt.Rows[0]["Opdesc"].ToString();
                                         OutAsm = parAsmSeq;
                                         OutOprSeq = NextOperSeq;
-
                                     }
                                     else
                                     { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString(); }
                                 }
-
                             }
-
-
                         }
-
-
                     }
                 }
-
-
                 return stype;
             }
             catch (Exception e)
             {
-
                 return "0|" + e.Message.ToString();
-                //return "";
             }
 
         }
@@ -183,7 +169,7 @@ namespace ErpAPI
                 string sql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[Character10] as [ReqDetail_Character10] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum ";
                 sql = sql + " left outer join Erp.Warehse as Warehse on PartPlant.Company = Warehse.Company and PartPlant.PrimWhse = Warehse.WarehouseCode left outer join ReqDetail as ReqDetail on PODetail.Company = ReqDetail.Company and PODetail.PONUM = ReqDetail.PONUM and PODetail.POLine = ReqDetail.POLine left outer join Erp.ReqHead as ReqHead on ReqDetail.Company = ReqHead.Company and ReqDetail.ReqNum = ReqHead.ReqNum left outer join Erp.UserFile as UserFile on ReqHead.RequestorID = UserFile.DcdUserID left outer join Erp.JobMtl as JobMtl on PORel.Company = JobMtl.Company and PORel.JobNum = JobMtl.JobNum and PORel.AssemblySeq = JobMtl.AssemblySeq and PORel.JobSeq = JobMtl.MtlSeq left outer join Erp.JobOper as JobOper on JobMtl.Company = JobOper.Company and JobMtl.JobNum = JobOper.JobNum and JobMtl.AssemblySeq = JobOper.AssemblySeq and JobMtl.RelatedOperation = JobOper.OprSeq left outer join Erp.OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOper.OpCode = OpMaster.OpCode where (PORel.Company = '" + companyId + "'  and PORel.PONum = '" + ponum + "'  and PORel.POLine ='" + poline + "'  and PORel.PORelNum ='" + porel + "')";
                 DataTable dt = GetDataByERP(sql);
-                
+
 
                 for (int i = 0; i < dt.Columns.Count; i++)
                 {
@@ -210,16 +196,12 @@ namespace ErpAPI
                 {
                     if (tranType == "pur-ukn")  //杂项采购一定是通过需求输入进行
                     {
-
                         return "R|物料接收人:" + dt.Rows[0]["ReqDetail.Character10"].ToString().Trim();
                     }  //837133-1-1
                     else
                     {
-
                         return "W|仓库:" + dt.Rows[0]["Warehse.Description"].ToString().Trim();
                     }
-
-
                 }
                 else //工单不为空时，表示为采购至job
                 {
@@ -248,7 +230,7 @@ namespace ErpAPI
                             {
                                 dt2.Columns[i].ColumnName = dt2.Columns[i].ColumnName.Replace('_', '.');
                             }
-                            
+
                             if (dt2.Rows.Count > 0)
                             {
                                 int ven = 0;
@@ -335,31 +317,24 @@ namespace ErpAPI
                     retuWh = dt.Rows[0]["WhseBin.WarehouseCode"].ToString().Trim();
                     if (retuWh.ToLower() == wh.ToLower())
                     {
-
                         return "1|" + binid;
                     }
                     else
                     {
-
                         return "0|库位信息对应的仓库" + retuWh + "与默认仓库" + wh + "不一致，请检查修改epicor中的数据";
                     }
                 }
 
                 else
                 {
-
                     return "0|找不到默认仓库，请检查epicor数据";
                 }
             }
 
             catch (Exception ex)
             {
-
                 return "0|" + ex.Message.ToString();
-
             }
-
-
         }
 
 
@@ -388,7 +363,7 @@ namespace ErpAPI
                 return "0|错误，请检查收货信息参数是否正确。" + ex.Message.ToString();
             }
             #endregion
-            
+
 
             Session EpicorSession = GetEpicorSession();
             if (EpicorSession == null)
@@ -399,7 +374,6 @@ namespace ErpAPI
             string plantid = QueryERP("select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'");
             EpicorSession.PlantID = plantid;
 
-            //WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionida", "");
             POImpl poAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<POImpl>(EpicorSession, ImplBase<Erp.Contracts.POSvcContract>.UriPath);
             ReceiptImpl recAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<ReceiptImpl>(EpicorSession, ImplBase<Erp.Contracts.ReceiptSvcContract>.UriPath);
             LotSelectUpdateImpl lotadapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<LotSelectUpdateImpl>(EpicorSession, ImplBase<Erp.Contracts.LotSelectUpdateSvcContract>.UriPath);
@@ -622,7 +596,6 @@ namespace ErpAPI
                 return "0|请再次办理." + ex.Message.ToString();
             }
             #endregion
-
         }
     }
 }

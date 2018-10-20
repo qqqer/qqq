@@ -234,3 +234,4 @@ E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.PO.xml
 E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.PO.resources.dll
 E:\Git\APPapi\Appapi\bin\zh-CN\Ice.Lib.Deployment.resources.dll
 E:\Git\APPapi\Appapi\bin\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
+E:\Git\APPapi\Appapi\bin\Ice.Contracts.BO.DynamicQuery.dll
