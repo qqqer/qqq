@@ -27,8 +27,9 @@ namespace ErpAPI
                 string serverUrl = ConfigurationManager.AppSettings["ServerUrl"];
                 string userName = ConfigurationManager.AppSettings["EpicorLoginName"];
                 string passWord = ConfigurationManager.AppSettings["EpicorLoginPassword"];
+                string configFile = ConfigurationManager.AppSettings["ConfigFile"];
 
-                Ice.Core.Session E9Session = new Ice.Core.Session(userName, passWord, serverUrl, Session.LicenseType.Default);
+                Ice.Core.Session E9Session = new Ice.Core.Session(userName, passWord, serverUrl, Session.LicenseType.Default, configFile);
                 return E9Session;
             }
             catch (Exception ex)

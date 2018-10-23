@@ -21,9 +21,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public bool Login(dynamic Account) //ApiNum: 10000
         {
-            //HttpContext.Current.Session.Add("Company", 1);
-            //return false;
-            string OpDetail = "", OpDate = DateTime.Now.ToString();
+            string OpDetail = "web登录", OpDate = DateTime.Now.ToString();
 
             string userid = Convert.ToString(Account.userid);
             
@@ -39,7 +37,7 @@ namespace Appapi.Controllers
                 HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
                 //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
 
-                //ReceiptRepository.AddOpLog(-1, 123, "login", OpDate, OpDetail);
+                ReceiptRepository.AddOpLog(null, 10000, "login", OpDate, OpDetail);
 
                 return true;
             }
@@ -52,7 +50,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public bool Login2() //ApiNum: 10001   winform登录
         {
-            string OpDetail = "", OpDate = DateTime.Now.ToString();
+            string OpDetail = "winform登录", OpDate = DateTime.Now.ToString();
 
 
             StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);         
@@ -75,7 +73,7 @@ namespace Appapi.Controllers
                 HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
                 //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
 
-                //ReceiptRepository.AddOpLog(-1, 123, "login", OpDate, OpDetail);
+                ReceiptRepository.AddOpLog(null, 10001, "login", OpDate, OpDetail);
 
                 return true;
             }
@@ -195,7 +193,7 @@ namespace Appapi.Controllers
         #region 功能
         //Get:  /api/Receipt/GetNextUserGroup
         [HttpGet]
-        public string GetNextUserGroup(int nextStatus, string company, string plant)//ApiNum: 1
+        public DataTable GetNextUserGroup(int nextStatus, string company, string plant)//ApiNum: 1
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(nextStatus, company, plant) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
@@ -207,7 +205,7 @@ namespace Appapi.Controllers
         [HttpPost]
         public string ReturnStatus(dynamic para) //ApiNum: 2 
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ID, (int)para.Status, (int)para.ReasonID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ID, (int)para.Status, (int)para.ReasonID,2) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
 
 
@@ -220,7 +218,7 @@ namespace Appapi.Controllers
             string ss = reader.ReadToEnd();
             string[] arr = ss.Split(',');
 
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus(int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2])) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus(int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2]), 9) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
 
 

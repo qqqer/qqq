@@ -300,8 +300,8 @@ namespace Appapi.Models
                 return GetErrorInfo(batInfo);
             }
 
-            if (batInfo.ReceiveQty1 == null || batInfo.ReceiveQty1 == 0)
-                return "错误：数量不能为空或0";
+            if (batInfo.ReceiveQty1 == null || batInfo.ReceiveQty1 < 1)
+                return "错误：数量需大于0";
 
             if (batInfo.ReceiveQty1 > RB.First().NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty1 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
@@ -443,7 +443,7 @@ namespace Appapi.Models
 
 
             //string OpDetail  =  GetOpDetail("")
-            // AddOpLog(GetReceiptID(batInfo), 101, "insert", OpDate, OpDetail);
+            AddOpLog(GetReceiptID(batInfo), 102, "insert", OpDate, sql);
 
             return "处理成功";
         }
@@ -463,8 +463,8 @@ namespace Appapi.Models
             if (RB == null)//该批次的收货依据错误
                 return GetErrorInfo(batInfo);
 
-            if (batInfo.ReceiveQty1 == null || batInfo.ReceiveQty1 == 0)
-                return "错误：数量不能为空或0";
+            if (batInfo.ReceiveQty1 == null || batInfo.ReceiveQty1 < 1)
+                return "错误：数量需大于0";
 
             if (batInfo.ReceiveQty1 > RB.First().NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty1 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
@@ -561,7 +561,7 @@ namespace Appapi.Models
 
 
                 //string OpDetail  =  GetOpDetail("")
-                // AddOpLog(GetReceiptID(batInfo), 101, "insert", OpDate, OpDetail);
+                AddOpLog(GetReceiptID(batInfo), 103, "insert", OpDate, sql);
 
                 return "处理成功";
             }
@@ -597,7 +597,7 @@ namespace Appapi.Models
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 //string OpDetail  =  GetOpDetail("")
-                //AddOpLog(batInfo.ID, 102, "update", OpDate, OpDetail);
+                AddOpLog(batInfo.ID, 103, "update", OpDate, sql);
 
                 return "处理成功"; //更新提交成功                
             }
@@ -625,8 +625,8 @@ namespace Appapi.Models
             if (RB == null)
                 return GetErrorInfo(batInfo);
 
-            if (batInfo.ReceiveQty2 == null || batInfo.ReceiveQty2 == 0)
-                return "错误：数量不能为空或0";
+            if (batInfo.ReceiveQty2 == null || batInfo.ReceiveQty2 < 1)
+                return "错误：数量需大于0";
 
             if (batInfo.ReceiveQty2 > RB.First().NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ReceiveQty2 - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
@@ -653,7 +653,7 @@ namespace Appapi.Models
 
 
                 //string OpDetail  =  GetOpDetail("")
-                //AddOpLog(batInfo.ID, 201, "update", OpDate, OpDetail);
+                AddOpLog(batInfo.ID, 201, "update", OpDate, sql);
 
                 return "处理成功";
             }
@@ -665,6 +665,7 @@ namespace Appapi.Models
         {
             Thread.Sleep(5);
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            string ss = OpDate.Replace(":", "").Replace(".", "").Replace(" ", "_");
 
             byte[] fileContents = new byte[HttpContext.Current.Request.InputStream.Length];
             HttpContext.Current.Request.InputStream.Read(fileContents, 0, fileContents.Length);
@@ -676,32 +677,42 @@ namespace Appapi.Models
 
 
 
-            string sql = "select batchNo, SupplierName, ponum  from Receipt where ID = " + ReceiptID + " ";
+            string sql = "select batchNo, SupplierNo, ponum,poline  from Receipt where ID = " + ReceiptID + " ";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
 
 
-            if (!FtpRepository.IsFolderExist("/", (string)dt.Rows[0]["SupplierName"]))
+            if (!FtpRepository.IsFolderExist("/", (string)dt.Rows[0]["SupplierNo"])) //供应商层
             {
-                FtpRepository.MakeFolder("/", (string)dt.Rows[0]["SupplierName"]);
+                FtpRepository.MakeFolder("/", (string)dt.Rows[0]["SupplierNo"]);
             }
 
-            if (!FtpRepository.IsFolderExist("/" + (string)dt.Rows[0]["SupplierName"] + "/", dt.Rows[0]["ponum"].ToString()))
+            if (!FtpRepository.IsFolderExist("/" + (string)dt.Rows[0]["SupplierNo"] + "/", dt.Rows[0]["ponum"].ToString()))//订单号层
             {
-                FtpRepository.MakeFolder("/" + (string)dt.Rows[0]["SupplierName"] + "/", dt.Rows[0]["ponum"].ToString());
+                FtpRepository.MakeFolder("/" + (string)dt.Rows[0]["SupplierNo"] + "/", dt.Rows[0]["ponum"].ToString());
             }
 
-            string newFileName = (string)dt.Rows[0]["batchNo"] + "_" + OpDate + "_" + HttpContext.Current.Session["UserId"].ToString() + fileType;
-
-
-            if (FtpRepository.UploadFile(fileContents, "/" + (string)dt.Rows[0]["SupplierName"] + "/" + dt.Rows[0]["ponum"].ToString() + "/", newFileName) == true)
+            if (!FtpRepository.IsFolderExist("/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/", dt.Rows[0]["poline"].ToString()))//订单行号层
             {
-                string FilePath = FtpRepository.ftpServer + "/" + (string)dt.Rows[0]["SupplierName"] + "/" + dt.Rows[0]["ponum"].ToString() + "/";
+                FtpRepository.MakeFolder("/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/", dt.Rows[0]["poline"].ToString());
+            }
+
+
+            //设置文件名
+            string newFileName = (string)dt.Rows[0]["batchNo"] + "_" + ss + "_" + HttpContext.Current.Session["UserId"].ToString() + fileType;
+
+
+            //上传，成功则更新数据库
+            if (FtpRepository.UploadFile(fileContents, "/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/" + dt.Rows[0]["poline"].ToString() + "/", newFileName) == true)
+            {
+                string FilePath = FtpRepository.ftpServer + "/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/" + dt.Rows[0]["poline"].ToString() + "/";
 
                 sql = @"insert into IQCFile Values('{0}', '{1}', '{2}', '{3}')";
                 sql = string.Format(sql, (string)dt.Rows[0]["batchNo"], FilePath, newFileName, OpDate);
 
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                AddOpLog(ReceiptID, 202, "upload", OpDate, sql);
 
                 return true;
             }
@@ -753,7 +764,7 @@ namespace Appapi.Models
 
 
                 //string OpDetail  =  GetOpDetail("")
-                //AddOpLog(batInfo.ID, 201, "update", OpDate, OpDetail);
+                AddOpLog(batInfo.ID, 301, "update", OpDate, sql);
 
                 return "处理成功";
             }
@@ -775,6 +786,9 @@ namespace Appapi.Models
 
             if (RB == null)
                 return GetErrorInfo(batInfo);
+
+            if (batInfo.ArrivedQty == null || batInfo.ArrivedQty < 1)
+                return "错误：数量需大于0";
 
             if (batInfo.ArrivedQty > RB.First().NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", batInfo.ArrivedQty - RB.First().NotReceiptQty, RB.First().NotReceiptQty);
@@ -904,23 +918,23 @@ namespace Appapi.Models
         /// 返回下个节点的可选人员
         /// </summary>
         /// <returns></returns>
-        public static string GetNextUserGroup(int nextRole, string company, string plant)
+        public static DataTable GetNextUserGroup(int nextRole, string company, string plant )
         {
             DataTable dt = null;
             string sql = null, NextUserGroup = null;
 
-            sql = "select userid from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 ";
+            sql = "select userid,username from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 ";
 
 
             dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
 
 
-            for (int i = 0; i < dt.Rows.Count; i++)
-            {
-                NextUserGroup += dt.Rows[i][0].ToString() + ","; //把每行的userid拼接起来，以逗号分隔
-            }
+            //for (int i = 0; i < dt.Rows.Count; i++)
+            //{
+            //    NextUserGroup += dt.Rows[i][0].ToString() + ","; //把每行的userid拼接起来，以逗号分隔
+            //}
 
-            return NextUserGroup;
+            return dt;
         }
 
 
@@ -931,7 +945,7 @@ namespace Appapi.Models
         /// <param name="oristatus"></param>
         /// <param name="ReasonID"></param>
         /// <returns></returns>
-        public static string ReturnStatus(int ID, int oristatus, int ReasonID)
+        public static string ReturnStatus(int ID, int oristatus, int ReasonID, int apinum)
         {
             string OpDetail = "", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
@@ -953,19 +967,22 @@ namespace Appapi.Models
             if (oristatus == 4)
             {
                 Return(3, "ReturnThree", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 4);
-
-                //OpDetail = GetOpDetail("")
+                sql = "update receipt set fourthusergroup=null where id = " + ID + "";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                //AddOpLog(ID, apinum, "update", OpDate, sql);
 
             }
             else if (oristatus == 3)
             {
                 Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 2);
-
-                //OpDetail = GetOpDetail("")
+                sql = "update receipt set thirdusergroup=null, thirduserid=null, choosedate=null where id = " + ID + "";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                //AddOpLog(ID, apinum, "update", OpDate, sql);
             }
             else if (oristatus == 2)
             {
                 Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 1);
+
 
                 sql = "select * from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "' ";
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
@@ -983,17 +1000,22 @@ namespace Appapi.Models
                     }
                     sql = "delete from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "'";
                     SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    //AddOpLog(ID, apinum, "delete", OpDate, sql);
                 }
-                //OpDetail = GetOpDetail("")
+
+                sql = "update receipt set NBBatchNo = null, receiveqty2 = null, InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, iqcdate=null where id = " + ID + "";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                //AddOpLog(ID, apinum, "update", OpDate, sql);
             }
             else //oristatus == 1  
             {
                 sql = @"update Receipt set isdelete = 1  where ID = " + ID + " ";   // 把该批次的流程标记为已删除
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                //AddOpLog(ID, apinum, "update", OpDate, sql);
             }
 
 
-            // AddOpLog(ID, ApiNum, "return", OpDate, OpDetail);
+            AddOpLog(ID, apinum, "return", OpDate, oristatus.ToString());
             return "处理成功";
         }
 
@@ -1273,10 +1295,10 @@ namespace Appapi.Models
 
 
 
-        public static void AddOpLog(int ReceiptId, int ApiNum, string OpType, string OpDate, string OpDetail)
+        public static void AddOpLog(int? ReceiptId, int ApiNum, string OpType, string OpDate, string OpDetail)
         {
             string sql = @"insert into OpLog(ReceiptId, UserId, Company, plant, Opdate, ApiNum, OpType, OpDetail) Values({0}, '{1}', '{2}', '{3}', '{4}', {5}, '{6}', '{7}') ";
-            sql = string.Format(sql, ReceiptId, HttpContext.Current.Session["UserId"].ToString(), HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString(), OpDate, ApiNum, OpType, OpDetail);
+            sql = string.Format(sql, ReceiptId == null ? "null" : ReceiptId.ToString(), HttpContext.Current.Session["UserId"].ToString(), HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString(), OpDate, ApiNum, OpType, OpDetail);
 
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }//添加操作记录

@@ -27,7 +27,7 @@ namespace Appapi.Models
                 ftp.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
                 ftp.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                 WebResponse response = ftp.GetResponse();
-                StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.Default);
+                StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
 
                 string line = reader.ReadLine();
 
