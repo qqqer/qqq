@@ -268,6 +268,65 @@ namespace ErpAPI
         }
 
 
+
+        public static string[] GetPartWB(string partnum, string companyId)
+        {
+            string[] pp = new string[3];
+            pp[0] = ""; pp[1] = ""; pp[2] = "";
+            //if (EpicorSessionManager.EpicorSession == null || !EpicorSessionManager.EpicorSession.IsValidSession(EpicorSessionManager.EpicorSession.SessionID, "manager"))
+            //{
+            //    EpicorSessionManager.EpicorSession = CommonClass.Authentication.GetEpicorSession();
+            //}
+            //EpicorSessionManager.EpicorSession.CompanyID = companyId;
+            //PartImpl partAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<PartImpl>(EpicorSessionManager.EpicorSession, ImplBase<Erp.Contracts.PartSvcContract>.UriPath);
+            try
+            {
+                bool tlot = false;
+                //PartDataSet ds = new PartDataSet();
+                //ds = partAD.GetByID(partnum);
+                //PartDataSet.PartDataTable partDT = ds.Part;
+                //PartDataSet.PartPlantDataTable plantDT = ds.PartPlant;
+                //PartDataSet.PartWhseDataTable pwDT = ds.PartWhse;
+                DataTable partDT = GetDataByERP("select * from erp.Part where Company='" + companyId + "' and PartNum='" + partnum + "'");
+                DataTable plantDT = GetDataByERP("select * from erp.PartPlant where Company='" + companyId + "' and PartNum='" + partnum + "'");
+                DataTable pwDT = GetDataByERP("select * from erp.PartWhse where Company='" + companyId + "' and PartNum='" + partnum + "'");
+                string pw = "";
+                if (partDT.Rows.Count > 0) { tlot = Convert.ToBoolean(partDT.Rows[0]["TrackLots"]); }
+                if (plantDT.Rows.Count > 0)
+                { pw = plantDT.Rows[0]["PrimWhse"].ToString().Trim(); }
+                DataTable wbDT = GetDataByERP("select BinNum from erp.WhseBin where Company='" + companyId + "' and WarehouseCode='" + pw + "'");
+                string wb = "";
+                int CNT = 0;
+                CNT = pwDT.Rows.Count;
+                for (int i = 0; i < CNT; i++)
+                {
+                    if (pwDT.Rows[i]["WarehouseCode"].ToString().Trim() == pw)
+                    {
+                        if (wbDT != null && wbDT.Rows.Count > 0)
+                        {
+                            wb = wbDT.Rows[0]["BinNum"].ToString().Trim();
+                        }
+                    }
+
+                }
+
+                pp[0] = pw;
+                pp[1] = wb;
+                if (tlot) { pp[2] = "lot"; } else { pp[2] = ""; }
+
+                return pp;
+            }
+            catch (Exception ex)
+            {
+
+                return pp;
+
+            }
+
+        }
+
+
+
         public static string[] GetPartWB(string partnum, string companyId, string plant)//获取物料的默认主仓库和库位
         {
             string[] pp = new string[3];
@@ -597,6 +656,134 @@ namespace ErpAPI
                 return "0|请再次办理." + ex.Message.ToString();
             }
             #endregion
+        }
+
+
+        //D0506-01工单收货至库存
+        public static string D0506_01(string rqr, string JobNum, int asmSeq, decimal jobQty, string lotnum, string wh, string bin, string companyId)
+        { //JobNum as string ,jobQty as decimal,partNum as string
+            try
+            {
+                //QueryDesignDataSet qdDS = dynamicQuery.GetDashBoardQuery("001-joboprqty");
+                //List<QueryWhereItemRow> whereItems = new List<QueryWhereItemRow>();
+                //whereItems.Add(new QueryWhereItemRow() { TableID = "joboper", FieldName = "jobnum", RValue = JobNum });
+                //whereItems.Add(new QueryWhereItemRow() { TableID = "joboper", FieldName = "AssemblySeq", RValue = asmSeq.ToString() });
+                //DataTable dt = BaqResult("001-joboprqty", whereItems, 0, companyId);
+                DataTable dt = GetDataByERP("select [JobOper].[JobNum] as [JobOper_JobNum],[JobOper].[AssemblySeq] as [JobOper_AssemblySeq],[JobOper].[OprSeq] as [JobOper_OprSeq],[JobOper].[RunQty] as [JobOper_RunQty],[JobOper].[QtyCompleted] as [JobOper_QtyCompleted],[JobAsmbl].[PartNum] as [JobAsmbl_PartNum],[JobAsmbl].[RequiredQty] as [JobAsmbl_RequiredQty],[JobPart].[ReceivedQty] as [JobPart_ReceivedQty],[JobHead].[JobComplete] as [JobHead_JobComplete],[JobHead].[JobReleased] as [JobHead_JobReleased] from Erp.JobOper as JobOper left outer join Erp.JobAsmbl as JobAsmbl on JobOper.Company = JobAsmbl.Company and JobOper.JobNum = JobAsmbl.JobNum and JobOper.AssemblySeq = JobAsmbl.AssemblySeq left outer join Erp.JobPart as JobPart on JobAsmbl.Company = JobPart.Company and JobAsmbl.JobNum = JobPart.JobNum and JobAsmbl.PartNum = JobPart.PartNum left outer join Erp.JobHead as JobHead on JobOper.Company = JobHead.Company and JobOper.JobNum = JobHead.JobNum where(JobOper.Company = '" + companyId + "'  and JobOper.JobNum = '" + JobNum + "'  and JobOper.AssemblySeq ='" + asmSeq.ToString() + "') order by JobOper.OprSeq Desc");
+                for (int i = 0; i < dt.Columns.Count; i++)
+                {
+                    dt.Columns[i].ColumnName = dt.Columns[i].ColumnName.Replace('_', '.');
+                }
+                string partNum = "";
+                decimal recdQty = 0, compQty = 0, requQty = 0;
+                bool jobRes = false, jobCom = true;
+                if (dt.Rows.Count > 0)
+                {
+                    partNum = dt.Rows[0]["JobAsmbl.PartNum"].ToString();
+                    decimal.TryParse(dt.Rows[0]["JobPart.ReceivedQty"].ToString().Trim(), out recdQty);
+                    decimal.TryParse(dt.Rows[0]["JobAsmbl.RequiredQty"].ToString().Trim(), out requQty);
+                    decimal.TryParse(dt.Rows[0]["JobOper.QtyCompleted"].ToString().Trim(), out compQty);
+                    bool.TryParse(dt.Rows[0]["JobHead.JobComplete"].ToString().Trim(), out jobCom);
+                    bool.TryParse(dt.Rows[0]["JobHead.JobReleased"].ToString().Trim(), out jobRes);
+                }
+                if (jobCom)
+                {
+
+                    return "0|工单已关闭，不能收货。";
+                }
+                if (jobRes == false)
+                {
+
+                    return "0|工单未发放，不能收货。";
+                }
+                //if ((recdQty + jobQty) > compQty)
+                //{
+
+                //    return "0|以前收货数量" + recdQty + "+ 本次收货数量" + jobQty + ",>完成数量" + compQty + "，不能收货。";
+                //}
+
+                //if ((recdQty + jobQty) > requQty)
+                //{
+
+                //    return "0|以前收货数量" + recdQty + "+ 本次收货数量" + jobQty + ",>生产数量" + requQty + "，不能收货。";
+                //}
+
+                string[] w = GetPartWB(partNum, companyId);
+                string tlot = w[2].ToString().Trim().ToLower();
+
+                if (wh == "")
+                { wh = w[0]; }
+                //取物料默认的主仓库}
+
+                //  据库位条码信息校验仓库并取库位
+                string bin2 = "";
+                string chkbinInfo = checkbin(bin, wh, companyId);
+                if (chkbinInfo.Substring(0, 1) == "1")
+                { bin2 = chkbinInfo.Substring(2); }
+                else
+                {
+
+                    return chkbinInfo;
+                }
+                try
+                {
+
+                }
+                catch
+                { }
+                //string resultdata = ErpLogin/();
+                //if (resultdata != "true")
+                //{
+                //    return "0|" + resultdata;
+                //}
+                Session EpicorSession = GetEpicorSession();
+                if (EpicorSession == null)
+                {
+                    return "0|erp用户数不够，请稍候再试.错误代码：D0506_01";
+                }
+                EpicorSession.CompanyID = companyId;
+                //WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionidb", "");
+                ReceiptsFromMfgImpl recAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<ReceiptsFromMfgImpl>(EpicorSession, ImplBase<Erp.Contracts.ReceiptsFromMfgSvcContract>.UriPath);
+                ReceiptsFromMfgDataSet recDs = new ReceiptsFromMfgDataSet();
+                string pcTranType = "MFG-STK";
+
+                int piAssemblySeq = 0;
+                recAD.GetNewReceiptsFromMfgJobAsm(JobNum, piAssemblySeq, pcTranType, Guid.NewGuid().ToString(), recDs);
+                //recAD.ReceiptsFromMfgData.Tables["PartTran"].Rows[0]["PartNum"] = partNum;
+                recDs.Tables["PartTran"].Rows[0]["PartNum"] = partNum;
+                string opMessage = "";
+                recAD.OnChangePartNum(recDs, partNum, out opMessage, false);
+                string pcMessage;
+                recDs.Tables[0].Rows[0]["ActTranQty"] = jobQty;
+                recDs.Tables[0].Rows[0]["WareHouseCode"] = wh;
+                recDs.Tables[0].Rows[0]["BinNum"] = bin2;
+                if (tlot == "lot")
+                {
+                    recDs.Tables[0].Rows[0]["lotnum"] = lotnum;
+                }
+
+                recAD.OnChangeActTranQty(recDs, out pcMessage);
+                bool requiresUserInput = false;
+                recAD.PreUpdate(recDs, out requiresUserInput);
+                decimal pdSerialNoQty = 0;
+                bool plNegQtyAction = true;
+                string pks;
+                string pcProcessID = "RcptToInvEntry";
+                recAD.ReceiveMfgPartToInventory(recDs, pdSerialNoQty, plNegQtyAction, out pcMessage, out pks, pcProcessID);
+
+                try
+                {
+                    EpicorSession.Dispose();
+                }
+                catch
+                { }
+                return "1|处理成功";
+            }
+            catch (Exception ex)
+            {
+                return "0|" + ex.Message.ToString();
+            }
+
         }
     }
 }

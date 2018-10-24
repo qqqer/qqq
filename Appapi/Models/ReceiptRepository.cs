@@ -43,6 +43,55 @@ namespace Appapi.Models
         }//生成inser into语句中的values部分。为了方便处理string类型参数的两种情况：string不为null时需加'', 而string为null时则不必加'' 
 
 
+        private static string ConstructRcvdtlStr(string[] array)
+        {
+           string rcvdtlStr = "'ponum':'{0}',   " +
+                            "'poline':'{1}', " +
+                            "'porel':'{2}',  " +
+                            "'partnum':'{3}'," +
+                            "'recqty':'{4}'," +
+                            "'pum':'{5}'," +
+                            "'warehousecode':'{6}'," +
+                            "'binnum':'{7}'," +
+                            "'lotnum':'{8}'," +
+                            "'jobnum':'{9}'," +
+                            "'assemblyseq':'{10}'," +
+                            "'jobseq':'{11}'," +
+                            "'commenttext':'{12}'," +
+                            "'ordertype':'{13}'";
+            rcvdtlStr = string.Format(rcvdtlStr,
+               array[0],
+               array[1],
+               array[2],
+               array[3],
+               array[4],
+               array[5],
+               array[6],
+               array[7],
+               array[8],
+               array[9],
+               array[10],
+               array[11], 
+               array[12],
+               array[13]
+               );
+
+            rcvdtlStr = "[{" + rcvdtlStr + "}]";
+
+            return rcvdtlStr;
+        }
+
+
+        private static bool IsFinalOp(DataRow batch)
+        {
+            string sql = "select count(*) from erp.JobAsmbl where JobNum = '" + (string)batch["JobNum"] + "' and Company = '" + (string)batch["Company"] + "' and  Plant = '" + (string)batch["Plant"] + "' and AssemblySeq = " + (int)batch["AssemblySeq"] + " and FinalOpr = " + (int)batch["JobSeq"] + "";
+
+            int c = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return c > 0 ? true : false;
+        }
+        
+
         /// <summary>
         /// 为改变了值的字段生成操作日志详情
         /// </summary>
@@ -442,7 +491,7 @@ namespace Appapi.Models
             #endregion
 
 
-            //string OpDetail  =  GetOpDetail("")
+            sql = sql.Replace("'", "");
             AddOpLog(GetReceiptID(batInfo), 102, "insert", OpDate, sql);
 
             return "处理成功";
@@ -560,7 +609,7 @@ namespace Appapi.Models
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-                //string OpDetail  =  GetOpDetail("")
+                sql = sql.Replace("'", "");
                 AddOpLog(GetReceiptID(batInfo), 103, "insert", OpDate, sql);
 
                 return "处理成功";
@@ -596,7 +645,7 @@ namespace Appapi.Models
                 #endregion
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                //string OpDetail  =  GetOpDetail("")
+                sql = sql.Replace("'", "");
                 AddOpLog(batInfo.ID, 103, "update", OpDate, sql);
 
                 return "处理成功"; //更新提交成功                
@@ -652,7 +701,7 @@ namespace Appapi.Models
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-                //string OpDetail  =  GetOpDetail("")
+                sql = sql.Replace("'", "");
                 AddOpLog(batInfo.ID, 201, "update", OpDate, sql);
 
                 return "处理成功";
@@ -665,7 +714,7 @@ namespace Appapi.Models
         {
             Thread.Sleep(5);
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            string ss = OpDate.Replace(":", "").Replace(".", "").Replace(" ", "_");
+            string ss = OpDate.Replace(":", "-").Replace(".", "").Replace(" ", "_");
 
             byte[] fileContents = new byte[HttpContext.Current.Request.InputStream.Length];
             HttpContext.Current.Request.InputStream.Read(fileContents, 0, fileContents.Length);
@@ -712,6 +761,7 @@ namespace Appapi.Models
 
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+                sql = sql.Replace("'", "");
                 AddOpLog(ReceiptID, 202, "upload", OpDate, sql);
 
                 return true;
@@ -763,7 +813,7 @@ namespace Appapi.Models
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-                //string OpDetail  =  GetOpDetail("")
+                sql = sql.Replace("'", "");
                 AddOpLog(batInfo.ID, 301, "update", OpDate, sql);
 
                 return "处理成功";
@@ -795,7 +845,7 @@ namespace Appapi.Models
 
 
             string sql = "select * from Receipt where ID = " + batInfo.ID + "";
-            DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //获取batInfo所指定的批次的status，isdelete字段值
+            DataTable theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
 
 
@@ -818,45 +868,28 @@ namespace Appapi.Models
 
 
 
-            string packnum, recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), vendorid = (string)theBatch.Rows[0]["SupplierNo"], rcvdtlStr, companyId = (string)theBatch.Rows[0]["Company"];
+            string packnum , recdate = OpDate, vendorid = (string)theBatch.Rows[0]["SupplierNo"], rcvdtlStr, companyId = (string)theBatch.Rows[0]["Company"];
+            rcvdtlStr = ConstructRcvdtlStr(
+                    new String[] {
+                    GetValueAsString(theBatch.Rows[0]["PoNum"]),
+                    GetValueAsString(theBatch.Rows[0]["PoLine"]),
+                    GetValueAsString(theBatch.Rows[0]["PORelNum"]),
+                    GetValueAsString(theBatch.Rows[0]["PartNum"]),
+                    GetValueAsString(batInfo.ArrivedQty),
+                    GetValueAsString(theBatch.Rows[0]["IUM"]),
+                    GetValueAsString(batInfo.Warehouse),
+                    GetValueAsString(batInfo.BinNum),
+                    GetValueAsString(theBatch.Rows[0]["HeatNum"]),
+                    GetValueAsString(theBatch.Rows[0]["JobNum"]),
+                    GetValueAsString(theBatch.Rows[0]["AssemblySeq"]),
+                    GetValueAsString(theBatch.Rows[0]["JobSeq"]),
+                    GetValueAsString(theBatch.Rows[0]["CommentText"]),
+                    GetValueAsString(theBatch.Rows[0]["TranType"])}
+                    );
 
-            if ((string)theBatch.Rows[0]["TranType"] == "PUR-STK")
+            if ((string)theBatch.Rows[0]["TranType"] == "PUR-STK" || (string)theBatch.Rows[0]["TranType"] == "PUR-UKN")
             {
-                packnum = vendorid + recdate;
-                rcvdtlStr = "'ponum':'{0}',   " +
-                            "'poline':'{1}', " +
-                            "'porel':'{2}',  " +
-                            "'partnum':'{3}'," +
-                            "'recqty':'{4}'," +
-                            "'pum':'{5}'," +
-                            "'warehousecode':'{6}'," +
-                            "'binnum':'{7}'," +
-                            "'lotnum':'{8}'," +
-                            "'jobnum':'{9}'," +
-                            "'assemblyseq':'{10}'," +
-                            "'jobseq':'{11}'," +
-                            "'commenttext':'{12}'," +
-                            "'ordertype':'{13}'";
-                rcvdtlStr = string.Format(rcvdtlStr,
-                   GetValueAsString(theBatch.Rows[0]["PoNum"]),
-                   GetValueAsString(theBatch.Rows[0]["PoLine"]),
-                   GetValueAsString(theBatch.Rows[0]["PORelNum"]),
-                   GetValueAsString(theBatch.Rows[0]["PartNum"]),
-                   GetValueAsString(batInfo.ArrivedQty),
-                   GetValueAsString(theBatch.Rows[0]["IUM"]),
-                   GetValueAsString(batInfo.Warehouse),
-                   GetValueAsString(batInfo.BinNum),
-                   GetValueAsString(theBatch.Rows[0]["HeatNum"]),
-                   GetValueAsString(theBatch.Rows[0]["JobNum"]),
-                   GetValueAsString(theBatch.Rows[0]["AssemblySeq"]),
-                   GetValueAsString(theBatch.Rows[0]["JobSeq"]),
-                   GetValueAsString(theBatch.Rows[0]["CommentText"]),
-                   GetValueAsString(theBatch.Rows[0]["TranType"])
-                   );
-
-                rcvdtlStr = "[{" + rcvdtlStr + "}]";
-
-
+                packnum = vendorid + "-" + DateTime.Now.ToString("yyyyMMddHHmmssfff"); 
                 if (ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")//erp回写成功，更新对应的Receipt记录
                 {
                     string Location = ErpApi.poDes((int)theBatch.Rows[0]["PONum"], (int)theBatch.Rows[0]["POLine"], (int)theBatch.Rows[0]["PORelNum"], (string)theBatch.Rows[0]["Company"]);
@@ -870,39 +903,119 @@ namespace Appapi.Models
 
             else if ((string)theBatch.Rows[0]["TranType"] == "PUR-SUB")
             {
-                //jobManager.porcv(packNum, recdate, vendorid, rcvdtlStr, c10, companyId)
-
-                if ("" == "1|处理成功")//若回写erp成功， 则更新对应的Receipt记录
-                {
-                    //string Location = jobManager.poDes((int)batInfo.PoNum, (int)batInfo.PoLine, (int)batInfo.PORelNum, batInfo.Company);
-                    //sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
-                    //sql = string.Format(sql, batInfo.ArrivedQty, batInfo.Warehouse, batInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
-                    //SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                }
-
-
-
-                //取出更新后的记录信息
-                sql = @" Select *  from Receipt where ID = " + batInfo.ID + "";
-                theBatch = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
-
-                //取出其余连续委外的工序号、poline、porelnum、工序描述
+                //取出连续委外工序（包括当前处理的批次工序）的的工序号、poline、porelnum、工序描述
                 sql = @"  Select jobseq, poline,porelnum ,OpDesc from erp.porel pr 
                           left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
-                          where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}' and jobseq!= {4} ";
-                sql = string.Format(sql, batInfo.PoNum, batInfo.JobNum, batInfo.AssemblySeq, batInfo.Company, batInfo.JobSeq);
+                          where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}' order by jobseq  asc";
+                sql = string.Format(sql, (int)theBatch.Rows[0]["PoNum"], (string)theBatch.Rows[0]["JobNum"], (int)theBatch.Rows[0]["AssemblySeq"], (string)theBatch.Rows[0]["Company"]);
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
 
+                //取出第一条连续委外工序的上一道工序的完成数量
+                sql = @"select top 1 QtyCompleted from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                        where jo.Company = '" + (string)theBatch.Rows[0]["Company"] + "' and jh.Plant = '" + (string)theBatch.Rows[0]["Plant"] + "' and jo.JobNum = '" + (string)theBatch.Rows[0]["JobNum"] + "' and jo.AssemblySeq = " + (int)theBatch.Rows[0]["AssemblySeq"] + "  and  jo.OprSeq < " + (int)dt.Rows[0]["jobseq"] + " order by jo.OprSeq desc";
+                int QtyCompleted = Convert.ToInt32(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
 
-                for (int i = 0; i < dt.Rows.Count; i++)
+                if (QtyCompleted >= batInfo.ArrivedQty)
                 {
-                    theBatch.Rows[0]["PoLine"] = (int)dt.Rows[i]["poline"];
-                    theBatch.Rows[0]["PORelNum"] = (int)dt.Rows[i]["porelnum"];
-                    theBatch.Rows[0]["JobSeq"] = (int)dt.Rows[i]["jobseq"];
-                    theBatch.Rows[0]["IsAuto"] = true;
-                    theBatch.Rows[0]["OpDesc"] = (int)dt.Rows[i]["OpDesc"];
+                    for (int i = 0; i < dt.Rows.Count; i++)
+                    {
+                        rcvdtlStr = ConstructRcvdtlStr(
+                            new String[] {
+                            GetValueAsString(theBatch.Rows[0]["PoNum"]),
+                            GetValueAsString(dt.Rows[i]["poline"]),
+                            GetValueAsString(dt.Rows[i]["porelnum"]),
+                            GetValueAsString(theBatch.Rows[0]["PartNum"]),
+                            GetValueAsString(batInfo.ArrivedQty),
+                            GetValueAsString(theBatch.Rows[0]["IUM"]),
+                            GetValueAsString(batInfo.Warehouse),
+                            GetValueAsString(batInfo.BinNum),
+                            GetValueAsString(theBatch.Rows[0]["HeatNum"]),
+                            GetValueAsString(theBatch.Rows[0]["JobNum"]),
+                            GetValueAsString(theBatch.Rows[0]["AssemblySeq"]),
+                            GetValueAsString(dt.Rows[i]["jobseq"]),
+                            GetValueAsString(theBatch.Rows[0]["CommentText"]),
+                            GetValueAsString(theBatch.Rows[0]["TranType"])}
+                            );
+                        if (ErpApi.porcv(vendorid + "-" + DateTime.Now.ToString("yyyyMMddHHmmssfff"), recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")//若回写erp成功， 则更新对应的Receipt记录
+                        {
+                            #region sql
+                            sql = "insert into Receipt Values(" +
+                            "'" + theBatch.Rows[0]["ReceiptNo"] + "'," +
+                            "'" + theBatch.Rows[0]["SupplierNo"] + "'," +
+                            "'" + theBatch.Rows[0]["SupplierName"] + "'," +
+                            "'" + ErpApi.poDes((int)theBatch.Rows[0]["PoNum"], (int)dt.Rows[i]["PoLine"], (int)dt.Rows[i]["PORelNum"], (string)theBatch.Rows[0]["Company"]) + "'," +
+                            "'" + theBatch.Rows[0]["ReceiptDate"] + "'," +
+                            "'" + theBatch.Rows[0]["IQCDate"] + "'," +
+                            "'" + theBatch.Rows[0]["ChooseDate"] + "'," +
+                            "'" + OpDate + "'," +
+                            "" + theBatch.Rows[0]["PoNum"] + "," +
+                            "" + (int)dt.Rows[i]["poline"] + "," +
+                            "" + (int)dt.Rows[i]["porelnum"] + "," +
+                            "'" + theBatch.Rows[0]["PartNum"] + "'," +
+                            "'" + theBatch.Rows[0]["PartDesc"] + "'," +
+                            "'" + theBatch.Rows[0]["IUM"] + "'," +
+                            "'" + theBatch.Rows[0]["BatchNo"] + "'," +
+                            "'" + theBatch.Rows[0]["HeatNum"] + "'," +
+                            "'" + theBatch.Rows[0]["JobNum"] + "'," +
+                            "" + theBatch.Rows[0]["IsAllCheck"] + "," +
+                            "" + theBatch.Rows[0]["ReceiveQty1"] + "," +
+                            "" + theBatch.Rows[0]["ReceiveQty2"] + "," +
+                            "" + theBatch.Rows[0]["InspectionQty"] + "," +
+                            "" + theBatch.Rows[0]["PassedQty"] + "," +
+                            "" + theBatch.Rows[0]["FailedQty"] + "," +
+                            "" + (int)batInfo.ArrivedQty + "," +
+                            "'" + theBatch.Rows[0]["Result"] + "'," +
+                            "'" + theBatch.Rows[0]["Remark"] + "'," +
+                            "'" + batInfo.Warehouse + "'," +
+                            "'" + batInfo.BinNum + "'," +
+                            "'" + theBatch.Rows[0]["TranType"] + "'," +
+                            "'" + theBatch.Rows[0]["PartType"] + "'," +
+                            "" + theBatch.Rows[0]["AssemblySeq"] + "," +
+                            "" + (int)dt.Rows[i]["jobseq"] + "," +
+                            "'" + (string)dt.Rows[i]["OpDesc"] + "'," +
+                            "'" + theBatch.Rows[0]["CommentText"] + "'," +
+                            "" + theBatch.Rows[0]["Status"] + "," +
+                            "'" + theBatch.Rows[0]["PartClassDesc"] + "'," +
+                            "" + theBatch.Rows[0]["NeedReceiptQty"] + "," +
+                            "" + theBatch.Rows[0]["NotReceiptQty"] + "," +
+                            "'" + theBatch.Rows[0]["Plant"] + "'," +
+                            "'" + theBatch.Rows[0]["Company"] + "'," +
+                            "" + theBatch.Rows[0]["IsPrint"] + "," +
+                            "'" + theBatch.Rows[0]["FirstUserID"] + "'," +
+                            "'" + theBatch.Rows[0]["SecondUserID"] + "'," +
+                            "'" + theBatch.Rows[0]["ThirdUserID"] + "'," +
+                            "'" + theBatch.Rows[0]["FourthUserID"] + "'," +
+                            "'" + theBatch.Rows[0]["SecondUserGroup"] + "'," +
+                            "'" + theBatch.Rows[0]["ThirdUserGroup"] + "'," +
+                            "'" + HttpContext.Current.Session["UserId"].ToString() + "'," +
+                            "" + theBatch.Rows[0]["ReturnOne"] + "," +
+                            "" + theBatch.Rows[0]["ReturnTwo"] + "," +
+                            "" + theBatch.Rows[0]["ReturnThree"] + "," +
+                            "" + theBatch.Rows[0]["IsDelete"] + "," +
+                            "" + ((int)dt.Rows[i]["jobseq"] != (int)theBatch.Rows[0]["JobSeq"] ? 1 : 0) + "," +
+                            "" + 1 + "," +
+                            "" + theBatch.Rows[0]["AtRole"] + "," +
+                            "'" + theBatch.Rows[0]["NBBatchNo"] + "')";
+                            #endregion
+                            SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        }
+                        else
+                        {
+                            string ss = "";
+                            for (; i < dt.Rows.Count; i++)
+                                ss += dt.Rows[i]["jobseq"].ToString() + "，";
+                            return "错误：剩余工序号" + ss + "处理失败，请联系管理员";
+                        }
+                    }
 
+                    if(IsFinalOp(dt.Rows[dt.Rows.Count - 1]))
+                    {
+                        string res = ErpApi.D0506_01(null, (string)theBatch.Rows[0]["JobNum"], (int)theBatch.Rows[0]["AssemblySeq"], (decimal)batInfo.ArrivedQty, (string)theBatch.Rows[0]["BatchNo"], batInfo.Warehouse, batInfo.BinNum, (string)theBatch.Rows[0]["Company"]);
+                        return res == "1|处理成功" ? "处理成功" : res;
+                    }
+
+                    return "处理成功";
                 }
             }
 
@@ -923,7 +1036,7 @@ namespace Appapi.Models
             DataTable dt = null;
             string sql = null, NextUserGroup = null;
 
-            sql = "select userid,username from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 ";
+            sql = "select UserID,UserName from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 ";
 
 
             dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
@@ -1015,7 +1128,7 @@ namespace Appapi.Models
             }
 
 
-            AddOpLog(ID, apinum, "return", OpDate, oristatus.ToString());
+            AddOpLog(ID, apinum, "return", OpDate, "从" + oristatus.ToString()+"回退");
             return "处理成功";
         }
 
