@@ -889,8 +889,9 @@ namespace Appapi.Models
 
             if ((string)theBatch.Rows[0]["TranType"] == "PUR-STK" || (string)theBatch.Rows[0]["TranType"] == "PUR-UKN")
             {
+                string res = "";
                 packnum = vendorid + "-" + DateTime.Now.ToString("yyyyMMddHHmmssfff"); 
-                if (ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")//erp回写成功，更新对应的Receipt记录
+                if ((res=ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功")//erp回写成功，更新对应的Receipt记录
                 {
                     string Location = ErpApi.poDes((int)theBatch.Rows[0]["PONum"], (int)theBatch.Rows[0]["POLine"], (int)theBatch.Rows[0]["PORelNum"], (string)theBatch.Rows[0]["Company"]);
                     sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}'  where ID = " + batInfo.ID + "";
@@ -899,6 +900,7 @@ namespace Appapi.Models
 
                     return "处理成功";
                 }
+                return "错误：" + res;
             }
 
             else if ((string)theBatch.Rows[0]["TranType"] == "PUR-SUB")
@@ -937,7 +939,8 @@ namespace Appapi.Models
                             GetValueAsString(theBatch.Rows[0]["CommentText"]),
                             GetValueAsString(theBatch.Rows[0]["TranType"])}
                             );
-                        if (ErpApi.porcv(vendorid + "-" + DateTime.Now.ToString("yyyyMMddHHmmssfff"), recdate, vendorid, rcvdtlStr, "", companyId) == "1|处理成功")//若回写erp成功， 则更新对应的Receipt记录
+                        string res = "";
+                        if ((res=ErpApi.porcv(vendorid + "-" + DateTime.Now.ToString("yyyyMMddHHmmssfff"), recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功")//若回写erp成功， 则更新对应的Receipt记录
                         {
                             #region sql
                             sql = "insert into Receipt Values(" +
@@ -1005,14 +1008,14 @@ namespace Appapi.Models
                             string ss = "";
                             for (; i < dt.Rows.Count; i++)
                                 ss += dt.Rows[i]["jobseq"].ToString() + "，";
-                            return "错误：剩余工序号" + ss + "处理失败，请联系管理员";
+                            return "错误：" + res + "    剩余工序号" + ss + "处理失败，请联系管理员。   ";
                         }
                     }
 
                     if(IsFinalOp(dt.Rows[dt.Rows.Count - 1]))
                     {
                         string res = ErpApi.D0506_01(null, (string)theBatch.Rows[0]["JobNum"], (int)theBatch.Rows[0]["AssemblySeq"], (decimal)batInfo.ArrivedQty, (string)theBatch.Rows[0]["BatchNo"], batInfo.Warehouse, batInfo.BinNum, (string)theBatch.Rows[0]["Company"]);
-                        return res == "1|处理成功" ? "处理成功" : res;
+                        return res == "1|处理成功" ? "处理成功" : "错误：" + res;
                     }
 
                     return "处理成功";

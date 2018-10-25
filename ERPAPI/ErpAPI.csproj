@@ -43,6 +43,9 @@
     <Reference Include="Erp.Contracts.BO.Receipt">
       <HintPath>\\192.168.9.100\ERP10.1.600.0Deployment\Client\Erp.Contracts.BO.Receipt.dll</HintPath>
     </Reference>
+    <Reference Include="Erp.Contracts.BO.ReceiptsFromMfg">
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.ReceiptsFromMfg.dll</HintPath>
+    </Reference>
     <Reference Include="Ice.Contracts.BO.DynamicQuery">
       <HintPath>\\192.168.9.100\ERP10.1.600.0Deployment\Client\Ice.Contracts.BO.DynamicQuery.dll</HintPath>
     </Reference>

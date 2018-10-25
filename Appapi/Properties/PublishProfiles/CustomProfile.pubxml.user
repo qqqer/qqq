@@ -82,19 +82,19 @@
       <publishTime>09/19/2018 13:30:42</publishTime>
     </File>
     <File Include="bin/Appapi.dll">
-      <publishTime>10/24/2018 11:14:11</publishTime>
+      <publishTime>10/25/2018 08:53:10</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
-      <publishTime>10/24/2018 11:14:11</publishTime>
+      <publishTime>10/25/2018 08:53:10</publishTime>
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.dll">
-      <publishTime>10/24/2018 11:14:11</publishTime>
+      <publishTime>10/25/2018 08:53:09</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.pdb">
-      <publishTime>10/24/2018 11:14:11</publishTime>
+      <publishTime>10/25/2018 08:53:09</publishTime>
     </File>
     <File Include="bin/CommonClass.dll">
       <publishTime>10/18/2018 11:44:41</publishTime>
@@ -166,7 +166,7 @@
       <publishTime>04/12/2017 13:45:01</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.ReceiptsFromMfg.dll">
-      <publishTime>04/12/2017 13:45:01</publishTime>
+      <publishTime>04/12/2017 00:45:02</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.Vendor.dll">
       <publishTime>07/23/2018 18:54:42</publishTime>
@@ -428,6 +428,9 @@
     </File>
     <File Include="bin/zh-CN/Erp.Contracts.BO.PO.resources.dll">
       <publishTime>12/19/2017 00:01:04</publishTime>
+    </File>
+    <File Include="bin/zh-CN/Erp.Contracts.BO.ReceiptsFromMfg.resources.dll">
+      <publishTime>03/22/2018 00:01:04</publishTime>
     </File>
     <File Include="bin/zh-CN/Erp.Contracts.BO.Vendor.resources.dll">
       <publishTime>12/19/2017 00:01:04</publishTime>
