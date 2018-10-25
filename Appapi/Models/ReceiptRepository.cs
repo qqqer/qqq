@@ -15,7 +15,7 @@ namespace Appapi.Models
     {
 
         #region  重用函数（非接口）
-        private static string ConstructValues(ArrayList array)
+        private static string ConstructInsertValues(ArrayList array)
         {
             string values = "";
             for (int i = 0; i < array.Count; i++)
@@ -82,7 +82,8 @@ namespace Appapi.Models
         }
 
 
-        private static bool IsFinalOp(DataRow batch)
+       
+        private static bool IsFinalOp(DataRow batch)//判断该委外工序是否是最后一道工序
         {
             string sql = "select count(*) from erp.JobAsmbl where JobNum = '" + (string)batch["JobNum"] + "' and Company = '" + (string)batch["Company"] + "' and  Plant = '" + (string)batch["Plant"] + "' and AssemblySeq = " + (int)batch["AssemblySeq"] + " and FinalOpr = " + (int)batch["JobSeq"] + "";
 
@@ -232,7 +233,7 @@ namespace Appapi.Models
 
         private static string GetValueAsString(object o)
         {
-            return o != null ? o.ToString() : "";
+            return Convert.IsDBNull(o) || o == null ?  "" : o.ToString();
         }
         #endregion
 
@@ -273,7 +274,7 @@ namespace Appapi.Models
                  from erp.PORel pr
                 left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
                 left join erp.POHeader ph   on ph.Company = pd.Company   and   ph.PONum = pd.PONUM                 
-                left join erp.JobHead jh  on pr.JobNum = jh.JobNum   and   pr.Company = jh.Company
+                left join erp.JobHead jh    on pr.JobNum = jh.JobNum   and   pr.Company = jh.Company
                 left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum   and   ph.company = vd.company             
                 left join erp.part pa       on pd.PartNum = pa.PartNum   and   pa.company = pd.company
                 left join erp.partclass pc  on pc.classid = pd.ClassID   and   pc.company = pd.company
@@ -324,7 +325,6 @@ namespace Appapi.Models
                     object sum = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                     RBs[i].NotReceiptQty = (decimal)RBs[i].NeedReceiptQty - (sum is DBNull ? 0 : (decimal)sum);
-
                 }
             }
 
@@ -397,7 +397,7 @@ namespace Appapi.Models
                 batInfo.IsPrint = true;
             }
             else
-                return "错误：打印失败" + res;
+                return "错误：打印失败  " + res;
             #endregion
 
             #region 回写数据到APP.Receipt表中
@@ -443,7 +443,7 @@ namespace Appapi.Models
                 isComplete,
                 ReceiptDate
                 ) values({0}) ";
-                string values = ConstructValues(new ArrayList
+                string values = ConstructInsertValues(new ArrayList
                 {
                     batInfo.SupplierNo,
                     batInfo.SupplierName,
@@ -564,7 +564,7 @@ namespace Appapi.Models
                         isComplete,
                         ReceiptDate
                         ) values({0}) ";
-                string values = ConstructValues(new ArrayList
+                string values = ConstructInsertValues(new ArrayList
                 {
                     batInfo.SupplierNo,
                     batInfo.SupplierName,
@@ -697,7 +697,7 @@ namespace Appapi.Models
             else //status == 2  更新批次信息。
             {
                 sql = @"update Receipt set NBBatchNo = '"+ batInfo.NBBatchNo +"', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Remark = '{5}', Status=" + batInfo.Status + ",ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9}, AtRole = {11} where ID = {10}";
-                sql = string.Format(sql, Convert.ToInt32(batInfo.IsAllCheck), batInfo.InspectionQty, batInfo.PassedQty, batInfo.FailedQty, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.ReceiveQty2, batInfo.ID, batInfo.Status == 3 ? 4 : 2);
+                sql = string.Format(sql, Convert.ToInt32(batInfo.IsAllCheck), (batInfo.InspectionQty) == -1 ? "null" : batInfo.InspectionQty.ToString(), batInfo.PassedQty, batInfo.FailedQty, batInfo.Result, batInfo.Remark, batInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), batInfo.ReceiptNo, batInfo.ReceiveQty2, batInfo.ID, batInfo.Status == 3 ? 4 : 2);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
@@ -1091,7 +1091,7 @@ namespace Appapi.Models
             else if (oristatus == 3)
             {
                 Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 2);
-                sql = "update receipt set thirdusergroup=null, thirduserid=null, choosedate=null where id = " + ID + "";
+                sql = "update receipt set receiveqty2 = null, thirdusergroup=null, thirduserid=null, choosedate=null where id = " + ID + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 //AddOpLog(ID, apinum, "update", OpDate, sql);
             }
@@ -1119,7 +1119,7 @@ namespace Appapi.Models
                     //AddOpLog(ID, apinum, "delete", OpDate, sql);
                 }
 
-                sql = "update receipt set NBBatchNo = null, receiveqty2 = null, InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, iqcdate=null where id = " + ID + "";
+                sql = "update receipt set NBBatchNo = null, receiveqty1 = null, InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, iqcdate=null where id = " + ID + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 //AddOpLog(ID, apinum, "update", OpDate, sql);
             }
@@ -1186,7 +1186,7 @@ namespace Appapi.Models
 
                 return values;
             }
-            else if (arr.Length == 5) //3个波浪线， 无二维码获取详情页面数据
+            else if (arr.Length == 5) //4个波浪线， 无二维码获取详情页面数据
             {
                 string sql = @"select 
                 pr.JobNum, 
@@ -1218,10 +1218,10 @@ namespace Appapi.Models
 
                 values += (string)dt.Rows[0]["Company"] + "~";
                 values += (string)dt.Rows[0]["PartNum"] + "~";
-                values += (string)dt.Rows[0]["PartDesc"] + "~";
+                values += dt.Rows[0]["PartDesc"] + "~";
                 values += "~";  //batchno
 
-                values += (string)dt.Rows[0]["JobNum"] + "~";
+                values += dt.Rows[0]["JobNum"] + "~";
                 values += dt.Rows[0]["AssemblySeq"] != null ? dt.Rows[0]["AssemblySeq"].ToString() + "~" : "~";
                 values += "~"; //textid
                 values += (string)dt.Rows[0]["SupplierNo"] + "~";
