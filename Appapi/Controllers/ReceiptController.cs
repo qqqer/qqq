@@ -37,7 +37,7 @@ namespace Appapi.Controllers
                 HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
                 //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
 
-                ReceiptRepository.AddOpLog(null, 10000, "login", OpDate, OpDetail);
+                ReceiptRepository.AddOpLog(null, 10000, "SignIn", OpDate, OpDetail);
 
                 return true;
             }
@@ -80,6 +80,18 @@ namespace Appapi.Controllers
 
             return false;
         }//登录验证
+
+
+
+        //Get:  /api/Receipt/SignOut
+        [System.Web.Http.HttpGet]
+        public void SignOut() //ApiNum: 10002   退出登录
+        {
+            string OpDetail = "退出登录", OpDate = DateTime.Now.ToString();
+            ReceiptRepository.AddOpLog(null, 10002, "SignOut", OpDate, OpDetail);
+
+            HttpContext.Current.Session.Abandon();
+        }
         #endregion
 
 

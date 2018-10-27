@@ -31,6 +31,7 @@ namespace Appapi.Models
         public string PartNum { get; set; }
         public string PartDesc { get; set; }
         public string OpDesc { get; set; }
+        public string OpCode { get; set; }
         public string IUM { get; set; }
         public string JobNum { get; set; }
         public string CommentText { get; set; }
@@ -66,6 +67,7 @@ namespace Appapi.Models
         public int? ReturnThree { get; set; }
         public bool IsAuto { get; set; }
         public bool IsComplete { get; set; }
+        public bool IsDelete { get; set; }
         public int AtRole { get; set; }      
         public string NBBatchNo { get; set; }
 
