@@ -280,7 +280,7 @@ namespace Appapi.Models
                 left join erp.partclass pc  on pc.classid = pd.ClassID   and   pc.company = pd.company
                 left join erp.partplant pp  on pp.company = pr.Company   and   pp.plant = pr.plant   and   pp.PartNum = pd.PartNum
                 where CHARINDEX(pr.Company, '" + HttpContext.Current.Session["Company"].ToString() + "') > 0   and    CHARINDEX(pr.Plant, '" + HttpContext.Current.Session["Plant"].ToString() + "') > 0" +
-                "and  ph.OpenOrder = 1   and    ph.orderHeld != 1    and    pd.openLine = 1     and      pr.openRelease = 1   ";
+                "and  ph.OpenOrder = 1   and    ph.orderHeld != 1    and    pd.openLine = 1     and      pr.openRelease = 1   and ph.Approve = 1 and ph.Confirmed =1";
 
             if (Condition.PoNum != null)
                 sql += "and pr.ponum = " + Condition.PoNum + " ";
@@ -321,7 +321,7 @@ namespace Appapi.Models
                 for (int i = 0; i < RBs.Count; i++)
                 {
                     sql = "select sum(case when ArrivedQty is null then(case when  ReceiveQty2 is null then ReceiveQty1 else ReceiveQty2 end) else ArrivedQty end) from Receipt " +
-                        "where isdelete != 1 and ponum = " + (int)RBs[i].PoNum + " and poline = " + (int)RBs[i].PoLine + " and  PORelNum = " + (int)RBs[i].PORelNum + " and company = '" + RBs[i].Company + "' and plant = '" + RBs[i].Plant + "'  " +  ss;
+                        "where isdelete != 1 and isComplete != 1 and  ponum = " + (int)RBs[i].PoNum + " and poline = " + (int)RBs[i].PoLine + " and  PORelNum = " + (int)RBs[i].PORelNum + " and company = '" + RBs[i].Company + "' and plant = '" + RBs[i].Plant + "'  " +  ss;
 
                     object sum = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -859,16 +859,29 @@ namespace Appapi.Models
                 Receipt RB = GetReceivingBasis(theBatch).First(); //获取该批次所属的收货依据
 
 
-                sql = "select count(*) from erp.WhseBin where WarehouseCode = '{0}' and BinNum = '{1}'";
-                sql = string.Format(sql, AcceptInfo.Warehouse, AcceptInfo.BinNum);
+                //统计库位中的'-'字符数
+                int c = 0;
+                foreach(var i in AcceptInfo.BinNum)
+                {
+                    if (i == '-') c++;
+                }
+                if (c < 2)
+                    return "错误：库位格式不正确";
+
+
+                string zoneid = AcceptInfo.BinNum.Substring(0, AcceptInfo.BinNum.IndexOf('-'));
+                string binnum = AcceptInfo.BinNum.Substring(AcceptInfo.BinNum.IndexOf('-') + 1);
+
+                sql = "select count(*) from erp.WhseBin where WarehouseCode = '{0}' and BinNum = '{1}' and zoneid = '{2}'";
+                sql = string.Format(sql, AcceptInfo.Warehouse, binnum, zoneid);
                 int exist = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
                 if (RB == null)
                     return GetErrorInfo(theBatch);
 
-                //else if (exist == 0)
-                //    return "错误：库位与仓库不匹配";
+                else if (exist == 0)
+                    return "错误：库位与仓库不匹配";
 
                 else if (AcceptInfo.ArrivedQty == null || AcceptInfo.ArrivedQty < 1)
                     return "错误：数量需大于0";
@@ -909,7 +922,10 @@ namespace Appapi.Models
                     if (theBatch.TranType == "PUR-STK" || theBatch.TranType == "PUR-UKN")
                     {
                         string res = "";
-                        packnum = vendorid + DateTime.Now.ToString("yyyyMMddhhmmss");
+                        packnum = vendorid + theBatch.BatchNo;
+                        if (packnum.Length > 20)
+                            return "错误：装箱单号过长";
+                        
                         if ((res = ErpApi.porcv(packnum, recdate.Split(' ')[0], vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//erp回写成功，更新对应的Receipt记录
                         {
                             string Location = ErpApi.poDes((int)theBatch.PoNum, (int)theBatch.PoLine, (int)theBatch.PORelNum, theBatch.Company);
@@ -917,6 +933,7 @@ namespace Appapi.Models
                             sql = string.Format(sql, AcceptInfo.ArrivedQty, AcceptInfo.Warehouse, AcceptInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
                             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+                            AddOpLog(AcceptInfo.ID, 401, "update", OpDate, sql);
                             return "处理成功";
                         }
                         return "错误：" + res;
@@ -939,6 +956,10 @@ namespace Appapi.Models
 
                         if (QtyCompleted == 0 || QtyCompleted >= AcceptInfo.ArrivedQty)
                         {
+                            packnum = vendorid + theBatch.BatchNo;
+                            if (packnum.Length > 20)
+                                return "错误：装箱单号过长";
+
                             for (int i = 1; i < dt.Rows.Count; i++)
                             {
                                 rcvdtlStr = ConstructRcvdtlStr(
@@ -960,7 +981,7 @@ namespace Appapi.Models
                                     );
                                 string res = "";
                                 //(res = ErpApi.porcv(vendorid + DateTime.Now.ToString("yyyyMMddHHmmss"), recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功."
-                                if ((res = ErpApi.porcv(vendorid + DateTime.Now.ToString("yyyyMMddHHmmss"), recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
+                                if ((res = ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
                                 {
                                     #region sql
                                     if ((int)dt.Rows[i]["jobseq"] != theBatch.JobSeq)
@@ -1031,6 +1052,8 @@ namespace Appapi.Models
                                     }
                                     #endregion
                                     SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                                    AddOpLog(AcceptInfo.ID, 401, sql.Contains("update") ? "update" : "insert", OpDate, sql);
                                 }
                                 else
                                 {
@@ -1044,9 +1067,10 @@ namespace Appapi.Models
                             if (IsFinalOp(theBatch, (int)dt.Rows[dt.Rows.Count - 1]["jobseq"]))
                             {
                                 string res = ErpApi.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company);
-                                return res == "1|处理成功" ? "处理成功" : "错误：" + res;
+                                if(res != "1|处理成功")
+                                    return "错误：" + res;
                             }
-
+                           
                             return "处理成功";
                         }
                         else

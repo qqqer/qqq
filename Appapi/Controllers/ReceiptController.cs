@@ -21,7 +21,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public bool Login(dynamic Account) //ApiNum: 10000
         {
-            string OpDetail = "web登录", OpDate = DateTime.Now.ToString();
+            string OpDetail = "web登录", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             string userid = Convert.ToString(Account.userid);
             
@@ -50,7 +50,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public bool Login2() //ApiNum: 10001   winform登录
         {
-            string OpDetail = "winform登录", OpDate = DateTime.Now.ToString();
+            string OpDetail = "winform登录", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
 
             StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);         
@@ -101,7 +101,7 @@ namespace Appapi.Controllers
         [HttpPost]
         public IEnumerable<Receipt> GetReceivingBasis(Receipt Condition)//ApiNum: 101
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetReceivingBasis(Condition) : throw new HttpResponseException(HttpStatusCode.Forbidden); ;
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetReceivingBasis(Condition) : throw new HttpResponseException(HttpStatusCode.Forbidden); 
         }//根据Condition 返回所有匹配的收货依据
 
 
