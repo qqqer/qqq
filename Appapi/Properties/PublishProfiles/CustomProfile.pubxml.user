@@ -82,10 +82,10 @@
       <publishTime>09/19/2018 13:30:42</publishTime>
     </File>
     <File Include="bin/Appapi.dll">
-      <publishTime>10/30/2018 11:27:22</publishTime>
+      <publishTime>10/31/2018 09:44:31</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
-      <publishTime>10/30/2018 11:27:22</publishTime>
+      <publishTime>10/31/2018 09:44:31</publishTime>
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>
@@ -562,7 +562,7 @@
       <publishTime>09/19/2018 13:30:41</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>10/23/2018 11:29:28</publishTime>
+      <publishTime>10/31/2018 09:17:44</publishTime>
     </File>
   </ItemGroup>
 </Project>

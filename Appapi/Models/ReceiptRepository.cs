@@ -153,6 +153,31 @@ namespace Appapi.Models
         }
 
 
+
+        private static string CheckBinNum(Receipt AcceptInfo)
+        {
+            //统计库位中的'-'字符数
+            int c = 0;
+            foreach (var i in AcceptInfo.BinNum)
+            {
+                if (i == '-') c++;
+            }
+            if (c < 2)
+                return "错误：库位格式不正确";
+
+
+            string zoneid = AcceptInfo.BinNum.Substring(0, AcceptInfo.BinNum.IndexOf('-'));
+            string binnum = AcceptInfo.BinNum.Substring(AcceptInfo.BinNum.IndexOf('-') + 1);
+
+            string sql = "select count(*) from erp.WhseBin where WarehouseCode = '{0}' and BinNum = '{1}' and zoneid = '{2}'";
+            sql = string.Format(sql, AcceptInfo.Warehouse, binnum, zoneid);
+            int exist = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return exist == 0 ? "错误：库位与仓库不匹配" : "ok";
+        }
+
+
+
         private static void Return(int previousStatus, string returnNum, string batchno, string OpDate, int ReasonID, int AtRole)
         {
             string SetUserIDtoNULL = "";
@@ -326,6 +351,9 @@ namespace Appapi.Models
                     object sum = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                     RBs[i].NotReceiptQty = (decimal)RBs[i].NeedReceiptQty - (sum is DBNull ? 0 : (decimal)sum);
+
+                    if (RBs[i].NotReceiptQty < 1)
+                        RBs.RemoveAt(i);
                 }//计算每个有效收货依据中的还可接收数量NotReceiptQty
 
 
@@ -346,7 +374,7 @@ namespace Appapi.Models
                 }//获取与工单有关的有效收货依据的工序描述与工序代码
             }
 
-            return RBs;
+            return RBs.Count > 0 ? RBs : null;
         }
 
 
@@ -411,10 +439,14 @@ namespace Appapi.Models
             ServiceReference_Print.WebServiceSoapClient client = new ServiceReference_Print.WebServiceSoapClient();
             if ((res = client.Print(@"C:\D0201.btw", "P052", 1, jsonStr)) == "1|处理成功")
             {
+                client.Close();
                 batInfo.IsPrint = true;
             }
             else
+            {
+                client.Close();
                 return "错误：打印失败  " + res;
+            }
             #endregion
 
             #region 回写数据到APP.Receipt表中
@@ -859,29 +891,17 @@ namespace Appapi.Models
                 Receipt RB = GetReceivingBasis(theBatch).First(); //获取该批次所属的收货依据
 
 
-                //统计库位中的'-'字符数
-                int c = 0;
-                foreach(var i in AcceptInfo.BinNum)
-                {
-                    if (i == '-') c++;
-                }
-                if (c < 2)
-                    return "错误：库位格式不正确";
-
-
-                string zoneid = AcceptInfo.BinNum.Substring(0, AcceptInfo.BinNum.IndexOf('-'));
-                string binnum = AcceptInfo.BinNum.Substring(AcceptInfo.BinNum.IndexOf('-') + 1);
-
-                sql = "select count(*) from erp.WhseBin where WarehouseCode = '{0}' and BinNum = '{1}' and zoneid = '{2}'";
-                sql = string.Format(sql, AcceptInfo.Warehouse, binnum, zoneid);
-                int exist = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                string res = "";//保存调用结果
 
 
                 if (RB == null)
                     return GetErrorInfo(theBatch);
 
-                else if (exist == 0)
-                    return "错误：库位与仓库不匹配";
+                else if (theBatch.PartNum != RB.PartNum || theBatch.PartDesc != RB.PartDesc)
+                    return "错误：物料编码或物料描述不正确";
+
+                else if ((res = CheckBinNum(AcceptInfo)) != "ok")
+                    return res;
 
                 else if (AcceptInfo.ArrivedQty == null || AcceptInfo.ArrivedQty < 1)
                     return "错误：数量需大于0";
@@ -921,11 +941,10 @@ namespace Appapi.Models
 
                     if (theBatch.TranType == "PUR-STK" || theBatch.TranType == "PUR-UKN")
                     {
-                        string res = "";
                         packnum = vendorid + theBatch.BatchNo;
                         if (packnum.Length > 20)
                             return "错误：装箱单号过长";
-                        
+
                         if ((res = ErpApi.porcv(packnum, recdate.Split(' ')[0], vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//erp回写成功，更新对应的Receipt记录
                         {
                             string Location = ErpApi.poDes((int)theBatch.PoNum, (int)theBatch.PoLine, (int)theBatch.PORelNum, theBatch.Company);
@@ -979,7 +998,6 @@ namespace Appapi.Models
                             GetValueAsString(theBatch.CommentText),
                             GetValueAsString(theBatch.TranType)}
                                     );
-                                string res = "";
                                 //(res = ErpApi.porcv(vendorid + DateTime.Now.ToString("yyyyMMddHHmmss"), recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功."
                                 if ((res = ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
                                 {
@@ -1066,11 +1084,11 @@ namespace Appapi.Models
 
                             if (IsFinalOp(theBatch, (int)dt.Rows[dt.Rows.Count - 1]["jobseq"]))
                             {
-                                string res = ErpApi.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company);
-                                if(res != "1|处理成功")
+                                res = ErpApi.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company);
+                                if (res != "1|处理成功")
                                     return "错误：" + res;
                             }
-                           
+
                             return "处理成功";
                         }
                         else

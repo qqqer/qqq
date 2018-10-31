@@ -87,8 +87,11 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpGet]
         public void SignOut() //ApiNum: 10002   退出登录
         {
-            string OpDetail = "退出登录", OpDate = DateTime.Now.ToString();
-            ReceiptRepository.AddOpLog(null, 10002, "SignOut", OpDate, OpDetail);
+            if (HttpContext.Current.Session.Count > 0) //若当前session有效
+            {
+                string OpDetail = "退出登录", OpDate = DateTime.Now.ToString();
+                ReceiptRepository.AddOpLog(null, 10002, "SignOut", OpDate, OpDetail);
+            }
 
             HttpContext.Current.Session.Abandon();
         }
@@ -140,7 +143,7 @@ namespace Appapi.Controllers
        
         //Post:  /api/Receipt/IQCCommit
         [HttpPost]
-        public string IQCCommit() //ApiNum: 201
+        public string IQCCommit() //ApiNum: 201     winform
         {
             //MessageBox.Show(HttpContext.Current.Session.SessionID);
             if (HttpContext.Current.Session.Count == 0)
