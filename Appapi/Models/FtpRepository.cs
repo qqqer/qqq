@@ -218,7 +218,7 @@ namespace Appapi.Models
         {
             try
             {
-                string uri = filePath + fileName;
+                string uri = "ftp://" + filePath + fileName;
                 FtpWebRequest reqFTP;
                 reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
 

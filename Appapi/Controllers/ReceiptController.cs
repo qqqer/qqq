@@ -24,21 +24,11 @@ namespace Appapi.Controllers
             string OpDetail = "web登录", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             string userid = Convert.ToString(Account.userid);
-            
-            string sql = "select * from Userfile where userid = '" + userid.ToUpper() + "' and disabled = 0";
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
-            bool isvalid = dt != null ? true : false;   // = 账号认证接口（）
+            string password = Convert.ToString(Account.password);
 
-            if (isvalid)
+            if (ReceiptRepository.VerifyAccount(userid, password))
             {
-                HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
-                HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
-                HttpContext.Current.Session.Add("UserId", userid.ToUpper());
-                HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
-                //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
-
-                ReceiptRepository.AddOpLog(null, 10000, "SignIn", OpDate, OpDetail);
-
+                ReceiptRepository.AddOpLog(null, null, 10000, "login", OpDate, OpDetail);
                 return true;
             }
 
@@ -52,29 +42,16 @@ namespace Appapi.Controllers
         {
             string OpDetail = "winform登录", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-
             StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);         
-            string ss = reader.ReadToEnd();
+            string[] arr = reader.ReadToEnd().Split(',');
 
-
-            string[] arr = ss.Split(',');
             string userid = arr[0];
+            string password = arr[1];
 
 
-            string sql = "select * from Userfile where userid = '" + userid.ToUpper() + "' and disabled = 0";
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
-            bool isvalid = dt != null ? true : false;   // = 账号认证接口（）
-
-            if (isvalid)
+            if (ReceiptRepository.VerifyAccount(userid, password))
             {
-                HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
-                HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
-                HttpContext.Current.Session.Add("UserId", userid.ToUpper());
-                HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleId"]));
-                //HttpContext.Current.Session.Add("UserPrinter", Convert.ToString(Account.userprinter));
-
-                ReceiptRepository.AddOpLog(null, 10001, "login", OpDate, OpDetail);
-
+                ReceiptRepository.AddOpLog(null,null, 10001, "login", OpDate, OpDetail);
                 return true;
             }
 
@@ -90,7 +67,7 @@ namespace Appapi.Controllers
             if (HttpContext.Current.Session.Count > 0) //若当前session有效
             {
                 string OpDetail = "退出登录", OpDate = DateTime.Now.ToString();
-                ReceiptRepository.AddOpLog(null, 10002, "SignOut", OpDate, OpDetail);
+                ReceiptRepository.AddOpLog(null, null, 10002, "SignOut", OpDate, OpDetail);
             }
 
             HttpContext.Current.Session.Abandon();
