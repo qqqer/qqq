@@ -10,6 +10,9 @@ using System.Threading;
 using ErpAPI;
 using System.Security.Cryptography;
 using System.Text;
+using ZXing;
+using System.Drawing.Imaging;
+using System.Drawing;
 
 namespace Appapi.Models
 {
@@ -181,15 +184,9 @@ namespace Appapi.Models
 
 
         private static void Return(int previousStatus, string returnNum, string batchno, string OpDate, int ReasonID, int AtRole)
-        {
-            string SetUserIDtoNULL = "";
-            if (previousStatus == 2)
-                SetUserIDtoNULL = " ,ThirdUserID  = null ";  //清空当前节点的操作人， 若未清空会导致正常流转时只有改操作人接收到待办事项
-            if (previousStatus == 1)
-                SetUserIDtoNULL = " ,SecondUserID  = null ";
-
+        {         
             //更新该批次的status为上一个节点值，指定的回退编号次数+1
-            string sql = @"update Receipt set AtRole = " + AtRole + ", status = " + previousStatus + ", " + returnNum + " = " + returnNum + "+1" + SetUserIDtoNULL + "  where batchno = '" + batchno + "' ";
+            string sql = @"update Receipt set AtRole = " + AtRole + ", status = " + previousStatus + ", " + returnNum + " = " + returnNum + "+1  where batchno = '" + batchno + "' ";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             //获取更新后的回退编号
@@ -306,7 +303,7 @@ namespace Appapi.Models
                 left join erp.part pa       on pd.PartNum = pa.PartNum   and   pa.company = pd.company
                 left join erp.partclass pc  on pc.classid = pd.ClassID   and   pc.company = pd.company
                 left join erp.partplant pp  on pp.company = pr.Company   and   pp.plant = pr.plant   and   pp.PartNum = pd.PartNum
-                where CHARINDEX(pr.Company, '" + HttpContext.Current.Session["Company"].ToString() + "') > 0   and    CHARINDEX(pr.Plant, '" + HttpContext.Current.Session["Plant"].ToString() + "') > 0" +
+                where CHARINDEX(pr.Company, '" + HttpContext.Current.Session["Company"].ToString() + "') > 0   and    CHARINDEX(pr.Plant, '" + HttpContext.Current.Session["Plant"].ToString() + "') > 0 " +
                 "and  ph.OpenOrder = 1   and    ph.orderHeld != 1    and    pd.openLine = 1     and      pr.openRelease = 1   and ph.Approve = 1 and ph.Confirmed =1";
 
             if (Condition.PoNum != null)
@@ -321,8 +318,6 @@ namespace Appapi.Models
                 sql += "and pd.LineDesc like '%" + Condition.PartDesc + "%' ";
             if (Condition.Company != null)
                 sql += "and pr.Company = '" + Condition.Company + "' ";
-            //if (Condition.Plant != null)
-              //  sql += "and pr.Plant = '" + Condition.Plant + "' ";
             #endregion
 
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql); //获取可能有效的收货依据
@@ -387,6 +382,10 @@ namespace Appapi.Models
         /// <returns></returns>
         public static string ReceiveCommitWithNonQRCode(Receipt batInfo)
         {
+            if((1 & (int)HttpContext.Current.Session["RoleID"]) == 0)
+                return "错误：此账号对当前节点的操作未授权";
+
+
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"); // 获取当前操作时间
 
             Receipt RB = GetReceivingBasis(batInfo).First();//根据批次信息 获取该批次所属的收货依据
@@ -558,6 +557,10 @@ namespace Appapi.Models
         /// <returns></returns>
         public static string ReceiveCommitWithQRCode(Receipt batInfo)
         {
+            if ((1 & (int)HttpContext.Current.Session["RoleID"]) == 0)
+                return "错误：此账号对当前节点的操作未授权";
+
+
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"); //获取当前操作时间点
 
             Receipt RB = GetReceivingBasis(batInfo).First();//根据批次信息 获取该批次所属的收货依据
@@ -765,7 +768,7 @@ namespace Appapi.Models
 
         public static bool UploadIQCFile()
         {
-            Thread.Sleep(5);
+            Thread.Sleep(10);
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             string ss = OpDate.Replace(":", "-").Replace(".", "").Replace(" ", "_");
 
@@ -799,15 +802,20 @@ namespace Appapi.Models
                 FtpRepository.MakeFolder("/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/", dt.Rows[0]["poline"].ToString());
             }
 
+            if (!FtpRepository.IsFolderExist("/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/" + dt.Rows[0]["poline"].ToString() + "/", dt.Rows[0]["batchno"].ToString()))//批次号号层
+            {
+                FtpRepository.MakeFolder("/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/" + dt.Rows[0]["poline"].ToString() + "/", dt.Rows[0]["batchno"].ToString());
+            }
+
 
             //设置文件名
             string newFileName = (string)dt.Rows[0]["batchNo"] + "_" + ss + "_" + HttpContext.Current.Session["UserId"].ToString() + fileType;
 
 
             //上传，成功则更新数据库
-            if (FtpRepository.UploadFile(fileContents, "/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/" + dt.Rows[0]["poline"].ToString() + "/", newFileName) == true)
+            if (FtpRepository.UploadFile(fileContents, "/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/" + dt.Rows[0]["poline"].ToString() + "/" + dt.Rows[0]["batchno"].ToString() + "/", newFileName) == true)
             {
-                string FilePath = FtpRepository.ftpServer.Substring(6) + "/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/" + dt.Rows[0]["poline"].ToString() + "/";
+                string FilePath = FtpRepository.ftpServer.Substring(6) + "/" + (string)dt.Rows[0]["SupplierNo"] + "/" + dt.Rows[0]["ponum"].ToString() + "/" + dt.Rows[0]["poline"].ToString() + "/" + dt.Rows[0]["batchno"].ToString() + "/";
 
                 sql = @"insert into IQCFile Values('{0}', '{1}', '{2}', '{3}')";
                 sql = string.Format(sql, (string)dt.Rows[0]["batchNo"], FilePath, newFileName, OpDate);
@@ -815,7 +823,7 @@ namespace Appapi.Models
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 sql = sql.Replace("'", "");
-                AddOpLog(ReceiptID, (string)dt.Rows[0]["batchNo"],202, "upload", OpDate, "ftp://" + FilePath + newFileName);
+                AddOpLog(ReceiptID, (string)dt.Rows[0]["batchNo"],202, "upload", OpDate, "2节点提交|" + "ftp://" + FilePath + newFileName);
 
                 return true;
             }
@@ -902,7 +910,7 @@ namespace Appapi.Models
                 else if (theBatch.PartNum != RB.PartNum || theBatch.PartDesc != RB.PartDesc)
                     return "错误：物料编码或物料描述不正确";
 
-                else if ((res = CheckBinNum(AcceptInfo)) != "ok")
+                else if (theBatch.TranType != "PUR-UKN" && (res = CheckBinNum(AcceptInfo)) != "ok")
                     return res;
 
                 else if (AcceptInfo.ArrivedQty == null || AcceptInfo.ArrivedQty < 1)
@@ -950,10 +958,13 @@ namespace Appapi.Models
                         if ((res = ErpApi.porcv(packnum, recdate.Split(' ')[0], vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//erp回写成功，更新对应的Receipt记录
                         {
                             string Location = ErpApi.poDes((int)theBatch.PoNum, (int)theBatch.PoLine, (int)theBatch.PORelNum, theBatch.Company);
-                            sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = '{1}', BinNum = '{2}', FourthUserID = '{3}', isComplete = 1, Location = '{4}', status = 5  where ID = " + AcceptInfo.ID + "";
-                            sql = string.Format(sql, AcceptInfo.ArrivedQty, AcceptInfo.Warehouse, AcceptInfo.BinNum, HttpContext.Current.Session["UserId"].ToString(), Location);
+                            Location = Location == "R|物料接收人:" ? Location + (string)HttpContext.Current.Session["UserId"] : Location;
+
+                            sql = @"update Receipt set StockDate = '" + OpDate + "', ArrivedQty = {0}, Warehouse = {1}, BinNum = {2}, FourthUserID = '{3}', isComplete = 1, Location = '{4}', status = 5  where ID = " + AcceptInfo.ID + "";
+                            sql = string.Format(sql, AcceptInfo.ArrivedQty,  AcceptInfo.Warehouse != null ? "'" + AcceptInfo.Warehouse + "'" : "null",   AcceptInfo.BinNum != null ? "'" + AcceptInfo.BinNum + "'" : "null",  HttpContext.Current.Session["UserId"].ToString(), Location);
                             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+                            sql = sql.Replace("'", "");
                             AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, sql);
                             return "处理成功";
                         }
@@ -1073,6 +1084,7 @@ namespace Appapi.Models
                                     #endregion
                                     SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+                                    sql = sql.Replace("'", "");
                                     AddOpLog(AcceptInfo.ID,theBatch.BatchNo, 401, sql.Contains("update") ? "update" : "insert", OpDate, sql);
                                 }
                                 else
@@ -1119,18 +1131,12 @@ namespace Appapi.Models
         public static DataTable GetNextUserGroup(int nextRole, string company, string plant )
         {
             DataTable dt = null;
-            string sql = null, NextUserGroup = null;
+            string sql = null;
 
             sql = "select UserID,UserName from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 ";
 
 
             dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
-
-
-            //for (int i = 0; i < dt.Rows.Count; i++)
-            //{
-            //    NextUserGroup += dt.Rows[i][0].ToString() + ","; //把每行的userid拼接起来，以逗号分隔
-            //}
 
             return dt;
         }
@@ -1164,21 +1170,18 @@ namespace Appapi.Models
 
             if (oristatus == 4)
             {
-                Return(3, "ReturnThree", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 4);
                 sql = "update receipt set fourthusergroup=null where id = " + ID + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                Return(3, "ReturnThree", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 4);
             }
             else if (oristatus == 3)
             {
-                Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 2);
                 sql = "update receipt set  thirdusergroup=null, thirduserid=null, choosedate=null where id = " + ID + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 2);
             }
             else if (oristatus == 2)
             {
-                Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 1);
-
-
                 sql = "select * from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "' ";
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
@@ -1188,7 +1191,7 @@ namespace Appapi.Models
                     {
                         if (FtpRepository.DeleteFile((string)dt.Rows[i]["FilePath"], (string)dt.Rows[i]["FileName"]) == true)
                         {
-                            AddOpLog(ID, (string)theBatch.Rows[0]["batchno"], apinum, "delete", OpDate, (string)dt.Rows[i]["FilePath"]+ (string)dt.Rows[i]["FileName"]);
+                            AddOpLog(ID, (string)theBatch.Rows[0]["batchno"], apinum, "delete", OpDate, "回退自动删除|" + (string)dt.Rows[i]["FilePath"]+ (string)dt.Rows[i]["FileName"]);
                             continue;
                         }
                         else
@@ -1198,8 +1201,9 @@ namespace Appapi.Models
                     SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
 
-                sql = "update receipt set NBBatchNo = null,  InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, iqcdate=null where id = " + ID + "";
+                sql = "update receipt set ReceiveQty2 =null, NBBatchNo = null,  InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, iqcdate=null where id = " + ID + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 1);
             }
             else //oristatus == 1  
             {
@@ -1501,7 +1505,7 @@ namespace Appapi.Models
                 sb.Append(t[i].ToString("X2"));
             }
 
-            string sql = "select loginid from [dbo].[HrmResource] where password = '" + sb.ToString() + "' ";
+            string sql = "select loginid from [dbo].[HrmResource] where loginid = '"+userid+"' and password = '" + sb.ToString() + "' ";
             object loginid = SQLRepository.ExecuteScalarToObject(SQLRepository.OA_strConn, CommandType.Text, sql, null);
 
 
@@ -1524,14 +1528,33 @@ namespace Appapi.Models
             return false;
         }
 
+
+
+        public static void GenerateQRCode(int width ,int height, string value)
+        {
+            BarcodeWriter barCodeWriter = new BarcodeWriter();
+            barCodeWriter.Format = BarcodeFormat.QR_CODE; // 生成码的方式(这里设置的是二维码),有条形码\二维码\还有中间嵌入图片的二维码等
+            barCodeWriter.Options.Hints.Add(EncodeHintType.CHARACTER_SET, "UTF-8");
+            barCodeWriter.Options.Hints.Add(EncodeHintType.ERROR_CORRECTION, ZXing.QrCode.Internal.ErrorCorrectionLevel.H);
+            barCodeWriter.Options.Height = height;
+            barCodeWriter.Options.Width = width;
+            barCodeWriter.Options.Margin = 2; //设置的白边大小
+            ZXing.Common.BitMatrix bm = barCodeWriter.Encode("asdkjhasjdh342k3jhkj54345");  //要生成的二维码字符串
+            Bitmap result = barCodeWriter.Write(bm);
+            Bitmap Qcbmp = result.Clone(new Rectangle(Point.Empty, result.Size), PixelFormat.Format1bppIndexed);//位深度
+                                                                                                                
+            //pictureBox1.Image = Qcbmp;
+            //pictureBox1.Refresh();
+        }
+
         #endregion
 
 
 
         public static void AddOpLog(int? ReceiptId, string batchno, int ApiNum, string OpType, string OpDate, string OpDetail)
         {
-            string sql = @"insert into OpLog(ReceiptId,  UserId, Company, plant, Opdate, ApiNum, OpType, OpDetail,batchno) Values({0}, '{1}', '{2}', '{3}', '{4}', {5}, '{6}', '{7}', {8} ) ";
-            sql = string.Format(sql, ReceiptId == null ? "null" : ReceiptId.ToString(), HttpContext.Current.Session["UserId"].ToString(), HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString(), OpDate, ApiNum, OpType, OpDetail,batchno != null ? "'"+batchno+"'": "null");
+            string sql = @"insert into OpLog(ReceiptId,  UserId, Opdate, ApiNum, OpType, OpDetail,batchno) Values({0}, '{1}', '{2}', {3}, '{4}', '{5}', {6}) ";
+            sql = string.Format(sql, ReceiptId == null ? "null" : ReceiptId.ToString(), HttpContext.Current.Session["UserId"].ToString(), OpDate, ApiNum, OpType, OpDetail,batchno != null ? "'"+batchno+"'": "null");
 
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }//添加操作记录

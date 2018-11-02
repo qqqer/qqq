@@ -27,8 +27,8 @@ namespace Appapi.Controllers
             string password = Convert.ToString(Account.password);
 
             if (ReceiptRepository.VerifyAccount(userid, password))
-            {
-                ReceiptRepository.AddOpLog(null, null, 10000, "login", OpDate, OpDetail);
+            {             
+                ReceiptRepository.AddOpLog(null, null, 10000, "SignIn", OpDate, OpDetail);
                 return true;
             }
 
@@ -51,7 +51,7 @@ namespace Appapi.Controllers
 
             if (ReceiptRepository.VerifyAccount(userid, password))
             {
-                ReceiptRepository.AddOpLog(null,null, 10001, "login", OpDate, OpDetail);
+                ReceiptRepository.AddOpLog(null,null, 10001, "SignIn", OpDate, OpDetail);
                 return true;
             }
 
@@ -275,8 +275,7 @@ namespace Appapi.Controllers
 
 
         #region test
-
-
+       
         #endregion
 
     }

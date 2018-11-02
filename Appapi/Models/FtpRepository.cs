@@ -13,7 +13,7 @@ namespace Appapi.Models
     {
         public static readonly string ftpUserName = ConfigurationManager.ConnectionStrings["ftpUserName"].ToString();
         public static readonly string ftpPassword = ConfigurationManager.ConnectionStrings["ftpPassword"].ToString();
-        public static readonly string ftpServer = ConfigurationManager.ConnectionStrings["ftpServer"].ToString();
+        public static readonly string ftpServer = ConfigurationManager.ConnectionStrings["ftpServerTEST"].ToString();
 
 
         /// 获取根目录下明细(包含文件和文件夹)
@@ -89,9 +89,23 @@ namespace Appapi.Models
         }
 
 
+        public static bool IsFileExist(string folderPath, string RemoteFileName)
+        {
+            string[] fileList = GetFileList(folderPath, "*.*");
+            foreach (string str in fileList)
+            {
+                if (str.Trim() == RemoteFileName.Trim())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+
         public static bool UploadFile(byte[] fileContent, string folderPath, string filename)
         {
-            string uri = ftpServer  + folderPath  + filename;
+            string uri = ftpServer + folderPath + filename;
             FtpWebRequest reqFTP;
 
             reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
@@ -135,46 +149,53 @@ namespace Appapi.Models
             }
             catch
             {
-                return false;
+                throw;
             }
         }
 
 
-        private static string[] GetFileList(string folderName)
+        private static string[] GetFileList(string folderPath, string mask)
         {
             string[] downloadFiles = null;
             StringBuilder result = new StringBuilder();
             FtpWebRequest reqFTP;
-            try
-            {
-                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + "/" + folderName));
-                reqFTP.UseBinary = true;
-                reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
-                reqFTP.Method = WebRequestMethods.Ftp.ListDirectory;
-                WebResponse response = reqFTP.GetResponse();
-                StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.Default);
 
-                string line = reader.ReadLine();
-                while (line != null)
+            reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(folderPath));
+            reqFTP.UseBinary = true;
+            reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
+            reqFTP.Method = WebRequestMethods.Ftp.ListDirectory;
+            WebResponse response = reqFTP.GetResponse();
+            StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.Default);
+
+            string line = reader.ReadLine();
+            while (line != null)
+            {
+                if (mask.Trim() != string.Empty && mask.Trim() != "*.*")
                 {
 
+                    string mask_ = mask.Substring(0, mask.IndexOf("*"));
+                    if (line.Substring(0, mask_.Length) == mask_)
+                    {
+                        result.Append(line);
+                        result.Append("\n");
+                    }
+                }
+                else
+                {
                     result.Append(line);
                     result.Append("\n");
-                    line = reader.ReadLine();
                 }
-
-                if (result.Length == 0)
-                    return new string[] { };
-
-                result.Remove(result.ToString().LastIndexOf('\n'), 1);
-                reader.Close();
-                response.Close();
-                downloadFiles = result.ToString().Split('\n');
+                line = reader.ReadLine();
             }
-            catch
-            {
+
+            if (result.Length == 0)
                 return new string[] { };
-            }
+
+            result.Remove(result.ToString().LastIndexOf('\n'), 1);
+            reader.Close();
+            response.Close();
+            downloadFiles = result.ToString().Split('\n');
+
 
             if (downloadFiles == null)
                 downloadFiles = new string[] { };
@@ -183,42 +204,17 @@ namespace Appapi.Models
         }
 
 
-        /// 删除文件夹（只针对空文件夹）
-        private static void RemoveDirectory(string folderName)
-        {
-            try
-            {
-                string uri = ftpServer + "/" + folderName;
-                FtpWebRequest reqFTP;
-                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
-
-                reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
-                reqFTP.KeepAlive = false;
-                reqFTP.Method = WebRequestMethods.Ftp.RemoveDirectory;
-
-                string result = String.Empty;
-                FtpWebResponse response = (FtpWebResponse)reqFTP.GetResponse();
-                long size = response.ContentLength;
-                Stream datastream = response.GetResponseStream();
-                StreamReader sr = new StreamReader(datastream);
-                result = sr.ReadToEnd();
-                sr.Close();
-                datastream.Close();
-                response.Close();
-            }
-            catch (Exception ex)
-            {
-                throw ex;
-            }
-        }
-
 
         /// 删除文件
-        public static bool DeleteFile(string filePath,string fileName )
+        public static bool DeleteFile(string filePath, string fileName)
         {
+            filePath = "ftp://" + filePath;
             try
             {
-                string uri = "ftp://" + filePath + fileName;
+                if(!IsFileExist(filePath, fileName)) return true;
+
+
+                string uri = filePath + fileName;
                 FtpWebRequest reqFTP;
                 reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
 
@@ -242,23 +238,6 @@ namespace Appapi.Models
             {
                 return false;
             }
-        }
-
-
-        /// 删除文件夹以及其下面的所有内容
-        public static void DeleteFolder(string folderName)
-        {
-            string[] fileList = GetFileList(folderName);//获取folderName下的所有文件列表（仅文件）
-                                                        
-            if (fileList != null && fileList.Length > 0)//删除folderName里的所有文件
-            {
-                foreach (string fileName in fileList)
-                {
-                    DeleteFile(folderName, fileName);
-                }
-            }
-
-            RemoveDirectory(folderName);//删除当前文件夹
         }
     }
 }
