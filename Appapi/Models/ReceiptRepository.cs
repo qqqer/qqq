@@ -752,7 +752,7 @@ namespace Appapi.Models
 
             else //status == 2  更新批次信息。
             {
-                sql = @"update Receipt set NBBatchNo = '"+ IQCInfo.NBBatchNo +"', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Remark = '{5}', Status=" + IQCInfo.Status + ",ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9}, AtRole = {11} where ID = {10}";
+                sql = @"update Receipt set IQCRemark = '" + IQCInfo.IQCRemark + "' ,  NBBatchNo = '" + IQCInfo.NBBatchNo +"', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Remark = '{5}', Status=" + IQCInfo.Status + ",ThirdUserGroup = '{6}', SecondUserID = '{7}', ReceiptNo = '{8}', ReceiveQty2 = {9}, AtRole = {11} where ID = {10}";
                 sql = string.Format(sql, Convert.ToInt32(IQCInfo.IsAllCheck), (IQCInfo.InspectionQty) == -1 ? "null" : IQCInfo.InspectionQty.ToString(), IQCInfo.PassedQty, IQCInfo.FailedQty, IQCInfo.Result, IQCInfo.Remark, IQCInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), IQCInfo.ReceiptNo, IQCInfo.ReceiveQty2, IQCInfo.ID, IQCInfo.Status == 3 ? 4 : 2);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -1182,6 +1182,15 @@ namespace Appapi.Models
             }
             else if (oristatus == 2)
             {
+                
+
+
+                sql = "update receipt set ReceiveQty2 =null, NBBatchNo = null,  InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, iqcdate=null where id = " + ID + "";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 1);
+            }
+            else //oristatus == 1  
+            {
                 sql = "select * from IQCFile where batchno = '" + (string)theBatch.Rows[0]["batchno"] + "' ";
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
@@ -1191,7 +1200,7 @@ namespace Appapi.Models
                     {
                         if (FtpRepository.DeleteFile((string)dt.Rows[i]["FilePath"], (string)dt.Rows[i]["FileName"]) == true)
                         {
-                            AddOpLog(ID, (string)theBatch.Rows[0]["batchno"], apinum, "delete", OpDate, "回退自动删除|" + (string)dt.Rows[i]["FilePath"]+ (string)dt.Rows[i]["FileName"]);
+                            AddOpLog(ID, (string)theBatch.Rows[0]["batchno"], apinum, "delete", OpDate, "回退自动删除|" + (string)dt.Rows[i]["FilePath"] + (string)dt.Rows[i]["FileName"]);
                             continue;
                         }
                         else
@@ -1201,12 +1210,6 @@ namespace Appapi.Models
                     SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
 
-                sql = "update receipt set ReceiveQty2 =null, NBBatchNo = null,  InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, iqcdate=null where id = " + ID + "";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, 1);
-            }
-            else //oristatus == 1  
-            {
                 sql = @"update Receipt set isdelete = 1  where ID = " + ID + " ";   // 把该批次的流程标记为已删除
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
@@ -1382,6 +1385,7 @@ namespace Appapi.Models
                         ReturnOne,
                         ReturnTwo,
                         ReturnThree,
+                        IQCRemark,
                         FourthUserGroup,
                         SecondUserGroup,
                         ThirdUserGroup
