@@ -35,5 +35,35 @@ namespace Appapi.Models
             }
             return ts;
         }
+
+
+        public static DataTable ListToTable<T>(List<T> list)
+        {
+            Type type = typeof(T);
+            PropertyInfo[] proInfo = type.GetProperties();
+            DataTable dt = new DataTable();
+            foreach (PropertyInfo p in proInfo)
+            {
+                //类型存在Nullable<Type>时，需要进行以下处理，否则异常
+                Type t = p.PropertyType;
+                if (t.IsGenericType && t.GetGenericTypeDefinition() == typeof(Nullable<>))
+                    t = t.GetGenericArguments()[0];
+                dt.Columns.Add(p.Name, t);
+            }
+            foreach (T t in list)
+            {
+                DataRow dr = dt.NewRow();
+                foreach (PropertyInfo p in proInfo)
+                {
+                    object obj = p.GetValue(t);
+                    if (obj == null) continue;
+                    if (p.PropertyType == typeof(DateTime) && Convert.ToDateTime(obj) < Convert.ToDateTime("1753-01-01"))
+                        continue;
+                    dr[p.Name] = obj;
+                }
+                dt.Rows.Add(dr);
+            }
+            return dt;
+        }
     }
 }

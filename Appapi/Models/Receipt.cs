@@ -70,15 +70,24 @@ namespace Appapi.Models
         public bool IsDelete { get; set; }
         public int AtRole { get; set; }      
         public string NBBatchNo { get; set; }
-        public string IQCRemark { get; set; }
-    /* 判断收货依据状态所需的字段 
-    public bool OpenOrder { get; set; }
-    public bool orderHeld { get; set; }
-    public bool openLine { get; set; }
-    public bool openRelease { get; set; }
-    public bool jobClosed { get; set; }
-    public bool jobComplete { get; set; }
-    public bool JobHeld { get; set; }
-    */
-}
+        public string IQCRemark { get; set; }    
+        public int PreStatus { get; set; }
+
+
+
+
+        public int Colour { get; set; }
+        public string ReturnReason { get; set; }
+        public string ReturnReasonRemark { get; set; }
+       
+        /* 判断收货依据状态所需的字段 
+        public bool OpenOrder { get; set; }
+        public bool orderHeld { get; set; }
+        public bool openLine { get; set; }
+        public bool openRelease { get; set; }
+        public bool jobClosed { get; set; }
+        public bool jobComplete { get; set; }
+        public bool JobHeld { get; set; }
+        */
+    }
 }

@@ -197,7 +197,7 @@ namespace Appapi.Controllers
         [HttpPost]
         public string ReturnStatus(dynamic para) //ApiNum: 2 
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ID, (int)para.Status, (int)para.ReasonID,2) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus((int)para.ID, (int)para.Status, (int)para.ReasonID, (string)para.ReasonRemark, 2) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
 
 
@@ -210,7 +210,7 @@ namespace Appapi.Controllers
             string ss = reader.ReadToEnd();
             string[] arr = ss.Split(',');
 
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus(int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2]), 9) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.ReturnStatus(int.Parse(arr[0]), int.Parse(arr[1]), int.Parse(arr[2]), arr[3] ,9) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//流程回退到上一个节点
 
 
@@ -250,6 +250,14 @@ namespace Appapi.Controllers
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRecordByID(ReceiptID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
 
+
+
+        [HttpPost]
+        //Post:  /api/Receipt/GetRecordByCondition
+        public IEnumerable<Receipt> GetRecordByCondition(Receipt con)//ApiNum: 10   按条件从receipt表中获取的记录集合
+        {
+            return ReceiptRepository.GetRecordByCondition(con);
+        }
 
 
 
