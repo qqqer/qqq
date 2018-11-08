@@ -185,9 +185,9 @@ namespace Appapi.Controllers
         #region 功能
         //Get:  /api/Receipt/GetNextUserGroup
         [HttpGet]
-        public DataTable GetNextUserGroup(int nextStatus, string company, string plant)//ApiNum: 1
+        public DataTable GetNextUserGroup(int nextStatus, string company, string plant, int id)//ApiNum: 1
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(nextStatus, company, plant) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(nextStatus, company, plant,id) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
 
 
@@ -257,6 +257,38 @@ namespace Appapi.Controllers
         public IEnumerable<Receipt> GetRecordByCondition(Receipt con)//ApiNum: 10   按条件从receipt表中获取的记录集合
         {
             return ReceiptRepository.GetRecordByCondition(con);
+        }
+
+
+
+        [HttpPost]
+        //Post:  /api/Receipt/GetRecordByCondition2
+        public IEnumerable<Receipt> GetRecordByCondition2()//ApiNum: 13   winform     按条件从receipt表中获取的记录集合
+        {
+            StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);
+            string json = reader.ReadToEnd();
+            Receipt con = JsonConvert.DeserializeObject<Receipt>(json);
+
+            return ReceiptRepository.GetRecordByCondition(con);
+        }
+
+
+
+        [HttpPost]
+        //Post:  /api/Receipt/PrintQR
+        public string PrintQR(Receipt info)//ApiNum: 11   打印二维码
+        {
+            string res = ReceiptRepository.PrintQR(info);
+            return res == "处理成功" ? res : res + "|11"; 
+        }
+
+
+
+        [HttpGet]
+        //Get:  /api/Receipt/SetIsPrintRcv
+        public bool SetIsPrintRcv(int ID)//ApiNum: 12   设置暂收单是否已打印
+        {
+            return ReceiptRepository.SetIsPrintRcv(ID);
         }
 
 

@@ -70,11 +70,12 @@ namespace ErpAPI
         }
 
 
-        public static string getJobNextOprTypes(string jobnum, int asmSeq, int oprseq, out int OutAsm, out int OutOprSeq, string companyId)
+        public static string getJobNextOprTypes(string jobnum, int asmSeq, int oprseq, out int OutAsm, out int OutOprSeq, out string OutOpcode, string companyId)
         {
             string stype = "";
             OutAsm = 0;
             OutOprSeq = 0;
+            OutOpcode = null;
             if (jobnum.Trim() == "") { return "0|jonum error"; }
 
             try
@@ -91,9 +92,12 @@ namespace ErpAPI
                             stype = "S|下工序外协:" + drNextdt.Rows[0]["Opdesc"].ToString();
                             OutAsm = asmSeq;
                             OutOprSeq = NextOperSeq;
+                            OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
                         }
                         else
-                        { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString(); }
+                        { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();
+                            OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
+                        }
                     }
                     else
                     ////0层半层品内无下工序，代表下面到仓库,暂不考虑工单生产到工单的情况
@@ -113,9 +117,13 @@ namespace ErpAPI
                             stype = "S|下工序外协" + drNextdt.Rows[0]["Opdesc"].ToString();
                             OutAsm = asmSeq;
                             OutOprSeq = NextOperSeq;
+                            OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
+
                         }
                         else
-                        { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString(); }
+                        { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();
+                            OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
+                        }
                     }
                     else
                     //非0层半层品内无下工序，还要到上层半层品中找第一个工序.
@@ -141,9 +149,13 @@ namespace ErpAPI
                                         stype = "S|下工序外协" + drNextdt.Rows[0]["Opdesc"].ToString();
                                         OutAsm = parAsmSeq;
                                         OutOprSeq = NextOperSeq;
+                                        OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
+
                                     }
                                     else
-                                    { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString(); }
+                                    { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();
+                                        OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
+                                    }
                                 }
                             }
                         }
@@ -157,6 +169,8 @@ namespace ErpAPI
             }
 
         }
+
+
 
 
         public static string poDes(int ponum, int poline, int porel, string companyId)
@@ -214,19 +228,19 @@ namespace ErpAPI
                     else
                     {
 
-                        string ss = "";
+                        string ss = "",code;
                         int nextAsm = 0, nextOprSeq = 0;
-                        ss = getJobNextOprTypes(jobnum, asmSeq, oprSeq, out nextAsm, out nextOprSeq, companyId);
+                        ss = getJobNextOprTypes(jobnum, asmSeq, oprSeq, out nextAsm, out nextOprSeq, out code, companyId);
                         if (ss.Substring(0, 1).Trim().ToLower() == "s")
                         {
-                            //取得外协工序对应的po的供应商id
-                            //return "s|" + jobnum + "-" + nextAsm + "-" + nextOprSeq;
-                            List<QueryWhereItemRow> whereItems2 = new List<QueryWhereItemRow>();
-                            whereItems2.Add(new QueryWhereItemRow() { TableID = "porel", FieldName = "jobnum", RValue = jobnum.ToString() });
-                            whereItems2.Add(new QueryWhereItemRow() { TableID = "porel", FieldName = "assemblyseq", RValue = nextAsm.ToString() });
-                            whereItems2.Add(new QueryWhereItemRow() { TableID = "porel", FieldName = "jobseq", RValue = nextOprSeq.ToString() });
-                            string relsql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[Character10] as [ReqDetail_Character10] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum left outer join Erp.Warehse as Warehse on PartPlant.Company = Warehse.Company and PartPlant.PrimWhse = Warehse.WarehouseCode left outer join ReqDetail as ReqDetail on PODetail.Company = ReqDetail.Company and PODetail.PONUM = ReqDetail.PONUM and PODetail.POLine = ReqDetail.POLine left outer join Erp.ReqHead as ReqHead on ReqDetail.Company = ReqHead.Company and ReqDetail.ReqNum = ReqHead.ReqNum left outer join Erp.UserFile as UserFile on ReqHead.RequestorID = UserFile.DcdUserID left outer join Erp.JobMtl as JobMtl on PORel.Company = JobMtl.Company and PORel.JobNum = JobMtl.JobNum and PORel.AssemblySeq = JobMtl.AssemblySeq and PORel.JobSeq = JobMtl.MtlSeq left outer join Erp.JobOper as JobOper on JobMtl.Company = JobOper.Company and JobMtl.JobNum = JobOper.JobNum and JobMtl.AssemblySeq = JobOper.AssemblySeq and JobMtl.RelatedOperation = JobOper.OprSeq left outer join Erp.OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOper.OpCode = OpMaster.OpCode where (PORel.Company = '" + companyId + "'  and PORel.PONum ='" + ponum + "'  and PORel.POLine ='" + poline + "'  and PORel.PORelNum ='" + porel + "')";
-                            DataTable dt2 = GetDataByERP(relsql);
+                            DataTable dt2;
+
+                            sql = @"select PONum, POLine, PORelNum from erp.PORel pr INNER JOIN  Erp.JobOper jo  on  pr.JobNum = jo.JobNum and pr.AssemblySeq  = jo.AssemblySeq and pr.JobSeq = jo.OprSeq
+	                                where pr.JobNum='"+ jobnum + "' and pr.AssemblySeq = " + nextAsm + " and pr.JobSeq = " + nextOprSeq +"";
+                            dt2 = GetDataByERP(sql);
+
+                            string relsql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[Character10] as [ReqDetail_Character10] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum left outer join Erp.Warehse as Warehse on PartPlant.Company = Warehse.Company and PartPlant.PrimWhse = Warehse.WarehouseCode left outer join ReqDetail as ReqDetail on PODetail.Company = ReqDetail.Company and PODetail.PONUM = ReqDetail.PONUM and PODetail.POLine = ReqDetail.POLine left outer join Erp.ReqHead as ReqHead on ReqDetail.Company = ReqHead.Company and ReqDetail.ReqNum = ReqHead.ReqNum left outer join Erp.UserFile as UserFile on ReqHead.RequestorID = UserFile.DcdUserID left outer join Erp.JobMtl as JobMtl on PORel.Company = JobMtl.Company and PORel.JobNum = JobMtl.JobNum and PORel.AssemblySeq = JobMtl.AssemblySeq and PORel.JobSeq = JobMtl.MtlSeq left outer join Erp.JobOper as JobOper on JobMtl.Company = JobOper.Company and JobMtl.JobNum = JobOper.JobNum and JobMtl.AssemblySeq = JobOper.AssemblySeq and JobMtl.RelatedOperation = JobOper.OprSeq left outer join Erp.OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOper.OpCode = OpMaster.OpCode where (PORel.Company = '" + companyId + "'  and PORel.PONum = "+ dt2.Rows[0]["PONum"].ToString() + "  and PORel.POLine ="+ dt2.Rows[0]["POLine"].ToString() + "  and PORel.PORelNum ="+ dt2.Rows[0]["PORelNum"].ToString() + ")";
+                            dt2 = GetDataByERP(relsql);
                             for (int i = 0; i < dt2.Columns.Count; i++)
                             {
                                 dt2.Columns[i].ColumnName = dt2.Columns[i].ColumnName.Replace('_', '.');

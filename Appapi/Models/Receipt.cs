@@ -68,14 +68,15 @@ namespace Appapi.Models
         public bool IsAuto { get; set; }
         public bool IsComplete { get; set; }
         public bool IsDelete { get; set; }
+        public bool IsPrintRcv { get; set; }
         public int AtRole { get; set; }      
         public string NBBatchNo { get; set; }
         public string IQCRemark { get; set; }    
         public int PreStatus { get; set; }
 
 
-
-
+        public string WarehouseName { get; set; } 
+        public bool IsRestrictRcv { get; set; }
         public int Colour { get; set; }
         public string ReturnReason { get; set; }
         public string ReturnReasonRemark { get; set; }
