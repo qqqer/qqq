@@ -62,10 +62,18 @@ namespace Appapi.Models
             string m = string.Empty;
             foreach (string str in drectory)
             {
+
+                //if (str.Contains("<DIR>"))
+                //    dirPos = str.IndexOf("<DIR>");
+                //else
+                //    dirPos =
+
                 int dirPos = str.IndexOf("<DIR>");
 
                 if (dirPos > 0) //如果是文件夹
                     m += str.Substring(dirPos + 5).Trim() + "\n";
+                else//bug
+                    m += str.Split(' ').Last() + "\n";
             }
 
             return m.Split('\n');

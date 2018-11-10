@@ -139,7 +139,7 @@ namespace Appapi.Controllers
 
         [HttpPost]
         //Post:  /api/Receipt/UpLoadIQCFile
-        public bool UpLoadIQCFile() //ApiNum: 202
+        public bool UpLoadIQCFile() //ApiNum: 202    winform   上传指定批次的单个IQC文件
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.UploadIQCFile() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
@@ -270,6 +270,23 @@ namespace Appapi.Controllers
             Receipt con = JsonConvert.DeserializeObject<Receipt>(json);
 
             return ReceiptRepository.GetRecordByCondition(con);
+        }
+
+
+        [HttpGet]
+        //Get:  /api/Receipt/GetFileList
+        public DataTable GetFileList(string batchno) //ApiNum: 14    winform    获取指定批次的IQC文件列表
+        {
+            return ReceiptRepository.GetFileList(batchno);
+        }
+
+
+
+        [HttpGet]
+        //Post:  /api/Receipt/DeleteIQCFile
+        public bool DeleteIQCFile(int id, string filepath, string filename) //ApiNum: 15   winform    删除指定批次的单个IQC文件
+        {
+            return ReceiptRepository.DeleteIQCFile(id,filepath,filename);
         }
 
 

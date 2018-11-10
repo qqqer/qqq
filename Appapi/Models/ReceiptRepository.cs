@@ -877,6 +877,9 @@ namespace Appapi.Models
             else if (theBatch.IsDelete == true)
                 return "错误：该批次的流程已删除";
 
+            else if (theBatch.PartNum != RB.PartNum || theBatch.PartDesc != RB.PartDesc)
+                return "错误：物料编码或物料描述不正确";
+
             else if (theBatch.IsComplete == true)
                 return "错误：该批次的流程已结束";
 
@@ -985,6 +988,9 @@ namespace Appapi.Models
             if (RB == null)
                 return GetErrorInfo(theBatch);
 
+            else if (theBatch.PartNum != RB.PartNum || theBatch.PartDesc != RB.PartDesc)
+                return "错误：物料编码或物料描述不正确";
+
             else if (TransferInfo.ReceiveQty2 > RB.NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(TransferInfo.ReceiveQty2 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
 
@@ -1013,8 +1019,10 @@ namespace Appapi.Models
                     {
                         TransferInfo.AtRole = 8;
                     }
-                    else //m 或 s
+                    else if(res.Substring(0, 1).Trim().ToLower() == "m" || res.Substring(0, 1).Trim().ToLower() == "s")//m 或 s
                         TransferInfo.AtRole = 16;
+                    else
+                        return "错误：" + res;
                 }
                 else if (theBatch.TranType == "PUR-UKN")
                     TransferInfo.AtRole = 32;
@@ -1176,8 +1184,6 @@ namespace Appapi.Models
 
 
 
-                            //ErpApi.poDes((int)theBatch.PoNum, (int)dt.Rows[i]["PoLine"], (int)dt.Rows[i]["PORelNum"], theBatch.Company);
-                            //(res = ErpApi.porcv(vendorid + DateTime.Now.ToString("yyyyMMddHHmmss"), recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功."
                             if ((res = ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
                             {
 
@@ -1320,7 +1326,7 @@ namespace Appapi.Models
 
             if (nextRole != 16) //该批次没有关联工单
             {
-                sql = "select UserID,UserName from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 ";
+                sql = "select UserID,UserName, Department from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 ";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
 
                 if (dt == null) return null;
@@ -1337,8 +1343,42 @@ namespace Appapi.Models
                     }
                 }
 
-                //1选2，3选4的STK和UKN方向时 直接返回dt
-                return dt;
+                else if (nextRole == 32)//UKN接收人
+                {
+                    
+                    sql = "select * from receipt where id = " + id + "";
+                    DataTable dt2 = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); 
+
+                    sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
+                    sql = string.Format(sql, dt2.Rows[0]["Company"].ToString(), dt2.Rows[0]["PoNum"], dt2.Rows[0]["PoLine"]);
+
+                    var RcvPerson_c = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+
+                    if (RcvPerson_c == null)
+                        return null;
+
+
+                    for (int i = dt.Rows.Count - 1; i >= 0; i--)
+                    {
+                        if (dt.Rows[i]["Department"] != null)
+                        {
+                            string[] ss = dt.Rows[i]["Department"].ToString().Split(',');
+
+                            int j;
+                            for ( j = 0; j < ss.Length; j++)
+                            {
+                                if (RcvPerson_c.ToString().Contains(ss[j].Trim()))
+                                    break;
+                            }
+
+                            if(j == ss.Length)
+                                dt.Rows.RemoveAt(i);
+                        }
+                        else
+                            dt.Rows.RemoveAt(i);
+                    }
+                }
             }
 
             else//该批次有关联工单
@@ -1347,7 +1387,6 @@ namespace Appapi.Models
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
                 Receipt theBatch = CommonRepository.DataTableToList<Receipt>(dt).First();
-
 
 
 
@@ -1773,7 +1812,12 @@ namespace Appapi.Models
 
         public static bool SetIsPrintRcv(int ReceiptID)
         {
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
             string sql = @"update Receipt set IsPrintRcv = 1 where ID = " + ReceiptID + "";
+
+            AddOpLog(ReceiptID, null, 12, "update", OpDate, "打印暂收单");
+
             return Convert.ToBoolean(SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null));
         }
 
@@ -1932,6 +1976,40 @@ namespace Appapi.Models
 
             return false;
         }
+
+
+
+        public static DataTable GetFileList(string batchno)
+        {
+            string sql = "select * from IQCfile where batchno = '" + batchno + "' ";
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+
+            return dt;
+        }
+
+
+        
+        public static bool DeleteIQCFile(int id, string filePath, string filename) //ApiNum: 15   winform    删除指定批次的单个IQC文件
+        {
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+
+            if (FtpRepository.DeleteFile(filePath, filename) == true)
+            {
+                string sql = "delete from IQCFile where id = " + id + "";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                sql = "select  batchno from IQCFile where id = " + id + "";
+                string batchno = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                AddOpLog(null, batchno, 15, "delete", OpDate, "手动删除|" + filePath + filename);
+
+                return true;
+            }
+            else
+                return false;
+        }
+        
 
 
 
