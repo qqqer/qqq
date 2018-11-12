@@ -1,0 +1,90 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>数字工厂 - 红狮</title>
+    <!-- Bootstrap CSS CDN -->
+    <!-- Bootstrap core CSS -->
+    <link href="lib/bootstrap/css/bootstrap-reboot.min.css" rel="stylesheet">
+    <link href="lib/bootstrap/css/bootstrap-grid.min.css" rel="stylesheet">
+    <link href="lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Our Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Scrollbar Custom CSS -->
+    <link rel="stylesheet" href="lib/mCustomScrollbar/jquery.mCustomScrollbar.min.css">
+    <!-- Font Awesome JS -->
+    <link href="lib/font-awesome/css/all.css" rel="stylesheet">
+    <!--<script defer src="lib/font-awesome/js/all.js"></script>-->
+
+</head>
+
+<body>
+
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand mr-auto mr-lg-0" href="#">红狮数字工厂</a>
+
+                <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse"
+                        data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                        aria-label="Toggle navigation">
+                    <i class="fas fa-align-justify"></i>
+                </button>
+                <button type="button" id="sidebarCollapse" class="btn btn-info">
+                    <i class="fas fa-align-left"></i>
+                    <!-- <span>Toggle Sidebar</span> -->
+                </button>
+                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                    <ul class="nav navbar-nav ml-auto">
+                        <li class="nav-item active">
+                            <a class="nav-link" href="#">Page1</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Page</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Page</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#">Page</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <div class="overlay"></div>
+    <!-- jQuery CDN - Slim version (=without AJAX) -->
+    <script src="lib/jquery/jquery-3.3.1.slim.min.js"></script>
+    <!-- Popper.JS -->
+    <script src="lib/popper.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery Custom Scroller CDN -->
+    <script src="lib/mCustomScrollbar/jquery.mCustomScrollbar.concat.min.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#sidebar").mCustomScrollbar({
+                theme: "minimal"
+            });
+
+            $('#dismiss, .overlay').on('click', function () {
+                $('#sidebar').removeClass('active');
+                $('.overlay').removeClass('active');
+            });
+
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar').addClass('active');
+                $('.overlay').addClass('active');
+                $('.collapse.in').toggleClass('in');
+                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            });
+        });
+    </script>
+</body>
+
+</html>

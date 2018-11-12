@@ -7,6 +7,7 @@ using System.Web.Mvc;
 using System.Web.Optimization;
 using System.Web.Routing;
 using System.Web.SessionState;
+using System.Windows.Forms;
 
 namespace Appapi
 {
@@ -29,36 +30,42 @@ namespace Appapi
         }
 
 
-        /*  若今后跨域失败可尝试添加
-        protected void Application_BeginRequest(object sender, EventArgs e)
+        protected void Application_EndRequest(object sender, EventArgs e)
         {
-            if (HttpContext.Current.Request.HttpMethod == "OPTIONS") //允许请求通过预检
+            if (HttpContext.Current.Request.HttpMethod == "OPTIONS")
             {
-                These headers are handling the "pre-flight" OPTIONS call sent by the browser
-                HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "*");
-                HttpContext.Current.Response.AddHeader("Access-Control-Allow-Origin", HttpContext.Current.Request.Headers.GetValues("Origin").First());
-                HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
-                HttpContext.Current.Response.End();
+                HttpContext.Current.Response.StatusCode = 200;
             }
+            HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "*");
+            HttpContext.Current.Response.AddHeader("Access-Control-Allow-Origin", HttpContext.Current.Request.Headers.GetValues("Origin").First());
+            HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
         }
-        */
+
+
+        ////  若今后跨域失败可尝试添加
+        //protected void Application_BeginRequest(object sender, EventArgs e)
+        //{
+            
+        //    //HttpCookie cookie = new HttpCookie("ASP.NET_SessionId");
+        //    //cookie.Domain = HttpContext.Current.Request.Headers.GetValues("Origin").First();
+        //    //cookie.Value = HttpContext.Current.Session.SessionID;
+        //    //HttpContext.Current.Response.SetCookie(cookie);
+        //    //HttpContext.Current.Response.End();
+        //}
 
 
 
 
-        /*
+
+        
         void Session_Start(object sender, EventArgs e)
         {
-            if (HttpContext.Current.Session != null)
-            {
-                HttpContext.Current.Session.Add("Company", 1);
-                //HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
-            }
+            
         }
          void Session_End(object sender, EventArgs e)
         {
             
         }
-        */
+        
     }
 }

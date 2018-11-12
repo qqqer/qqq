@@ -1,0 +1,51 @@
+﻿body {
+}
+.header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    z-index: 999;
+}
+
+.header-light {
+    background-color: #fff;
+    border-bottom: solid 1px rgba(0,0,0,.01);
+}
+
+.shadow-large {
+    box-shadow: 0 0 25px 5px rgba(0,0,0,.2);
+}
+
+.header-logo-app .header-title {
+    left: 5px !important;
+    margin-left: 55px !important;
+}
+
+.header .header-title {
+    position: absolute;
+    height: 56px;
+    line-height: 59px;
+    font-size: 15px;
+    color: #000;
+    font-weight: 500;
+    z-index: 1;
+}
+
+.header .header-icon {
+    position: absolute;
+    height: 60px;
+    width: 45px;
+    text-align: center;
+    line-height: 59px;
+    font-size: 12px;
+}
+
+.header-logo-app .header-icon-1 {
+    left: 0;
+    width: 60px;
+}
+.header-logo-app .header-icon-2 {
+    right: 0;
+}

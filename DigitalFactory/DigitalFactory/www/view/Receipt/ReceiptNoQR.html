@@ -1,0 +1,304 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>数字工厂 - 红狮</title>
+    <!-- Bootstrap CSS CDN -->
+    <!-- Bootstrap core CSS -->
+    <link href="../../lib/bootstrap/css/bootstrap-reboot.min.css" rel="stylesheet">
+    <link href="../../lib/bootstrap/css/bootstrap-grid.min.css" rel="stylesheet">
+    <link href="../../lib/bootstrap/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Our Custom CSS -->
+    <link rel="stylesheet" href="../../css/style.css">
+    <!-- Scrollbar Custom CSS -->
+    <link rel="stylesheet" href="../../lib/mCustomScrollbar/jquery.mCustomScrollbar.min.css">
+    <!-- Font Awesome JS -->
+    <link href="../../lib/font-awesome/css/all.css" rel="stylesheet">
+    
+
+</head>
+
+<body onload="onload()">
+    <script src="../../scripts/jquery.js"></script>
+    <script type="text/javascript">
+        var pageCount = 5;//一页显示行数
+        var pageTotal = 0;//总页数
+        var pageCur = 1;//当前页
+        var rowTotal = 0;//数据总个数
+        var information = "";
+        function onload() {
+            var login = window.localStorage.a;
+            if (login != 1) {
+                setTimeout(function () {
+                    alert("请先登录");
+                    location.href = "../../index.html";
+                }, 1000);
+            }
+        }
+        $(document).ready(function () {
+            $("#sidebar").mCustomScrollbar({
+                theme: "minimal"
+            });
+
+            $('#dismiss, .overlay').on('click', function () {
+                $('#sidebar').removeClass('active');
+                $('.overlay').removeClass('active');
+            });
+
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar').addClass('active');
+                $('.overlay').addClass('active');
+                $('.collapse.in').toggleClass('in');
+                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            });
+            $("#sidebar1").load("../../header.html");
+        });
+        //查询
+        function Search() {
+            var PoNum = parseInt($("#PoNum").val());
+            var PoLine = parseInt($("#PoLine").val());
+            var PartNum = $("#PartNum").val();
+            var PartDesc = $("#PartDesc").val();
+            if (PoNum == "" && PoLine != "") {
+                alert("请输入采购单号");
+                window.location.reload();
+                return;
+            }
+            var data = "{'PoNum':" + PoNum + ",'PoLine':" + PoLine + ",'PartNum':'" + PartNum + "','PartDesc':'" + PartDesc + "'}";
+            $.ajax({
+                type: "post",
+                contentType: "application/json",
+                url: "http://192.168.9.49/api/Receipt/GetReceivingBasis",
+                data: data,
+                //dataType: 'json',
+                error: function (xhr, status, p3, p4) {
+                    //console.log(xhr);
+                    var err = "Error " + " " + status + " " + p3;
+                    if (xhr.responseText && xhr.responseText[0] == "{")
+                        err = JSON.parse(xhr.responseText).message;
+                    alert("手工收货查询失败GetReceivingBasis，" + err);
+                },
+                success: function (result) {
+                    console.log(result);
+                    $("#Page").empty();
+                    if (result == null)
+                    {
+                        $(".list-group").html("");
+                        var _nuli = "";
+                        _nuli += '<div class="d-flex w-100 justify-content-between"> ';
+                        _nuli += '<h5 class="mb-1">没有该数据记录</h5> ';
+                        _nuli += '</div >';
+                        $(".list-group").append(_nuli);
+                        document.getElementById('top').scrollIntoView();
+                    }
+                    else {                      
+                        rowTotal = result.length;
+                        pageTotal = Math.ceil(result.length / pageCount);   
+                        information = result;
+                        for (var j = 1; j <= pageTotal; j++) {
+                            $("#Page").append('<option>' + j + '</option>');
+                        }
+                        if (pageTotal > 1) {
+                            dataProcessing(0, pageCount);
+                        } else {
+                            dataProcessing(0, result.length);
+                        }                                              
+                    }
+                    
+                }
+            });
+        }
+        function dataProcessing(startNo, endNo) {
+            $(".list-group").html("");
+            var _li = "";
+            //console.log(information);
+            for (var i = startNo; i < endNo; i++) {
+                if (information[i]["NotReceiptQty"] != 0) {
+                    _li += '<a href="NoQRDetail.html?' + information[i]["PoNum"] + '~' + information[i]["PoLine"] + '~' + information[i]["PORelNum"] + '~' + information[i]["Company"] + '~' + information[i]["NotReceiptQty"] + '" class="list-group-item list-group-item-action flex-column align-items-start"> ';
+                    _li += '<div class="d-flex w-100 justify-content-between"> ';
+                    _li += '<h5 class="mb-1">' + information[i]["PoNum"] + '第' + information[i]["PoLine"] + '行发货行' + information[i]["PORelNum"] + '</h5> ';
+                    _li += '<small>' + information[i]["Company"] + '</small> ';
+                    _li += '</div >';
+                    _li += '<p class="mb-1">物料编码：' + information[i]["PartNum"] + '</p>';
+                    _li += '<p class="mb-1">物料描述：' + information[i]["PartDesc"] + '</p>';
+                    _li += '<small>可接收数量：' + information[i]["NotReceiptQty"] + '</small>';
+                    _li += ' </a >';
+                }
+            }            
+            $(".list-group").append(_li);
+            document.getElementById('top').scrollIntoView();
+        }
+        //分页
+        function Previous() {
+            if (pageCur > 1)
+            {
+                pageCur--;
+                var startNo = pageCount * (pageCur - 1);
+                var endNo = pageCount * pageCur;
+                dataProcessing(startNo, endNo);
+                $("#Page").val(pageCur);
+            }
+        }
+        function PageChange(me) {
+                pageCur = $(me).val();
+                var startNo = pageCount * (pageCur - 1);
+                var endNo = 0;
+                if (pageCur == pageTotal) {
+                    endNo = rowTotal;
+                }
+                else {
+                    endNo = pageCount * pageCur;
+                }
+                dataProcessing(startNo, endNo);
+        }
+        function Next() {
+            if (pageCur < pageTotal)
+            {
+                pageCur++;
+                var startNo = pageCount * (pageCur - 1);
+                var endNo = rowTotal;
+                dataProcessing(startNo, endNo);
+                $("#Page").val(pageCur);
+            }
+        }
+        function signout() {
+            $.ajax({
+                type: "get",
+                contentType: "application/json",
+                url: "http://192.168.9.49/api/Receipt/SignOut",
+                //data: "{'value':1}",
+                dataType: 'json',
+                error: function (ex) {
+                    alert("Signout，" + ex.error + ",请关闭程序重新打开");
+                    return;
+                },
+                success: function (result) {
+                    window.localStorage.clear();
+                    location.href = "../../index.html";
+                }
+            });
+        }
+    </script>
+    <!-- Sidebar  -->
+    <div id="sidebar1">
+    </div>
+    <!-- Page Content  -->
+    <div class="content">
+        <header>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container-fluid">
+                    <a class="navbar-brand mr-auto mr-lg-0" href="#">红狮数字工厂</a>
+
+                    <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse"
+                            data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false"
+                            aria-label="Toggle navigation">
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+                    <button type="button" id="sidebarCollapse" class="btn btn-info">
+                        <i class="fas fa-align-left"></i>
+                        <!-- <span>Toggle Sidebar</span> -->
+                    </button>
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="nav navbar-nav ml-auto">
+                            <li class="nav-item active">
+                                <a class="nav-link" onclick="signout()">退出</a>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        <main role="main" class="container">
+            <div class="row">
+
+                <div class="col-md-12 order-md-1">
+                    <h4 class="mb-3">查询</h4>
+                    <!--<form>-->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName">采购单号</label>
+                                <input type="text" class="form-control" id="PoNum" placeholder="" value="">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName">采购行号</label>
+                                <input type="text" class="form-control" id="PoLine" placeholder="" value="">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName">物料编码</label>
+                                <input type="text" class="form-control" id="PartNum" placeholder="" value="">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName">物料描述</label>
+                                <input type="text" class="form-control" id="PartDesc" placeholder="" value="">
+                            </div>
+                        </div>
+                        <hr class="mb-4">
+                        <button class="btn btn-primary btn-lg btn-block" type="submit" onclick="Search()">查询</button>
+                        <div class="row">
+                            <div class="col-md-6 mb-3"></div>
+                        </div>
+                    <!--</form>-->
+                    <div class="mb-4">
+                        <div class="list-group" id="top">
+
+                        </div>
+                    </div>
+                    <nav aria-label="Page navigation example">
+                        <ul class="pagination">
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Previous" onclick="Previous()" >
+                                    <span aria-hidden="true">&laquo;</span>
+                                    <span class="sr-only">Previous</span>
+                                </a>
+                            </li>
+                            <li>
+                                <select class="custom-select d-block w-100" id="Page" onchange="PageChange(this)">
+                                </select>
+                            </li>                           
+                            <li class="page-item">
+                                <a class="page-link" href="#" aria-label="Next" onclick="Next()">
+                                    <span aria-hidden="true">&raquo;</span>
+                                    <span class="sr-only">Next</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+            </div>
+        </main>
+        <footer class="site-footer footer pt-5 text-muted text-center text-small">
+            <div class="container">
+                <div class="text-center">
+                    <p>
+                        © Copyrights <strong>HS</strong>. All Rights Reserved
+                    </p>
+                    <!-- <div class="credits">
+                            Created with Dashio template by <a href="https://templatemag.com/">TemplateMag</a>
+                        </div> -->
+                    <a href="#" class="go-top">
+                        <i class="fas fa-angle-up"></i>
+                    </a>
+                </div>
+            </div>
+        </footer>
+
+    </div>
+
+    <div class="overlay"></div>
+    <!-- jQuery CDN - Slim version (=without AJAX) -->
+    <!--<script src="lib/jquery/jquery-3.3.1.slim.min.js"></script>-->
+    <!-- Popper.JS -->
+    <script src="../../lib/popper.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="../../lib/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <!-- jQuery Custom Scroller CDN -->
+    <script src="../../lib/mCustomScrollbar/jquery.mCustomScrollbar.concat.min.js"></script>
+
+</body>
+
+</html>

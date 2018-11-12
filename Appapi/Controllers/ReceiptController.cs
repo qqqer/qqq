@@ -31,8 +31,9 @@ namespace Appapi.Controllers
                 ReceiptRepository.AddOpLog(null, null, 10000, "SignIn", OpDate, OpDetail);
                 return true;
             }
-
+            //HttpContext.Current.Response.AddHeader("ASP.NET_SessionId", HttpContext.Current.Session.SessionID);
             return false;
+
         }//登录验证
 
 

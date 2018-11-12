@@ -1,0 +1,113 @@
+﻿
+
+    <!-- Sidebar  -->
+    <div id="sidebar">
+        <div id="dismiss">
+            <i class="fas fa-times"></i>
+        </div>
+        <div class="sidebar-header">
+            <h3>数字工厂</h3>
+        </div>
+        <ul class="list-unstyled components">
+            <p>欢迎使用</p>
+            <!--<li>
+
+                <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="homeSubmenu">
+                    <span class="fas fa-tachometer-alt"></span>数据表板
+                </a>
+                <ul class="collapse list-unstyled" id="homeSubmenu">
+                    <li>
+                        <a href="#">Home 1</a>
+                    </li>
+                    <li>
+                        <a href="#">Home 2</a>
+                    </li>
+                    <li>
+                        <a href="#">Home 3</a>
+                    </li>
+                </ul>
+            </li>-->
+            <li>
+
+                <a href="#homeSubmenu" data-toggle="collapse" aria-expanded="false" aria-controls="homeSubmenu">
+                    <span class="fas fa-tachometer-alt"></span>首页
+                </a>
+                <ul class="collapse list-unstyled" id="homeSubmenu">
+                    <li>
+                        <a href="./page-menu.html">代办事项</a>
+                    </li>
+                    <li>
+                        <a href="./view/CopyQR/CopyQR.html">复制二维码</a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <!--<a href="#">物流接收</a>-->
+
+                <a href="#pageSubmenu" data-toggle="collapse" aria-expanded="false"><span class="fas fa-shipping-fast"></span><span>物流接收</span></a>
+                <ul class="collapse list-unstyled" id="pageSubmenu">
+                    <li>
+                        <!--<a href="/android_asset/www/view/Receipt/ReceiptNoQR.html">手动接收</a>-->
+                        <a href="./view/Receipt/ReceiptNoQR.html">手动接收</a>
+                    </li>
+                    <li>
+                        <a href="./view/Receipt/ReceiptQR.html">扫码接收</a>
+                    </li>
+                </ul>
+            </li>
+            <!--<li>
+                <a href="#">
+                    <i class="fas fa-flask"></i>
+                    <span>
+                        IQC检验
+                    </span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-motorcycle"></i>
+                    <span>物流转序</span>
+                </a>
+            </li>
+            <li>
+                <a href="#">
+                    <i class="fas fa-store-alt">
+                    </i>
+                    <span>仓库入库 </span>
+                </a>
+            </li>-->
+        </ul>
+        <ul class="list-unstyled CTAs">
+            <li>
+                <a href="#" class="download">查看报表</a>
+            </li>
+            <li>
+                <a onclick="signout()" class="article">退出</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="overlay"></div>
+    <!-- jQuery CDN - Slim version (=without AJAX) -->
+    <!--<script src="lib/jquery/jquery-3.3.1.slim.min.js"></script>-->
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $("#sidebar").mCustomScrollbar({
+                theme: "minimal"
+            });
+
+            $('#dismiss, .overlay').on('click', function () {
+                $('#sidebar').removeClass('active');
+                $('.overlay').removeClass('active');
+            });
+
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar').addClass('active');
+                $('.overlay').addClass('active');
+                $('.collapse.in').toggleClass('in');
+                $('a[aria-expanded=true]').attr('aria-expanded', 'false');
+            });
+        });
+
+    </script>
