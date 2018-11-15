@@ -36,16 +36,18 @@ namespace Appapi
             {
                 HttpContext.Current.Response.StatusCode = 200;
             }
-            HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "*");
-            HttpContext.Current.Response.AddHeader("Access-Control-Allow-Origin", HttpContext.Current.Request.Headers.GetValues("Origin").First());
-            HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
+
+            var v = HttpContext.Current.Request.Headers.GetValues("Origin");          
+            if(v != null)
+                HttpContext.Current.Response.AddHeader("Access-Control-Allow-Origin", v.First());
         }
 
 
-        ////  若今后跨域失败可尝试添加
+
         //protected void Application_BeginRequest(object sender, EventArgs e)
         //{
-            
+        //HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "*,Content-Type");
+        //HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
         //    //HttpCookie cookie = new HttpCookie("ASP.NET_SessionId");
         //    //cookie.Domain = HttpContext.Current.Request.Headers.GetValues("Origin").First();
         //    //cookie.Value = HttpContext.Current.Session.SessionID;
@@ -57,15 +59,15 @@ namespace Appapi
 
 
 
-        
-        void Session_Start(object sender, EventArgs e)
-        {
-            
-        }
-         void Session_End(object sender, EventArgs e)
-        {
-            
-        }
-        
+
+        //void Session_Start(object sender, EventArgs e)
+        //{
+
+        //}
+        //void Session_End(object sender, EventArgs e)
+        //{
+
+        //}
+
     }
 }

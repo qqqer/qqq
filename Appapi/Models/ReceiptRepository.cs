@@ -1019,7 +1019,7 @@ namespace Appapi.Models
                     {
                         TransferInfo.AtRole = 8;
                     }
-                    else if(res.Substring(0, 1).Trim().ToLower() == "m" || res.Substring(0, 1).Trim().ToLower() == "s")//m 或 s
+                    else if (res.Substring(0, 1).Trim().ToLower() == "m" || res.Substring(0, 1).Trim().ToLower() == "s")//m 或 s
                         TransferInfo.AtRole = 16;
                     else
                         return "错误：" + res;
@@ -1345,9 +1345,9 @@ namespace Appapi.Models
 
                 else if (nextRole == 32)//UKN接收人
                 {
-                    
+
                     sql = "select * from receipt where id = " + id + "";
-                    DataTable dt2 = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); 
+                    DataTable dt2 = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
                     sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
                     sql = string.Format(sql, dt2.Rows[0]["Company"].ToString(), dt2.Rows[0]["PoNum"], dt2.Rows[0]["PoLine"]);
@@ -1366,13 +1366,13 @@ namespace Appapi.Models
                             string[] ss = dt.Rows[i]["Department"].ToString().Split(',');
 
                             int j;
-                            for ( j = 0; j < ss.Length; j++)
+                            for (j = 0; j < ss.Length; j++)
                             {
                                 if (RcvPerson_c.ToString().Contains(ss[j].Trim()))
                                     break;
                             }
 
-                            if(j == ss.Length)
+                            if (j == ss.Length)
                                 dt.Rows.RemoveAt(i);
                         }
                         else
@@ -1988,7 +1988,7 @@ namespace Appapi.Models
         }
 
 
-        
+
         public static bool DeleteIQCFile(int id, string filePath, string filename) //ApiNum: 15   winform    删除指定批次的单个IQC文件
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -2009,7 +2009,7 @@ namespace Appapi.Models
             else
                 return false;
         }
-        
+
 
 
 
@@ -2030,6 +2030,101 @@ namespace Appapi.Models
             //pictureBox1.Refresh();
         }
 
+
+
+
+        public static string GetValueForTranStk_1(string oristr)
+        {
+            string[] arr = oristr.Split('~');
+
+            string sql = @"select 
+                sum(onhandqty)
+                from erp.Partbin pb           
+                where pb.company = '" + arr[0] + "' and pb.partnum = '" + arr[1] + "' ";
+
+            object sum = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            if (sum == null || (int)sum < 1)
+                return null; //库存不存在   
+
+            sql = @"select 
+                dimcode
+                from erp.Partbin pb           
+                where pb.company = '" + arr[0] + "' and pb.partnum = '" + arr[1] + "' ";
+
+            object dimcode = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return arr[1] + "~" + arr[2] + "~" + sum.ToString() + "~" + arr[0] + "~" + dimcode;   //partnum~partdesc~onhandqty~company~dimcode
+        }
+
+
+
+        public static DataTable GetValueForTranStk_2(dynamic para)
+        {
+            string sql = @"select 
+                BinNum, LotNum, OnhandQty
+                from erp.Partbin pb           
+                where pb.company = '" + Convert.ToString(para.Company) + "' and pb.WarehouseCode = '" + Convert.ToString(para.WarehouseCode) + "' and pb.PartNum = '" + Convert.ToString(para.PartNum) + "' ";
+
+            if (Convert.ToString(para.BinNum) == "")
+                sql += "and BinNum = " + Convert.ToString(para.BinNum) + " ";
+            if (Convert.ToString(para.LotNum) == "")
+                sql += "and LotNum = " + Convert.ToString(para.LotNum) + " ";
+
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+            return dt;
+        }
+
+
+
+        public static string TranStk(dynamic para)
+        {
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+
+            string tranJson = "'partnum':'{0}', " +
+                            "'partdesc':'{1}', " +
+                            "'fromWHcode':'{2}', " +
+                            "'fromWHname':'{3}'," +
+                            "'fromBinNum':'{4}'," +
+                            "'fromBinName':'{5}'," +
+                            "'toWHcode':'{6}'," +
+                            "'toWHname':'{7}'," +
+                            "'toBinNum':'{8}'," +
+                            "'toBinName':'{9}'," +
+                            "'lotnum':'{10}'," +
+                            "'tranQty':'{11}'," +
+                            "'uom':'{12}'";
+            tranJson = string.Format(tranJson,
+                Convert.ToString(para.PartNum),
+                Convert.ToString(para.PartDesc),
+                Convert.ToString(para.Warehouse),
+                Convert.ToString(para.Warehouse),
+                Convert.ToString(para.BinNum),
+                Convert.ToString(para.BinNum),
+                Convert.ToString(para.Warehouse),
+                Convert.ToString(para.Warehouse),
+                Convert.ToString(para.ToBinNum),
+                Convert.ToString(para.ToBinNum),
+                Convert.ToString(para.LotNum),
+                Convert.ToString(para.ToQty),
+                Convert.ToString(para.uom));
+
+
+            tranJson =  "[{" + tranJson + "}]";
+
+            string res = ErpApi.tranStk(tranJson, Convert.ToString(para.Company));
+
+            if(res.Substring(0, 1) == "1")
+            {
+                AddOpLog(null, null, 18, "update", OpDate, "转仓|" + tranJson);
+
+                return "处理成功";
+            }
+
+            return "错误："+ res;
+        }
         #endregion
 
 

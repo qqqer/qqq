@@ -31,6 +31,7 @@ namespace Appapi.Controllers
                 ReceiptRepository.AddOpLog(null, null, 10000, "SignIn", OpDate, OpDetail);
                 return true;
             }
+            //HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
             //HttpContext.Current.Response.AddHeader("ASP.NET_SessionId", HttpContext.Current.Session.SessionID);
             return false;
 
@@ -289,6 +290,34 @@ namespace Appapi.Controllers
         {
             return ReceiptRepository.DeleteIQCFile(id,filepath,filename);
         }
+
+
+        [HttpGet]
+        //Get:  /api/Receipt/GetValueForTranStk_1
+        public string GetValueForTranStk_1(string oristr) //ApiNum: 16  获取 partnum~partdesc~onhandqty~company~dimcode
+        {
+            return ReceiptRepository.GetValueForTranStk_1(oristr);
+        }
+
+
+        [HttpPost]
+        //Post:  /api/Receipt/GetValueForTranStk_2
+        public DataTable GetValueForTranStk_2(dynamic para) //ApiNum: 17  获取 BinNum列表 或LotNum列表 或 指定行的Onhand数量
+        {
+            return ReceiptRepository.GetValueForTranStk_2(para);
+        }
+
+
+
+        [HttpPost]
+        //Post:  /api/Receipt/TranStk
+        public string TranStk(dynamic para) //ApiNum: 18  转仓
+        {
+            string res = ReceiptRepository.TranStk(para);
+
+            return res == "处理成功" ? res : res + "|18";
+        }
+
 
 
 

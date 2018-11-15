@@ -673,16 +673,194 @@ namespace ErpAPI
         }
 
 
+
+        //TranStk库存转仓接口
+        public static string tranStk(string jsonStr, string companyId)
+        {
+            int rcnt = 0, i = 0, j = 0;
+            string partnum;
+            try
+            {
+
+                DataTable tranDT = JsonConvert.DeserializeObject<DataTable>(jsonStr);
+                rcnt = tranDT.Rows.Count;
+
+
+                //check data
+                string company = companyId;//((Epicor.Mfg.Core.Session)(oTrans.Session)).CompanyID;
+                decimal aqty;
+
+
+                for (i = 0; i < rcnt; i++)
+                {
+                    //wcode=ugDetail.Rows[i].Cells[0].Value.ToString().Trim();
+                    //binnum=ugDetail.Rows[i].Cells[2].Value.ToString().Trim();
+                    //lotnum=ugDetail.Rows[i].Cells[11].Value.ToString();
+
+                    if (tranDT.Rows[i]["fromWHcode"].ToString().Trim() == "")
+                    { return "0|" + "第" + (i + 1).ToString() + "行[源仓库id]不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["fromWHname"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[源仓库名称]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["fromBinNum"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[源库位id]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["fromBinName"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[源库位名称]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["toWHcode"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[目的仓库id]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["toWHname"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[目的仓库名称]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["tobinnum"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[目的库位id]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["tobinname"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[目的库位名称]列不可为空,请输入有效数据后再执行转仓"; }
+                    partnum = tranDT.Rows[i]["partnum"].ToString().Trim();
+                    if (partnum == "")
+                    { return "0|第" + (i + 1).ToString() + "行[物料编码]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["partdesc"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[物料描述]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    if (tranDT.Rows[i]["tranQty"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[转移数量]列不可为空,请输入有效数据后再执行转仓"; }
+
+                    // aqty=Math.Round(Convert.ToDecimal(tranDT.Rows[i]["tranQty"].ToString().Trim()),5);
+                    if (decimal.TryParse(tranDT.Rows[i]["tranQty"].ToString(), out aqty) == false)
+                    { return "0|第" + (i + 1).ToString() + "行[转移数量]列不可<=0,请输入有效数据后再执行转仓"; }
+
+                    //if (ugDetail.Rows[i].Cells[11].Value.ToString().Trim()=="")
+                    //	{MessageBox.Show((i+1).ToString() + "行[批号]列不可为空,请输入有效数据后再执行转仓");return false;}
+
+                    if (tranDT.Rows[i]["uom"].ToString().Trim() == "")
+                    { return "0|第" + (i + 1).ToString() + "行[单位]列不可为空,请输入有效数据后再执行转仓"; }
+
+                }
+
+                ////需要执行源库位库存数量的检查,否则有可能产生负库存
+                string wcode = "", binnum = "", lotnum = "";
+                decimal tqty;
+
+                for (i = 0; i < rcnt; i++)
+                {
+                    partnum = tranDT.Rows[i]["partnum"].ToString().Trim();
+                    wcode = tranDT.Rows[i]["fromWHcode"].ToString().Trim();
+                    binnum = tranDT.Rows[i]["fromBinNum"].ToString().Trim();
+                    lotnum = tranDT.Rows[i]["lotnum"].ToString().Trim();
+                    
+                    DataTable dt = GetDataByERP("select [PartBin].[OnhandQty] as [PartBin_OnhandQty] from Erp.PartBin as PartBin where (PartBin.Company = '" + company + "'  and PartBin.PartNum = '" + partnum + "'  and PartBin.WarehouseCode = '" + wcode + "'  and PartBin.BinNum = '" + binnum + "'  and PartBin.LotNum = '" + lotnum + "')");
+                    if (dt.Rows.Count <= 0)
+                    {
+
+                        return ("0|第" + (i + 1).ToString() + "行源库位无库存,请输入有效数据后再执行转仓");
+                    }
+                    aqty = Math.Round(Convert.ToDecimal(dt.Rows[0][0]), 5);
+                    decimal.TryParse(tranDT.Rows[i]["tranqty"].ToString(), out tqty);
+                    if (aqty < tqty)
+                    {
+
+                        return "0|第" + (i + 1).ToString() + "行源库位库存" + aqty.ToString() + "<转仓数量" + tqty.ToString() + ",请输入有效数据后再执行转仓";
+
+                    }
+
+                }
+
+
+                Session EpicorSession = GetEpicorSession();
+                if (EpicorSession == null)
+                {
+                    return "-1|erp用户数不够，请稍候再试.ERR:tranStk";
+                }
+                EpicorSession.CompanyID = companyId;
+                //WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionidc", "");
+                InvTransferImpl invAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<InvTransferImpl>(EpicorSession, ImplBase<Erp.Contracts.InvTransferSvcContract>.UriPath);
+                InvTransferDataSet invDS;
+
+                DataRow invDr;
+                string lotNum, tranUOM;
+                decimal tranQty;
+                bool bstr1;
+                string str1, str2;
+
+
+                for (i = 0; i < rcnt; i++)
+                {
+                    string uomCode = "";
+                    // Declare and Initialize Variables
+                    string serialWarning, questionString;
+                    bool multipleMatch;
+                    Guid guid = new Guid();
+                    string xpartnum = tranDT.Rows[i]["partnum"].ToString().Trim();
+                    invAD.GetPartXRefInfo(ref xpartnum, ref uomCode, guid, "", out serialWarning, out questionString, out multipleMatch);
+
+                    // Call Adapter method
+                    InvTransferDataSet dsInvTransfer = invAD.GetTransferRecord(xpartnum, uomCode);
+                    dsInvTransfer.Tables["InvTrans"].Rows[0]["TransferQty"] = Convert.ToDecimal(tranDT.Rows[i]["tranQty"].ToString().Trim());
+                    invAD.ChangeUOM(dsInvTransfer);
+
+                    dsInvTransfer.Tables["InvTrans"].Rows[0]["FromWarehouseCode"] = tranDT.Rows[i]["fromWHcode"].ToString().Trim();
+                    invAD.ChangeFromWhse(dsInvTransfer);
+                    dsInvTransfer.Tables["InvTrans"].Rows[0]["toWarehouseCode"] = tranDT.Rows[i]["toWHcode"].ToString().Trim();
+                    invAD.ChangeToWhse(dsInvTransfer);
+                    if (dsInvTransfer.Tables["InvTrans"].Rows[0]["toBinNum"].ToString().Trim().Length < 1)
+                    {
+                        dsInvTransfer.Tables["InvTrans"].Rows[0]["toBinNum"] = tranDT.Rows[i]["toBinNum"].ToString().Trim();
+                        invAD.ChangeToBin(dsInvTransfer);
+                    }
+                    if (dsInvTransfer.Tables["InvTrans"].Rows[0]["fromBinNum"].ToString().Trim().Length < 1)
+                    {
+                        dsInvTransfer.Tables["InvTrans"].Rows[0]["fromBinNum"] = tranDT.Rows[i]["fromBinNum"].ToString().Trim();
+                        invAD.ChangeFromBin(dsInvTransfer);
+                    }
+                    if (dsInvTransfer.Tables["InvTrans"].Rows[0]["FromLotNumber"].ToString().Trim().Length < 1)
+                    {
+                        dsInvTransfer.Tables["InvTrans"].Rows[0]["FromLotNumber"] = lotnum;
+                        invAD.ChangeLot(dsInvTransfer);
+                    }
+                    if (dsInvTransfer.Tables["InvTrans"].Rows[0]["ToLotNumber"].ToString().Trim().Length < 1)
+                    {
+                        dsInvTransfer.Tables["InvTrans"].Rows[0]["ToLotNumber"] = lotnum;
+                        invAD.ChangeLot(dsInvTransfer);
+                    }
+                    string pcBinNum = dsInvTransfer.Tables["InvTrans"].Rows[0]["fromBinNum"].ToString();
+                    string pcLotNum = "", pcDimCode = dsInvTransfer.Tables["InvTrans"].Rows[0]["trackingUOM"].ToString();
+                    decimal pdDimConvFactor = 1M;
+                    string pcNeqQtyAction = "", pcMessage;
+                    //adapterInvTransfer.NegativeInventoryTest(iPartNum, FromWarehouseCode, pcBinNum, pcLotNum, pcDimCode, pdDimConvFactor, qty, out pcNeqQtyAction, out pcMessage);  
+                    // MessageBox.Show("pcMessage:" + pcMessage + "     pcNeqQtyAction: " + pcNeqQtyAction);
+                    string legalNumberMessage = "";
+                    bool requiresUserInput = true;
+                    string msg = "";
+                    invAD.MasterInventoryBinTests(dsInvTransfer, out msg, out msg, out msg, out msg, out msg, out msg);
+                    invAD.PreCommitTransfer(dsInvTransfer, out requiresUserInput);
+                    string partTranPKs = "";
+                    //MessageBox.Show(" requiresUserInput: " + requiresUserInput);
+                    invAD.CommitTransfer(dsInvTransfer, out legalNumberMessage, out partTranPKs);
+                }
+
+
+                EpicorSession.Dispose();
+                return "1|处理成功.";
+
+            }
+
+            catch (Exception ex)
+            {
+                return "0|" + ex.Message.ToString();
+            }
+        }
+
+
         //D0506-01工单收货至库存
         public static string D0506_01(string rqr, string JobNum, int asmSeq, decimal jobQty, string lotnum, string wh, string bin, string companyId)
         { //JobNum as string ,jobQty as decimal,partNum as string
             try
             {
-                //QueryDesignDataSet qdDS = dynamicQuery.GetDashBoardQuery("001-joboprqty");
-                //List<QueryWhereItemRow> whereItems = new List<QueryWhereItemRow>();
-                //whereItems.Add(new QueryWhereItemRow() { TableID = "joboper", FieldName = "jobnum", RValue = JobNum });
-                //whereItems.Add(new QueryWhereItemRow() { TableID = "joboper", FieldName = "AssemblySeq", RValue = asmSeq.ToString() });
-                //DataTable dt = BaqResult("001-joboprqty", whereItems, 0, companyId);
                 DataTable dt = GetDataByERP("select [JobOper].[JobNum] as [JobOper_JobNum],[JobOper].[AssemblySeq] as [JobOper_AssemblySeq],[JobOper].[OprSeq] as [JobOper_OprSeq],[JobOper].[RunQty] as [JobOper_RunQty],[JobOper].[QtyCompleted] as [JobOper_QtyCompleted],[JobAsmbl].[PartNum] as [JobAsmbl_PartNum],[JobAsmbl].[RequiredQty] as [JobAsmbl_RequiredQty],[JobPart].[ReceivedQty] as [JobPart_ReceivedQty],[JobHead].[JobComplete] as [JobHead_JobComplete],[JobHead].[JobReleased] as [JobHead_JobReleased] from Erp.JobOper as JobOper left outer join Erp.JobAsmbl as JobAsmbl on JobOper.Company = JobAsmbl.Company and JobOper.JobNum = JobAsmbl.JobNum and JobOper.AssemblySeq = JobAsmbl.AssemblySeq left outer join Erp.JobPart as JobPart on JobAsmbl.Company = JobPart.Company and JobAsmbl.JobNum = JobPart.JobNum and JobAsmbl.PartNum = JobPart.PartNum left outer join Erp.JobHead as JobHead on JobOper.Company = JobHead.Company and JobOper.JobNum = JobHead.JobNum where(JobOper.Company = '" + companyId + "'  and JobOper.JobNum = '" + JobNum + "'  and JobOper.AssemblySeq ='" + asmSeq.ToString() + "') order by JobOper.OprSeq Desc");
                 for (int i = 0; i < dt.Columns.Count; i++)
                 {
