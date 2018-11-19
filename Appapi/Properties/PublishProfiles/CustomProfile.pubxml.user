@@ -82,19 +82,19 @@
       <publishTime>09/19/2018 13:30:42</publishTime>
     </File>
     <File Include="bin/Appapi.dll">
-      <publishTime>11/14/2018 14:52:14</publishTime>
+      <publishTime>11/16/2018 15:02:41</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
-      <publishTime>11/14/2018 14:52:14</publishTime>
+      <publishTime>11/16/2018 15:02:41</publishTime>
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.dll">
-      <publishTime>11/07/2018 13:26:32</publishTime>
+      <publishTime>11/15/2018 13:32:53</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.pdb">
-      <publishTime>11/07/2018 13:26:32</publishTime>
+      <publishTime>11/15/2018 13:32:53</publishTime>
     </File>
     <File Include="bin/CommonClass.dll">
       <publishTime>10/18/2018 11:44:41</publishTime>
@@ -133,7 +133,7 @@
       <publishTime>04/12/2017 00:44:40</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.InvTransfer.dll">
-      <publishTime>04/12/2017 13:44:40</publishTime>
+      <publishTime>04/12/2017 00:44:42</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.IssueReturn.dll">
       <publishTime>04/12/2017 00:44:42</publishTime>
@@ -417,6 +417,9 @@
     <File Include="bin/zh-CN/Erp.Contracts.BO.CustShip.resources.dll">
       <publishTime>12/19/2017 00:01:04</publishTime>
     </File>
+    <File Include="bin/zh-CN/Erp.Contracts.BO.InvTransfer.resources.dll">
+      <publishTime>05/09/2018 00:01:04</publishTime>
+    </File>
     <File Include="bin/zh-CN/Erp.Contracts.BO.IssueReturn.resources.dll">
       <publishTime>12/30/2017 00:01:04</publishTime>
     </File>
@@ -574,7 +577,7 @@
       <publishTime>09/19/2018 13:30:41</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>11/14/2018 14:53:31</publishTime>
+      <publishTime>11/16/2018 14:55:53</publishTime>
     </File>
   </ItemGroup>
 </Project>

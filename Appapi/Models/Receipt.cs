@@ -73,6 +73,10 @@ namespace Appapi.Models
         public string NBBatchNo { get; set; }
         public string IQCRemark { get; set; }    
         public int PreStatus { get; set; }
+        public string PackSlip { get; set; }
+        public decimal? OurFailedQty { get; set; }
+
+
 
 
         public string WarehouseName { get; set; } 

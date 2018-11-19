@@ -243,3 +243,5 @@ E:\Git\APPapi\Appapi\bin\zxing.pdb
 E:\Git\APPapi\Appapi\bin\zxing.xml
 E:\Git\APPapi\Appapi\bin\zxing.presentation.pdb
 E:\Git\APPapi\Appapi\bin\zxing.presentation.xml
+E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.InvTransfer.dll
+E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.InvTransfer.resources.dll

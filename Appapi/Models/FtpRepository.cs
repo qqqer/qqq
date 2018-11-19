@@ -13,7 +13,7 @@ namespace Appapi.Models
     {
         public static readonly string ftpUserName = ConfigurationManager.ConnectionStrings["ftpUserName"].ToString();
         public static readonly string ftpPassword = ConfigurationManager.ConnectionStrings["ftpPassword"].ToString();
-        public static readonly string ftpServer = ConfigurationManager.ConnectionStrings["ftpServerTEST"].ToString();
+        public static readonly string ftpServer = ConfigurationManager.ConnectionStrings["ftpServer"].ToString();
 
 
         /// 获取根目录下明细(包含文件和文件夹)

@@ -9,8 +9,8 @@ namespace Appapi.Models
 {
     public static class SQLRepository
     {       
-        public static readonly string ERP_strConn = ConfigurationManager.ConnectionStrings["E10TESTConnString"].ToString();       
-        public static readonly string APP_strConn = ConfigurationManager.ConnectionStrings["APPTESTConnString"].ToString();
+        public static readonly string ERP_strConn = ConfigurationManager.ConnectionStrings["E10ConnString"].ToString();       
+        public static readonly string APP_strConn = ConfigurationManager.ConnectionStrings["APPConnString"].ToString();
         public static readonly string OA_strConn = ConfigurationManager.ConnectionStrings["OAConnString"].ToString();
 
 

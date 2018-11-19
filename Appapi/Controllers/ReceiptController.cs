@@ -320,6 +320,32 @@ namespace Appapi.Controllers
 
 
 
+        [HttpGet]
+        //Get:  /api/Receipt/CheckVersion
+        public bool CheckVersion(string version)//ApiNum: 19   检测版本号
+        {
+            return ReceiptRepository.CheckVersion(version);
+        }
+
+
+
+        [HttpPost]
+        //Post:  /api/Receipt/ForceComplete
+        public bool ForceComplete()//ApiNum: 20   强制全退，结束该在跑批次
+        {
+            if (HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+
+            StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);
+            string json = reader.ReadToEnd();
+            Receipt IQCInfo = JsonConvert.DeserializeObject<Receipt>(json);
+
+
+            return ReceiptRepository.ForceComplete(IQCInfo);
+        }
+
+
 
         [HttpPost]
         //Post:  /api/Receipt/PrintQR
