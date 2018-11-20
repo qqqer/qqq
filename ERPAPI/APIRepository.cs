@@ -509,44 +509,46 @@ namespace ErpAPI
                 string chkbinInfo = "";
                 for (int i = 0; i < dtRcvDtl.Rows.Count; i++)
                 {
-                    poNum = Convert.ToInt32(dtRcvDtl.Rows[i]["ponum"]);
-                    poline = Convert.ToInt32(dtRcvDtl.Rows[i]["poline"]);
-                    porel = Convert.ToInt32(dtRcvDtl.Rows[i]["porel"]);
-                    jobnum = dtRcvDtl.Rows[i]["jobnum"].ToString().Trim();
-                    ordertype = dtRcvDtl.Rows[i]["ordertype"].ToString().Trim();
-                    whcode = dtRcvDtl.Rows[i]["warehousecode"].ToString().Trim();
-                    recAD.GetNewRcvDtl(ds, vendornum, purPoint, packNum);
+                    {
+                        poNum = Convert.ToInt32(dtRcvDtl.Rows[i]["ponum"]);
+                        poline = Convert.ToInt32(dtRcvDtl.Rows[i]["poline"]);
+                        porel = Convert.ToInt32(dtRcvDtl.Rows[i]["porel"]);
+                        jobnum = dtRcvDtl.Rows[i]["jobnum"].ToString().Trim();
+                        ordertype = dtRcvDtl.Rows[i]["ordertype"].ToString().Trim();
+                        whcode = dtRcvDtl.Rows[i]["warehousecode"].ToString().Trim();
+                        recAD.GetNewRcvDtl(ds, vendornum, purPoint, packNum);
 
-                    u = 11;
-                    string outmsg1x = "", outmsg2x = "", outmsg3x = "";
-                    recAD.CheckDtlJobStatus(poNum, poline, porel, jobnum, out outmsg1x, out outmsg2x, out outmsg3x);
-                    u = 12;
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PackSlip"] = packNum;
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PONum"] = poNum;
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["POLine"] = poline;
-
-
-
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
+                        u = 11;
+                        string outmsg1x = "", outmsg2x = "", outmsg3x = "";
+                        recAD.CheckDtlJobStatus(poNum, poline, porel, jobnum, out outmsg1x, out outmsg2x, out outmsg3x);
+                        u = 12;
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PackSlip"] = packNum;
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PONum"] = poNum;
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["POLine"] = poline;
 
 
-                    u = 13;
 
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["POType"] = "STD";
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["ReceiptType"] = "P";
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["ReceivedTo"] = ordertype;
-                    u = 14;
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
 
-                    string warnming = "";
-                    recAD.GetDtlPOLineInfo(ds, vendornum, purPoint, packNum, 0, poline, out warnming);
-                    u = 155;
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
-                    // recAD.GetDtlPORelInfo(ds, vendornum, "", packNum, 0, 1);
-                    u = 16;
-                    recAD.GetDtlQtyInfo(ds, vendornum, purPoint, packNum, 0, Convert.ToDecimal(dtRcvDtl.Rows[i]["recqty"]), "", "QTY", out warnming);
-                    u = 17;
-                    recAD.GetDtlQtyInfo(ds, vendornum, purPoint, packNum, 0, 0, dtRcvDtl.Rows[i]["pum"].ToString(), "inputIUM", out warnming);
-                    u = 18;
+
+                        u = 13;
+
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["POType"] = "STD";
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["ReceiptType"] = "P";
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["ReceivedTo"] = ordertype;
+                        u = 14;
+
+                        string warnming = "";
+                        recAD.GetDtlPOLineInfo(ds, vendornum, purPoint, packNum, 0, poline, out warnming);
+                        u = 155;
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
+                        // recAD.GetDtlPORelInfo(ds, vendornum, "", packNum, 0, 1);
+                        u = 16;
+                        recAD.GetDtlQtyInfo(ds, vendornum, purPoint, packNum, 0, Convert.ToDecimal(dtRcvDtl.Rows[i]["recqty"]), "", "QTY", out warnming);
+                        u = 17;
+                        recAD.GetDtlQtyInfo(ds, vendornum, purPoint, packNum, 0, 0, dtRcvDtl.Rows[i]["pum"].ToString(), "inputIUM", out warnming);
+                        u = 18;
+                    }
                     //green start edit============取物料默认的主仓库作为收货仓库
                     if (ordertype.ToLower() != "pur-ukn")
                     {
@@ -569,32 +571,14 @@ namespace ErpAPI
                                 return chkbinInfo;
                             }
                         }
+
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["WareHouseCode"] = whcode;
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["BinNum"] = bin2;  //库位
                         lotStr = dtRcvDtl.Rows[i]["lotnum"].ToString().Trim();
-                        if (pb[2].Trim() == "lot")
-                        {
-                            lotStr2 = lotStr;
-                            if (lotStr.Trim() == "" && (ordertype.ToLower() == "pur-sub" || ordertype.ToLower() == "pur-mtl"))
-                            { lotStr = jobnum; }
-                            string lotnum = QueryERP("select pl.LotNum from erp.partlot pl left join erp.PODetail pd on pl.Company=pd.Company and pl.PartNum=pd.PartNum where pl.Company='" + companyId + "' and pd.PONUM=" + poNum + " and pd.POLine=" + poline + " and pl.LotNum='" + lotStr + "'");
-                            if (!string.IsNullOrEmpty(lotnum))
-                            {
-                                ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["LotNum"] = lotStr;
-                            }
-                            else
-                            {
-                                if (dtRcvDtl.Columns.Contains("HeatNum") && !string.IsNullOrEmpty(dtRcvDtl.Rows[i]["HeatNum"].ToString()))
-                                {
-                                    string partnum = QueryERP("select PartNum from erp.PODetail where Company='" + companyId + "' and PONUM=" + poNum + " and POLine=" + poline);
-                                    lotadapter.GetNewPartLot(lotds, partnum);
-                                    lotds.Tables["PartLot"].Rows[i]["LotNum"] = lotStr;
-                                    lotds.Tables["PartLot"].Rows[i]["HeatNum"] = dtRcvDtl.Rows[i]["HeatNum"].ToString();
-                                    lotadapter.Update(lotds);
-                                }
-                                ds.Tables["RcvDtl"].Rows[i]["LotNum"] = lotStr;
-                            }
-                            //ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["LotNum"] = lotStr;
+
+                        if (pb[2].Trim() == "lot") //使用批次追踪
+                        {                                                          
+                            ds.Tables["RcvDtl"].Rows[i]["LotNum"] = lotStr;
                         }
 
                         if (jobnum != "") ////收货到工单的，指定默认仓库
@@ -603,7 +587,7 @@ namespace ErpAPI
                             ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["BinNum"] = "ins";  //库位
                         }
                     }
-                    else
+                    else // == pur-ukn 时
                     {
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["WareHouseCode"] = "ins";  //仓库
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["BinNum"] = "ins";  //库位
@@ -612,45 +596,31 @@ namespace ErpAPI
                     }
 
 
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["OurQty"] = Convert.ToDecimal(dtRcvDtl.Rows[i]["recqty"]);
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["IUM"] = dtRcvDtl.Rows[i]["pum"].ToString();
-                    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["Received"] = true;
-                    u = 19;
-                    //if (dtRcvDtl.Rows[i]["lotnum"].ToString().Trim() != "")
-
-                    string errmsg = "", questionmsg = "";
-                    if (lotStr != "")
                     {
-                        recAD.CheckDtlLotInfo(ds, vendornum, purPoint, packNum, 0, lotStr,
-                            out questionmsg, out errmsg);
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["OurQty"] = Convert.ToDecimal(dtRcvDtl.Rows[i]["recqty"]);
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["IUM"] = dtRcvDtl.Rows[i]["pum"].ToString();
+                        ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["Received"] = true;
+                        u = 19;
+                        //if (dtRcvDtl.Rows[i]["lotnum"].ToString().Trim() != "")
+
+                        string errmsg = "", questionmsg = "";
+                        if (lotStr != "")
+                        {
+                            recAD.CheckDtlLotInfo(ds, vendornum, purPoint, packNum, 0, lotStr,
+                                out questionmsg, out errmsg);
+                        }
+
+                        recAD.OnChangeDtlReceived(vendornum, purPoint, packNum, 0, true, ds);
+                        u = 20;
+                        string outMsg1 = "", outMsg2 = "", outMsg3 = "", outMsg4 = "", outMsg5 = "", outMsg6 = "", outMsg7 = "",
+                        outMsg8 = "";
+                        bool outBool1 = false, outBool2 = false, outBool3 = false;
+
+                        u = 21;
+
+                        recAD.Update(ds);
                     }
-
-
-                    //green start edit============判定收货是否完成
-                    //if (Convert.ToDecimal(ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["VenRemQty"]) <= 0)
-                    //{
-                    //    ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["ReceivedComplete"] = true;
-
-                    //}
-                    //else
-                    //{ ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["ReceivedComplete"] = false; }
-
-                    //green end edit
-
-
-
-                    recAD.OnChangeDtlReceived(vendornum, purPoint, packNum, 0, true, ds);
-                    u = 20;
-                    string outMsg1 = "", outMsg2 = "", outMsg3 = "", outMsg4 = "", outMsg5 = "", outMsg6 = "", outMsg7 = "",
-                    outMsg8 = "";
-                    bool outBool1 = false, outBool2 = false, outBool3 = false;
-                    //recAD.UpdateMaster(true, true, vendornum, purPoint, packNum, 0, out outMsg1,
-                    //    out outMsg2, out outMsg3, out outMsg4, true, out outMsg5, out outMsg6, out outMsg7, false, out outMsg8,
-                    //    false, out outBool1, true, out outBool2, false, dtRcvDtl.Rows[i]["partnum"].ToString(), lotStr2, false, out outBool3, ds);
-                    u = 21;
-
-                    recAD.Update(ds);
                 }
                 EpicorSession.Dispose();
                 return "1|处理成功.";
