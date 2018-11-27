@@ -132,6 +132,7 @@ namespace Appapi.Controllers
             StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);
             string json = reader.ReadToEnd();
             Receipt batch = JsonConvert.DeserializeObject<Receipt>(json);
+         
 
             string res = ReceiptRepository.IQCCommit(batch);
 
@@ -187,9 +188,9 @@ namespace Appapi.Controllers
         #region 功能
         //Get:  /api/Receipt/GetNextUserGroup
         [HttpGet]
-        public DataTable GetNextUserGroup(int nextStatus, string company, string plant, int id)//ApiNum: 1
+        public DataTable GetNextUserGroup(long nextStatus, string company, string plant, int id)//ApiNum: 1
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(nextStatus, company, plant,id) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(1152921504606846976, company, plant,id) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
 
 

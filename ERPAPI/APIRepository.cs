@@ -118,7 +118,6 @@ namespace ErpAPI
                             OutAsm = asmSeq;
                             OutOprSeq = NextOperSeq;
                             OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
-
                         }
                         else
                         { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();

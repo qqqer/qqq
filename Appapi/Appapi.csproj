@@ -202,11 +202,13 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
+    <Compile Include="Controllers\BGController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ReceiptController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\BGRepository.cs" />
     <Compile Include="Models\FtpRepository.cs" />
     <Compile Include="Models\Reason.cs" />
     <Compile Include="Models\CommonRepository.cs" />
