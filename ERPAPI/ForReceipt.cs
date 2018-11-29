@@ -622,6 +622,7 @@ namespace ErpAPI
                     }
                 }
                 EpicorSession.Dispose();
+                //EpicorSessionManager.DisposeSession();
                 return "1|处理成功.";
             }
             catch (Exception ex)
@@ -828,6 +829,7 @@ namespace ErpAPI
         //D0506-01工单收货至库存
         public static string D0506_01(string rqr, string JobNum, int asmSeq, decimal jobQty, string lotnum, string wh, string bin, string companyId)
         { //JobNum as string ,jobQty as decimal,partNum as string
+            Session EpicorSession = GetEpicorSession(); 
             try
             {
                 DataTable dt = GetDataByERP("select [JobOper].[JobNum] as [JobOper_JobNum],[JobOper].[AssemblySeq] as [JobOper_AssemblySeq],[JobOper].[OprSeq] as [JobOper_OprSeq],[JobOper].[RunQty] as [JobOper_RunQty],[JobOper].[QtyCompleted] as [JobOper_QtyCompleted],[JobAsmbl].[PartNum] as [JobAsmbl_PartNum],[JobAsmbl].[RequiredQty] as [JobAsmbl_RequiredQty],[JobPart].[ReceivedQty] as [JobPart_ReceivedQty],[JobHead].[JobComplete] as [JobHead_JobComplete],[JobHead].[JobReleased] as [JobHead_JobReleased] from Erp.JobOper as JobOper left outer join Erp.JobAsmbl as JobAsmbl on JobOper.Company = JobAsmbl.Company and JobOper.JobNum = JobAsmbl.JobNum and JobOper.AssemblySeq = JobAsmbl.AssemblySeq left outer join Erp.JobPart as JobPart on JobAsmbl.Company = JobPart.Company and JobAsmbl.JobNum = JobPart.JobNum and JobAsmbl.PartNum = JobPart.PartNum left outer join Erp.JobHead as JobHead on JobOper.Company = JobHead.Company and JobOper.JobNum = JobHead.JobNum where(JobOper.Company = '" + companyId + "'  and JobOper.JobNum = '" + JobNum + "'  and JobOper.AssemblySeq ='" + asmSeq.ToString() + "') order by JobOper.OprSeq Desc");
@@ -897,7 +899,7 @@ namespace ErpAPI
                 //{
                 //    return "0|" + resultdata;
                 //}
-                Session EpicorSession = GetEpicorSession();
+                //EpicorSession = GetEpicorSession();
                 if (EpicorSession == null)
                 {
                     return "0|erp用户数不够，请稍候再试.错误代码：D0506_01";
@@ -932,16 +934,14 @@ namespace ErpAPI
                 string pcProcessID = "RcptToInvEntry";
                 recAD.ReceiveMfgPartToInventory(recDs, pdSerialNoQty, plNegQtyAction, out pcMessage, out pks, pcProcessID);
 
-                try
-                {
-                    EpicorSession.Dispose();
-                }
-                catch
-                { }
+              
+               EpicorSession.Dispose();
+   
                 return "1|处理成功";
             }
             catch (Exception ex)
             {
+                EpicorSession.Dispose();
                 return "0|" + ex.Message.ToString();
             }
 
