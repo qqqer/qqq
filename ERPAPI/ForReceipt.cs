@@ -18,58 +18,8 @@ using System.Web;
 
 namespace ErpAPI
 {
-    public static class ErpApi
+    public static class Receipt
     {
-        public static Session GetEpicorSession()
-        {
-            try
-            {
-                string serverUrl = ConfigurationManager.AppSettings["ServerUrl"];
-                string userName = ConfigurationManager.AppSettings["EpicorLoginName"];
-                string passWord = ConfigurationManager.AppSettings["EpicorLoginPassword"];
-                string configFile = ConfigurationManager.AppSettings["ConfigFile"];
-                
-                Ice.Core.Session E9Session = new Ice.Core.Session(userName, passWord, serverUrl, Session.LicenseType.Default, configFile);
-                return E9Session;
-            }
-            catch (Exception ex)
-            {
-                if (ex.Message.ToString().Contains("Maximum users exceeded on license type"))
-                {
-                    return null;
-                }
-                else
-                {
-                    return null;
-                }
-            }
-        }
-
-
-        public static string QueryERP(string sqlstr)
-        {
-            SqlConnection conn = new SqlConnection(System.Configuration.ConfigurationManager.AppSettings["erpConnectionstring"]);
-            conn.Open();
-            SqlCommand cmd = new SqlCommand(sqlstr, conn);
-            Object o = cmd.ExecuteScalar();
-            conn.Close();
-            return o == null ? "" : o.ToString();
-        }
-
-
-
-        public static DataTable GetDataByERP(string sqlstr)
-        {
-            SqlConnection conn = new SqlConnection(System.Configuration.ConfigurationManager.AppSettings["erpConnectionstring"]);
-            conn.Open();
-            SqlDataAdapter ada = new SqlDataAdapter(sqlstr, conn);
-            DataTable dt = new DataTable();
-            ada.Fill(dt);
-            conn.Close();
-            return dt;
-        }
-
-
         public static string getJobNextOprTypes(string jobnum, int asmSeq, int oprseq, out int OutAsm, out int OutOprSeq, out string OutOpcode, string companyId)
         {
             string stype = "";
@@ -83,7 +33,7 @@ namespace ErpAPI
                 int NextOperSeq = 0;
                 if (asmSeq == 0) //0层半层品
                 {
-                    DataTable drNextdt = GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "' and OprSeq > '" + oprseq + "' order by OprSeq ASC ");
+                    DataTable drNextdt = Common.GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "' and OprSeq > '" + oprseq + "' order by OprSeq ASC ");
                     if (drNextdt != null && drNextdt.Rows.Count > 0) //当前半成品内有下工序
                     {
                         NextOperSeq = Convert.ToInt32(drNextdt.Rows[0]["OprSeq"]);
@@ -102,13 +52,13 @@ namespace ErpAPI
                     else
                     ////0层半层品内无下工序，代表下面到仓库,暂不考虑工单生产到工单的情况
                     {
-                        DataTable jobProddt = GetDataByERP("select WarehouseCode WarehouseCodeDescription from erp.JobProd where Company='" + companyId + "' and JobNum='" + jobnum + "'");
+                        DataTable jobProddt = Common.GetDataByERP("select WarehouseCode WarehouseCodeDescription from erp.JobProd where Company='" + companyId + "' and JobNum='" + jobnum + "'");
                         stype = "P|工序完成，收货至仓库:" + jobProddt.Rows[0]["WarehouseCodeDescription"].ToString();
                     }
                 }
                 else //上层还有半成品
                 {
-                    DataTable drNextdt = GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "' and OprSeq > '" + oprseq + "' order by OprSeq ASC ");
+                    DataTable drNextdt = Common.GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "' and OprSeq > '" + oprseq + "' order by OprSeq ASC ");
                     if (drNextdt != null && drNextdt.Rows.Count > 0) //当前半成品内有下工序
                     {
                         NextOperSeq = Convert.ToInt32(drNextdt.Rows[0]["OprSeq"]);
@@ -127,7 +77,7 @@ namespace ErpAPI
                     else
                     //非0层半层品内无下工序，还要到上层半层品中找第一个工序.
                     {
-                        DataTable relateddrdt = GetDataByERP("select AssemblySeq,Description,RelatedOperation,Parent ParentAssemblySeq from erp.JobAsmbl where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "'");
+                        DataTable relateddrdt = Common.GetDataByERP("select AssemblySeq,Description,RelatedOperation,Parent ParentAssemblySeq from erp.JobAsmbl where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "'");
                         if (relateddrdt != null && relateddrdt.Rows.Count > 0)
                         {
                             NextOperSeq = Convert.ToInt32(relateddrdt.Rows[0]["RelatedOperation"]);
@@ -139,7 +89,7 @@ namespace ErpAPI
                             else
                             {
                                 //取父半成品相关工序的类型
-                                drNextdt = GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + parAsmSeq + "' and OprSeq = '" + NextOperSeq + "' order by OprSeq ASC ");
+                                drNextdt = Common.GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + parAsmSeq + "' and OprSeq = '" + NextOperSeq + "' order by OprSeq ASC ");
                                 if (drNextdt != null && drNextdt.Rows.Count > 0)
                                 {
                                     NextOperSeq = Convert.ToInt32(drNextdt.Rows[0]["OprSeq"]);
@@ -170,8 +120,6 @@ namespace ErpAPI
         }
 
 
-
-
         public static string poDes(int ponum, int poline, int porel, string companyId)
         {
             try
@@ -180,9 +128,9 @@ namespace ErpAPI
                 whereItems.Add(new QueryWhereItemRow() { TableID = "porel", FieldName = "ponum", RValue = ponum.ToString() });
                 whereItems.Add(new QueryWhereItemRow() { TableID = "porel", FieldName = "poline", RValue = poline.ToString() });
                 whereItems.Add(new QueryWhereItemRow() { TableID = "porel", FieldName = "porelnum", RValue = porel.ToString() });
-                string sql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[Character10] as [ReqDetail_Character10] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum ";
+                string sql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[RcvPerson_c] as [ReqDetail_RcvPerson_c] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum ";
                 sql = sql + " left outer join Erp.Warehse as Warehse on PartPlant.Company = Warehse.Company and PartPlant.PrimWhse = Warehse.WarehouseCode left outer join ReqDetail as ReqDetail on PODetail.Company = ReqDetail.Company and PODetail.PONUM = ReqDetail.PONUM and PODetail.POLine = ReqDetail.POLine left outer join Erp.ReqHead as ReqHead on ReqDetail.Company = ReqHead.Company and ReqDetail.ReqNum = ReqHead.ReqNum left outer join Erp.UserFile as UserFile on ReqHead.RequestorID = UserFile.DcdUserID left outer join Erp.JobMtl as JobMtl on PORel.Company = JobMtl.Company and PORel.JobNum = JobMtl.JobNum and PORel.AssemblySeq = JobMtl.AssemblySeq and PORel.JobSeq = JobMtl.MtlSeq left outer join Erp.JobOper as JobOper on JobMtl.Company = JobOper.Company and JobMtl.JobNum = JobOper.JobNum and JobMtl.AssemblySeq = JobOper.AssemblySeq and JobMtl.RelatedOperation = JobOper.OprSeq left outer join Erp.OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOper.OpCode = OpMaster.OpCode where (PORel.Company = '" + companyId + "'  and PORel.PONum = '" + ponum + "'  and PORel.POLine ='" + poline + "'  and PORel.PORelNum ='" + porel + "')";
-                DataTable dt = GetDataByERP(sql);
+                DataTable dt = Common.GetDataByERP(sql);
 
 
                 for (int i = 0; i < dt.Columns.Count; i++)
@@ -210,7 +158,7 @@ namespace ErpAPI
                 {
                     if (tranType == "pur-ukn")  //杂项采购一定是通过需求输入进行
                     {
-                        return "R|物料接收人:" + dt.Rows[0]["ReqDetail.Character10"].ToString().Trim();
+                        return "R|物料接收人:" + dt.Rows[0]["ReqDetail.RcvPerson_c"].ToString().Trim();
                     }  //837133-1-1
                     else
                     {
@@ -236,10 +184,10 @@ namespace ErpAPI
 
                             sql = @"select PONum, POLine, PORelNum from erp.PORel pr INNER JOIN  Erp.JobOper jo  on  pr.JobNum = jo.JobNum and pr.AssemblySeq  = jo.AssemblySeq and pr.JobSeq = jo.OprSeq
 	                                where pr.JobNum='"+ jobnum + "' and pr.AssemblySeq = " + nextAsm + " and pr.JobSeq = " + nextOprSeq +"";
-                            dt2 = GetDataByERP(sql);
+                            dt2 = Common.GetDataByERP(sql);
 
-                            string relsql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[Character10] as [ReqDetail_Character10] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum left outer join Erp.Warehse as Warehse on PartPlant.Company = Warehse.Company and PartPlant.PrimWhse = Warehse.WarehouseCode left outer join ReqDetail as ReqDetail on PODetail.Company = ReqDetail.Company and PODetail.PONUM = ReqDetail.PONUM and PODetail.POLine = ReqDetail.POLine left outer join Erp.ReqHead as ReqHead on ReqDetail.Company = ReqHead.Company and ReqDetail.ReqNum = ReqHead.ReqNum left outer join Erp.UserFile as UserFile on ReqHead.RequestorID = UserFile.DcdUserID left outer join Erp.JobMtl as JobMtl on PORel.Company = JobMtl.Company and PORel.JobNum = JobMtl.JobNum and PORel.AssemblySeq = JobMtl.AssemblySeq and PORel.JobSeq = JobMtl.MtlSeq left outer join Erp.JobOper as JobOper on JobMtl.Company = JobOper.Company and JobMtl.JobNum = JobOper.JobNum and JobMtl.AssemblySeq = JobOper.AssemblySeq and JobMtl.RelatedOperation = JobOper.OprSeq left outer join Erp.OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOper.OpCode = OpMaster.OpCode where (PORel.Company = '" + companyId + "'  and PORel.PONum = "+ dt2.Rows[0]["PONum"].ToString() + "  and PORel.POLine ="+ dt2.Rows[0]["POLine"].ToString() + "  and PORel.PORelNum ="+ dt2.Rows[0]["PORelNum"].ToString() + ")";
-                            dt2 = GetDataByERP(relsql);
+                            string relsql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[RcvPerson_c] as [ReqDetail_RcvPerson_c] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum left outer join Erp.Warehse as Warehse on PartPlant.Company = Warehse.Company and PartPlant.PrimWhse = Warehse.WarehouseCode left outer join ReqDetail as ReqDetail on PODetail.Company = ReqDetail.Company and PODetail.PONUM = ReqDetail.PONUM and PODetail.POLine = ReqDetail.POLine left outer join Erp.ReqHead as ReqHead on ReqDetail.Company = ReqHead.Company and ReqDetail.ReqNum = ReqHead.ReqNum left outer join Erp.UserFile as UserFile on ReqHead.RequestorID = UserFile.DcdUserID left outer join Erp.JobMtl as JobMtl on PORel.Company = JobMtl.Company and PORel.JobNum = JobMtl.JobNum and PORel.AssemblySeq = JobMtl.AssemblySeq and PORel.JobSeq = JobMtl.MtlSeq left outer join Erp.JobOper as JobOper on JobMtl.Company = JobOper.Company and JobMtl.JobNum = JobOper.JobNum and JobMtl.AssemblySeq = JobOper.AssemblySeq and JobMtl.RelatedOperation = JobOper.OprSeq left outer join Erp.OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOper.OpCode = OpMaster.OpCode where (PORel.Company = '" + companyId + "'  and PORel.PONum = "+ dt2.Rows[0]["PONum"].ToString() + "  and PORel.POLine ="+ dt2.Rows[0]["POLine"].ToString() + "  and PORel.PORelNum ="+ dt2.Rows[0]["PORelNum"].ToString() + ")";
+                            dt2 = Common.GetDataByERP(relsql);
                             for (int i = 0; i < dt2.Columns.Count; i++)
                             {
                                 dt2.Columns[i].ColumnName = dt2.Columns[i].ColumnName.Replace('_', '.');
@@ -300,14 +248,14 @@ namespace ErpAPI
                 //PartDataSet.PartDataTable partDT = ds.Part;
                 //PartDataSet.PartPlantDataTable plantDT = ds.PartPlant;
                 //PartDataSet.PartWhseDataTable pwDT = ds.PartWhse;
-                DataTable partDT = GetDataByERP("select * from erp.Part where Company='" + companyId + "' and PartNum='" + partnum + "'");
-                DataTable plantDT = GetDataByERP("select * from erp.PartPlant where Company='" + companyId + "' and PartNum='" + partnum + "'");
-                DataTable pwDT = GetDataByERP("select * from erp.PartWhse where Company='" + companyId + "' and PartNum='" + partnum + "'");
+                DataTable partDT = Common.GetDataByERP("select * from erp.Part where Company='" + companyId + "' and PartNum='" + partnum + "'");
+                DataTable plantDT = Common.GetDataByERP("select * from erp.PartPlant where Company='" + companyId + "' and PartNum='" + partnum + "'");
+                DataTable pwDT = Common.GetDataByERP("select * from erp.PartWhse where Company='" + companyId + "' and PartNum='" + partnum + "'");
                 string pw = "";
                 if (partDT.Rows.Count > 0) { tlot = Convert.ToBoolean(partDT.Rows[0]["TrackLots"]); }
                 if (plantDT.Rows.Count > 0)
                 { pw = plantDT.Rows[0]["PrimWhse"].ToString().Trim(); }
-                DataTable wbDT = GetDataByERP("select BinNum from erp.WhseBin where Company='" + companyId + "' and WarehouseCode='" + pw + "'");
+                DataTable wbDT = Common.GetDataByERP("select BinNum from erp.WhseBin where Company='" + companyId + "' and WarehouseCode='" + pw + "'");
                 string wb = "";
                 int CNT = 0;
                 CNT = pwDT.Rows.Count;
@@ -347,9 +295,9 @@ namespace ErpAPI
             try
             {
                 bool tlot = false;
-                DataTable partDT = GetDataByERP("select * from erp.Part where Company='" + companyId + "' and PartNum='" + partnum + "'");
-                string pw = QueryERP("select PrimWhse from erp.PartPlant where Company='" + companyId + "' and PartNum='" + partnum + "' and Plant='" + plant + "'");
-                string wb = QueryERP("select PrimBin from erp.PlantWhse where Company='" + companyId + "' and PartNum='" + partnum + "' and Plant='" + plant + "' and WarehouseCode='" + pw + "'");
+                DataTable partDT = Common.GetDataByERP("select * from erp.Part where Company='" + companyId + "' and PartNum='" + partnum + "'");
+                string pw = Common.QueryERP("select PrimWhse from erp.PartPlant where Company='" + companyId + "' and PartNum='" + partnum + "' and Plant='" + plant + "'");
+                string wb = Common.QueryERP("select PrimBin from erp.PlantWhse where Company='" + companyId + "' and PartNum='" + partnum + "' and Plant='" + plant + "' and WarehouseCode='" + pw + "'");
                 if (partDT.Rows.Count > 0) { tlot = Convert.ToBoolean(partDT.Rows[0]["TrackLots"]); }
                 pp[0] = pw;
                 pp[1] = wb;
@@ -377,7 +325,7 @@ namespace ErpAPI
             if (binid == "") return "0|库位信息不正确，包括的库位为空";
             try
             {
-                DataTable dt = GetDataByERP("select [WhseBin].[WarehouseCode] as [WhseBin_WarehouseCode],[WhseBin].[ZoneID] as [WhseBin_ZoneID],[WhseBin].[BinNum] as [WhseBin_BinNum] from Erp.WhseBin as WhseBin where (WhseBin.Company = '" + companyId + "'  and WhseBin.ZoneID = '" + zonid + "'  and WhseBin.BinNum = '" + binid + "' and WhseBin.WarehouseCode='" + wh + "')");
+                DataTable dt = Common.GetDataByERP("select [WhseBin].[WarehouseCode] as [WhseBin_WarehouseCode],[WhseBin].[ZoneID] as [WhseBin_ZoneID],[WhseBin].[BinNum] as [WhseBin_BinNum] from Erp.WhseBin as WhseBin where (WhseBin.Company = '" + companyId + "'  and WhseBin.ZoneID = '" + zonid + "'  and WhseBin.BinNum = '" + binid + "' and WhseBin.WarehouseCode='" + wh + "')");
 
                 for (int i = 0; i < dt.Columns.Count; i++)
                 {
@@ -438,13 +386,13 @@ namespace ErpAPI
             #endregion
 
 
-            Session EpicorSession = GetEpicorSession();
+            Session EpicorSession =  Common.GetEpicorSession();
             if (EpicorSession == null)
             {
                 return "0|erp用户数不够，请稍候再试.ERR:porcv";
             }
             EpicorSession.CompanyID = companyId;
-            string plantid = QueryERP("select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'");
+            string plantid = Common.QueryERP("select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'");
             EpicorSession.PlantID = plantid;
 
             POImpl poAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<POImpl>(EpicorSession, ImplBase<Erp.Contracts.POSvcContract>.UriPath);
@@ -495,7 +443,7 @@ namespace ErpAPI
                 ds.Tables["RcvHead"].Rows[0]["ReceiptDate"] = recdate;//dtRcv.Rows[0]["recdate"].ToString();
                 u = 8;
                 ds.Tables["RcvHead"].Rows[0]["PONum"] = poNum;
-                ds.Tables["RcvHead"].Rows[0]["Plant"] = QueryERP("select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'");
+                ds.Tables["RcvHead"].Rows[0]["Plant"] = Common.QueryERP("select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'");
                 u = 9;
                 recAD.Update(ds);
                 u = 10;
@@ -576,8 +524,27 @@ namespace ErpAPI
                         lotStr = dtRcvDtl.Rows[i]["lotnum"].ToString().Trim();
 
                         if (pb[2].Trim() == "lot") //使用批次追踪
-                        {                                                          
-                            ds.Tables["RcvDtl"].Rows[i]["LotNum"] = lotStr;
+                        {
+                            lotStr2 = lotStr;
+                            if (lotStr.Trim() == "" && (ordertype.ToLower() == "pur-sub" || ordertype.ToLower() == "pur-mtl"))
+                            { lotStr = jobnum; }
+                            string lotnum = Common.QueryERP("select pl.LotNum from erp.partlot pl left join erp.PODetail pd on pl.Company=pd.Company and pl.PartNum=pd.PartNum where pl.Company='" + companyId + "' and pd.PONUM=" + poNum + " and pd.POLine=" + poline + " and pl.LotNum='" + lotStr + "'");
+                            if (!string.IsNullOrEmpty(lotnum))
+                            {
+                                ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["LotNum"] = lotStr;
+                            }
+                            else
+                            {
+                                if (dtRcvDtl.Columns.Contains("HeatNum") && !string.IsNullOrEmpty(dtRcvDtl.Rows[i]["HeatNum"].ToString()))
+                                {
+                                    string partnum = Common.QueryERP("select PartNum from erp.PODetail where Company='" + companyId + "' and PONUM=" + poNum + " and POLine=" + poline);
+                                    lotadapter.GetNewPartLot(lotds, partnum);
+                                    lotds.Tables["PartLot"].Rows[i]["LotNum"] = lotStr;
+                                    lotds.Tables["PartLot"].Rows[i]["HeatNum"] = dtRcvDtl.Rows[i]["HeatNum"].ToString();
+                                    lotadapter.Update(lotds);
+                                }
+                                ds.Tables["RcvDtl"].Rows[i]["LotNum"] = lotStr;
+                            }
                         }
 
                         if (jobnum != "") ////收货到工单的，指定默认仓库
@@ -629,7 +596,7 @@ namespace ErpAPI
             {
                 if (EpicorSession == null || !EpicorSession.IsValidSession(EpicorSession.SessionID, "manager"))
                 {
-                    EpicorSession = GetEpicorSession();
+                    EpicorSession = Common.GetEpicorSession();
                 }
                 EpicorSession.CompanyID = companyId;
                 recAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<ReceiptImpl>(EpicorSession, ImplBase<Erp.Contracts.ReceiptSvcContract>.UriPath);
@@ -723,7 +690,7 @@ namespace ErpAPI
                     binnum = tranDT.Rows[i]["fromBinNum"].ToString().Trim();
                     lotnum = tranDT.Rows[i]["lotnum"].ToString().Trim();
                     
-                    DataTable dt = GetDataByERP("select [PartBin].[OnhandQty] as [PartBin_OnhandQty] from Erp.PartBin as PartBin where (PartBin.Company = '" + company + "'  and PartBin.PartNum = '" + partnum + "'  and PartBin.WarehouseCode = '" + wcode + "'  and PartBin.BinNum = '" + binnum + "'  and PartBin.LotNum = '" + lotnum + "')");
+                    DataTable dt = Common.GetDataByERP("select [PartBin].[OnhandQty] as [PartBin_OnhandQty] from Erp.PartBin as PartBin where (PartBin.Company = '" + company + "'  and PartBin.PartNum = '" + partnum + "'  and PartBin.WarehouseCode = '" + wcode + "'  and PartBin.BinNum = '" + binnum + "'  and PartBin.LotNum = '" + lotnum + "')");
                     if (dt.Rows.Count <= 0)
                     {
 
@@ -741,7 +708,7 @@ namespace ErpAPI
                 }
 
 
-                Session EpicorSession = GetEpicorSession();
+                Session EpicorSession = Common.GetEpicorSession();
                 if (EpicorSession == null)
                 {
                     return "-1|erp用户数不够，请稍候再试.ERR:tranStk";
@@ -829,10 +796,10 @@ namespace ErpAPI
         //D0506-01工单收货至库存
         public static string D0506_01(string rqr, string JobNum, int asmSeq, decimal jobQty, string lotnum, string wh, string bin, string companyId)
         { //JobNum as string ,jobQty as decimal,partNum as string
-            Session EpicorSession = GetEpicorSession(); 
+            Session EpicorSession = Common.GetEpicorSession();
             try
             {
-                DataTable dt = GetDataByERP("select [JobOper].[JobNum] as [JobOper_JobNum],[JobOper].[AssemblySeq] as [JobOper_AssemblySeq],[JobOper].[OprSeq] as [JobOper_OprSeq],[JobOper].[RunQty] as [JobOper_RunQty],[JobOper].[QtyCompleted] as [JobOper_QtyCompleted],[JobAsmbl].[PartNum] as [JobAsmbl_PartNum],[JobAsmbl].[RequiredQty] as [JobAsmbl_RequiredQty],[JobPart].[ReceivedQty] as [JobPart_ReceivedQty],[JobHead].[JobComplete] as [JobHead_JobComplete],[JobHead].[JobReleased] as [JobHead_JobReleased] from Erp.JobOper as JobOper left outer join Erp.JobAsmbl as JobAsmbl on JobOper.Company = JobAsmbl.Company and JobOper.JobNum = JobAsmbl.JobNum and JobOper.AssemblySeq = JobAsmbl.AssemblySeq left outer join Erp.JobPart as JobPart on JobAsmbl.Company = JobPart.Company and JobAsmbl.JobNum = JobPart.JobNum and JobAsmbl.PartNum = JobPart.PartNum left outer join Erp.JobHead as JobHead on JobOper.Company = JobHead.Company and JobOper.JobNum = JobHead.JobNum where(JobOper.Company = '" + companyId + "'  and JobOper.JobNum = '" + JobNum + "'  and JobOper.AssemblySeq ='" + asmSeq.ToString() + "') order by JobOper.OprSeq Desc");
+                DataTable dt = Common.GetDataByERP("select [JobOper].[JobNum] as [JobOper_JobNum],[JobOper].[AssemblySeq] as [JobOper_AssemblySeq],[JobOper].[OprSeq] as [JobOper_OprSeq],[JobOper].[RunQty] as [JobOper_RunQty],[JobOper].[QtyCompleted] as [JobOper_QtyCompleted],[JobAsmbl].[PartNum] as [JobAsmbl_PartNum],[JobAsmbl].[RequiredQty] as [JobAsmbl_RequiredQty],[JobPart].[ReceivedQty] as [JobPart_ReceivedQty],[JobHead].[JobComplete] as [JobHead_JobComplete],[JobHead].[JobReleased] as [JobHead_JobReleased] from Erp.JobOper as JobOper left outer join Erp.JobAsmbl as JobAsmbl on JobOper.Company = JobAsmbl.Company and JobOper.JobNum = JobAsmbl.JobNum and JobOper.AssemblySeq = JobAsmbl.AssemblySeq left outer join Erp.JobPart as JobPart on JobAsmbl.Company = JobPart.Company and JobAsmbl.JobNum = JobPart.JobNum and JobAsmbl.PartNum = JobPart.PartNum left outer join Erp.JobHead as JobHead on JobOper.Company = JobHead.Company and JobOper.JobNum = JobHead.JobNum where(JobOper.Company = '" + companyId + "'  and JobOper.JobNum = '" + JobNum + "'  and JobOper.AssemblySeq ='" + asmSeq.ToString() + "') order by JobOper.OprSeq Desc");
                 for (int i = 0; i < dt.Columns.Count; i++)
                 {
                     dt.Columns[i].ColumnName = dt.Columns[i].ColumnName.Replace('_', '.');
@@ -946,5 +913,169 @@ namespace ErpAPI
             }
 
         }
+
+
+        //工单发料
+        public static string OneIssueReturnSTKMTL(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string lotNum, string companyId)
+        {
+            string tranReference = "工单发料";
+            string querysql = "";
+            string tracklots = Common.QueryERP("select tracklots from Erp.Part where Company='" + companyId + "' and PartNum='" + partNum + "'");
+            if (tracklots.ToLower() == "true" && !string.IsNullOrEmpty(lotNum))
+            {
+                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "') BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "'),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum and p.TrackLots=1 inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
+            }
+            else if (tracklots.ToLower() == "true" && string.IsNullOrEmpty(lotNum))
+            {
+                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum) BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
+            }
+            else if (tracklots.ToLower() == "false" && !string.IsNullOrEmpty(lotNum))
+            {
+                return "false|该物料未使用批次追踪.";
+            }
+            else
+            {
+                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum) BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
+            }
+            mtlSeq = Convert.ToInt32(Common.QueryERP("select MtlSeq from Erp.JobMtl jm where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "' "));
+            DataTable dt = Common.GetDataByERP(querysql);
+           
+            if (dt != null && dt.Rows.Count > 0)
+            {
+                if (tranQty > Convert.ToDecimal(dt.Rows[0]["OnhandQty"]))
+                {
+                    return "false|发料数量大于库存数量.";
+                }
+                else
+                {                   
+                    bool index = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, dt.Rows[0]["IUM"].ToString(), dt.Rows[0]["WarehouseCode"].ToString(), dt.Rows[0]["BinNum"].ToString(), dt.Rows[0]["InputWhse"].ToString(), dt.Rows[0]["InputBinNum"].ToString(), lotNum, tranReference, companyId);
+                    if (index)
+                    {
+                        return "true";
+                    }
+                    else
+                    {
+                        return "false|发料出错,请检查erp数据.";
+                    }
+                }
+            }
+            else
+            {
+                return "false|查询物料无库存或信息出错,请检查erp数据.";
+            }
+        }
+
+
+
+        //public static bool IssueReturnWithLotbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, decimal Qty, string tranReference, DataTable dt, int i, string companyId)
+        //{
+        //    bool index = true;
+        //    if (tranQty <= 0)
+        //    {
+        //        return true;
+        //    }
+        //    if (tranQty <= Convert.ToDecimal(dt.Rows[i]["OnhandQty"]))
+        //    {
+        //        index = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, ium, fromWarehouseCode, fromBinNum, toWarehouseCode, toBinNum, dt.Rows[i]["LotNum"].ToString(), tranReference, companyId);
+        //        if (!index)
+        //        {
+        //            return index;
+        //        }
+        //        return index;
+        //    }
+        //    else
+        //    {
+        //        index = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, Convert.ToDecimal(dt.Rows[i]["OnhandQty"]), tranDate, ium, fromWarehouseCode, fromBinNum, toWarehouseCode, toBinNum, dt.Rows[i]["LotNum"].ToString(), tranReference, companyId);
+        //        if (!index)
+        //        {
+        //            return index;
+        //        }
+        //        if (tranQty - Convert.ToDecimal(dt.Rows[i]["OnhandQty"]) > 0)
+        //        {
+        //            i++;
+        //            return IssueReturnWithLotbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty - Convert.ToDecimal(dt.Rows[i - 1]["OnhandQty"]), tranDate, ium, fromWarehouseCode, fromBinNum, toWarehouseCode, toBinNum, dt.Rows[i]["LotNum"].ToString(), Convert.ToDecimal(dt.Rows[i]["OnhandQty"]), tranReference, dt, i, companyId);
+        //        }
+        //        else
+        //        {
+        //            return true;
+        //        }
+        //    }
+
+        //}
+
+
+
+        private static bool IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId)
+        {
+            try
+            {
+                Session EpicorSession = Common.GetEpicorSession();
+                if (EpicorSession == null)
+                {
+                    return false;
+                }
+                EpicorSession.CompanyID = companyId;
+                IssueReturnImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<IssueReturnImpl>(EpicorSession, ImplBase<Erp.Contracts.IssueReturnSvcContract>.UriPath);
+                IssueReturnDataSet ds = new IssueReturnDataSet();
+                SelectedJobAsmblDataSet jads = new SelectedJobAsmblDataSet();
+                string pcTranType;
+                string pCallProcess;
+                pcTranType = "STK-MTL";
+                pCallProcess = "IssueMaterial";
+                System.String pcMessage = "";
+                System.String parttranpks = "";
+                bool result;
+                Guid pcMtlQueueRowid = new Guid();
+                adapter.GetNewJobAsmblMultiple(pcTranType, pcMtlQueueRowid, pCallProcess, jads, out pcMessage);
+                adapter.GetNewIssueReturnToJob(jobNum, assemblySeq, pcTranType, new Guid(), out pcMessage, ds);
+                adapter.GetNewJobAsmblMultiple(pcTranType, pcMtlQueueRowid, pCallProcess, jads, out pcMessage);
+                adapter.OnChangingToJobSeq(mtlSeq, ds);
+                ds.Tables["IssueReturn"].Rows[0]["ToJobSeq"] = mtlSeq;
+                adapter.OnChangeToJobSeq(ds, pCallProcess, out pcMessage);
+                ds.Tables["IssueReturn"].Rows[0]["TranQty"] = tranQty;
+                adapter.OnChangeTranQty(tranQty, ds);
+                string pUM = ium;
+                ds.Tables["IssueReturn"].Rows[0]["UM"] = ium;
+                adapter.OnChangeUM(pUM, ds);
+                ds.Tables["IssueReturn"].Rows[0]["TranDate"] = tranDate.ToString("yyyy-MM-dd");
+                ds.Tables["IssueReturn"].Rows[0]["FromWarehouseCode"] = fromWarehouseCode;
+                ds.Tables["IssueReturn"].Rows[0]["FromBinNum"] = fromBinNum;
+                ds.Tables["IssueReturn"].Rows[0]["ToWarehouseCode"] = toWarehouseCode;
+                ds.Tables["IssueReturn"].Rows[0]["ToBinNum"] = toBinNum;
+                ds.Tables["IssueReturn"].Rows[0]["LotNum"] = lotNum;
+                ds.Tables["IssueReturn"].Rows[0]["TranReference"] = tranReference;
+                bool plNegQtyAction = true;
+                System.String legalNumberMessage = "";
+                string partTranPKs = "";
+                //Call Adapter method
+                adapter.PrePerformMaterialMovement(ds, out plNegQtyAction);
+                //来源仓
+                //adapterIssueReturn.NegativeInventoryTest(partNum, fromWarehouseCode, fromBinNum, "", ium, 1, 1, out legalNumberMessage, out partTranPKs);
+                string pcNeqQtyAction = "";
+                string pcNeqQtyMessage = "";
+                string pcPCBinAction = "";
+                string pcPCBinMessage = "";
+                string pcOutBinAction = "";
+                string pcOutBinMessage = "";
+                adapter.MasterInventoryBinTests(ds, out pcNeqQtyAction, out pcNeqQtyMessage, out pcPCBinAction, out pcPCBinMessage, out pcOutBinAction, out pcOutBinMessage);
+                if (!string.IsNullOrEmpty(pcNeqQtyMessage) || (!string.IsNullOrEmpty(pcNeqQtyAction) && pcNeqQtyAction != "None"))
+                {
+                    string s = (pcNeqQtyMessage);
+                    string message = "工单：" + jobNum + "/" + assemblySeq + "/" + oprSeq + ",扣料时系统报错。物料：" + partNum + ",来源仓:" + fromWarehouseCode + "/" + fromBinNum + ",目标仓:" + toWarehouseCode + "/" + toBinNum + ",批次:" + lotNum + ",数量:" + tranQty + ".原因:" + s;
+                    //WriteTxt(message);
+                    return false;
+                }
+                adapter.PerformMaterialMovement(true, ds, out legalNumberMessage, out partTranPKs);
+                adapter.Dispose();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                string message = "工单：" + jobNum + "/" + assemblySeq + "/" + oprSeq + ",扣料时系统报错。物料：" + partNum + ",来源仓:" + fromWarehouseCode + "/" + fromBinNum + ",目标仓:" + toWarehouseCode + "/" + toBinNum + ",批次:" + lotNum + ",数量:" + tranQty + ".原因:" + ex.Message;
+                //WriteTxt(message);
+                return false;
+            }
+        }
+
     }
 }

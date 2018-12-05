@@ -69,7 +69,7 @@ namespace Appapi.Models
         public bool IsComplete { get; set; }
         public bool IsDelete { get; set; }
         public bool IsPrintRcv { get; set; }
-        public int AtRole { get; set; }      
+        public long AtRole { get; set; }      
         public string NBBatchNo { get; set; }
         public string IQCRemark { get; set; }    
         public int PreStatus { get; set; }
@@ -84,7 +84,8 @@ namespace Appapi.Models
         public int Colour { get; set; }
         public string ReturnReason { get; set; }
         public string ReturnReasonRemark { get; set; }
-       
+        public bool IsForPrintQR { get; set; }
+
         /* 判断收货依据状态所需的字段 
         public bool OpenOrder { get; set; }
         public bool orderHeld { get; set; }

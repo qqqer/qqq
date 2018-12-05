@@ -348,6 +348,24 @@ namespace Appapi.Controllers
 
 
 
+        [HttpGet]
+        //Get:  /api/Receipt/GetPartRecords
+        public  DataTable GetPartRecords(string partnum)//ApiNum: 21   获取物料的仓库记录
+        {
+            return ReceiptRepository.GetPartRecords(partnum);
+        }
+
+
+
+        [HttpGet]
+        //Get:  /api/Receipt/GetAllCommentTextOfSeriesSUB
+        public DataTable GetAllCommentTextOfSeriesSUB(int PoNum, string JobNum, int AssemblySeq, string Company)//ApiNum: 22   winform   获取所有连续委外工序的描述
+        {
+            return ReceiptRepository.GetAllCommentTextOfSeriesSUB(PoNum, JobNum, AssemblySeq, Company);
+        }
+
+
+
         [HttpPost]
         //Post:  /api/Receipt/PrintQR
         public string PrintQR(Receipt info)//ApiNum: 11   打印二维码
@@ -369,9 +387,9 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/Receipt/GetRecordByQR
-        public ScanResult GetRecordByQR(string values) //ApiNum: 7
+        public ScanResult GetRecordByQR(string values, bool IsForPrintQR) //ApiNum: 7
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetRecordByQR(values, IsForPrintQR) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
 
 

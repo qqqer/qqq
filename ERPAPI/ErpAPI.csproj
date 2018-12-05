@@ -37,6 +37,12 @@
     <Reference Include="Erp.Contracts.BO.InvTransfer">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.InvTransfer.dll</HintPath>
     </Reference>
+    <Reference Include="Erp.Contracts.BO.IssueReturn">
+      <HintPath>\\192.168.9.100\EpicorPilot-EWA\assemblies\Erp.Contracts.BO.IssueReturn.dll</HintPath>
+    </Reference>
+    <Reference Include="Erp.Contracts.BO.Labor">
+      <HintPath>\\192.168.9.100\EpicorPilot-EWA\assemblies\Erp.Contracts.BO.Labor.dll</HintPath>
+    </Reference>
     <Reference Include="Erp.Contracts.BO.LotSelectUpdate">
       <HintPath>\\192.168.9.100\ERP10.1.600.0Deployment\Client\Erp.Contracts.BO.LotSelectUpdate.dll</HintPath>
     </Reference>
@@ -71,6 +77,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common.cs" />
     <Compile Include="ForBG.cs" />
     <Compile Include="ForReceipt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
