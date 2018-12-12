@@ -20,105 +20,6 @@ namespace ErpAPI
 {
     public static class Receipt
     {
-        public static string getJobNextOprTypes(string jobnum, int asmSeq, int oprseq, out int OutAsm, out int OutOprSeq, out string OutOpcode, string companyId)
-        {
-            string stype = "";
-            OutAsm = 0;
-            OutOprSeq = 0;
-            OutOpcode = null;
-            if (jobnum.Trim() == "") { return "0|jonum error"; }
-
-            try
-            {
-                int NextOperSeq = 0;
-                if (asmSeq == 0) //0层半层品
-                {
-                    DataTable drNextdt = Common.GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "' and OprSeq > '" + oprseq + "' order by OprSeq ASC ");
-                    if (drNextdt != null && drNextdt.Rows.Count > 0) //当前半成品内有下工序
-                    {
-                        NextOperSeq = Convert.ToInt32(drNextdt.Rows[0]["OprSeq"]);
-                        if (Convert.ToBoolean(drNextdt.Rows[0]["SubContract"]))
-                        {
-                            stype = "S|下工序外协:" + drNextdt.Rows[0]["Opdesc"].ToString();
-                            OutAsm = asmSeq;
-                            OutOprSeq = NextOperSeq;
-                            OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
-                        }
-                        else
-                        { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();
-                            OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
-                        }
-                    }
-                    else
-                    ////0层半层品内无下工序，代表下面到仓库,暂不考虑工单生产到工单的情况
-                    {
-                        DataTable jobProddt = Common.GetDataByERP("select WarehouseCode WarehouseCodeDescription from erp.JobProd where Company='" + companyId + "' and JobNum='" + jobnum + "'");
-                        stype = "P|工序完成，收货至仓库:" + jobProddt.Rows[0]["WarehouseCodeDescription"].ToString();
-                    }
-                }
-                else //上层还有半成品
-                {
-                    DataTable drNextdt = Common.GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "' and OprSeq > '" + oprseq + "' order by OprSeq ASC ");
-                    if (drNextdt != null && drNextdt.Rows.Count > 0) //当前半成品内有下工序
-                    {
-                        NextOperSeq = Convert.ToInt32(drNextdt.Rows[0]["OprSeq"]);
-                        if (Convert.ToBoolean(drNextdt.Rows[0]["SubContract"]))
-                        {
-                            stype = "S|下工序外协" + drNextdt.Rows[0]["Opdesc"].ToString();
-                            OutAsm = asmSeq;
-                            OutOprSeq = NextOperSeq;
-                            OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
-                        }
-                        else
-                        { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();
-                            OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
-                        }
-                    }
-                    else
-                    //非0层半层品内无下工序，还要到上层半层品中找第一个工序.
-                    {
-                        DataTable relateddrdt = Common.GetDataByERP("select AssemblySeq,Description,RelatedOperation,Parent ParentAssemblySeq from erp.JobAsmbl where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "'");
-                        if (relateddrdt != null && relateddrdt.Rows.Count > 0)
-                        {
-                            NextOperSeq = Convert.ToInt32(relateddrdt.Rows[0]["RelatedOperation"]);
-                            int parAsmSeq = Convert.ToInt32(relateddrdt.Rows[0]["ParentAssemblySeq"]);
-                            if (NextOperSeq == 0)
-                            {
-                                return "0|本半成品没有关联到父半成品的工序,取不到下工序类型";
-                            }
-                            else
-                            {
-                                //取父半成品相关工序的类型
-                                drNextdt = Common.GetDataByERP("select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + parAsmSeq + "' and OprSeq = '" + NextOperSeq + "' order by OprSeq ASC ");
-                                if (drNextdt != null && drNextdt.Rows.Count > 0)
-                                {
-                                    NextOperSeq = Convert.ToInt32(drNextdt.Rows[0]["OprSeq"]);
-                                    if (Convert.ToBoolean(drNextdt.Rows[0]["SubContract"]))
-                                    {
-                                        stype = "S|下工序外协" + drNextdt.Rows[0]["Opdesc"].ToString();
-                                        OutAsm = parAsmSeq;
-                                        OutOprSeq = NextOperSeq;
-                                        OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
-
-                                    }
-                                    else
-                                    { stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();
-                                        OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                return stype;
-            }
-            catch (Exception e)
-            {
-                return "0|" + e.Message.ToString();
-            }
-
-        }
-
 
         public static string poDes(int ponum, int poline, int porel, string companyId)
         {
@@ -175,9 +76,9 @@ namespace ErpAPI
                     else
                     {
 
-                        string ss = "",code;
+                        string ss = "",code,c;
                         int nextAsm = 0, nextOprSeq = 0;
-                        ss = getJobNextOprTypes(jobnum, asmSeq, oprSeq, out nextAsm, out nextOprSeq, out code, companyId);
+                        ss = Common.getJobNextOprTypes(jobnum, asmSeq, oprSeq, out nextAsm, out nextOprSeq, out code, out c,companyId);
                         if (ss.Substring(0, 1).Trim().ToLower() == "s")
                         {
                             DataTable dt2;
@@ -373,11 +274,9 @@ namespace ErpAPI
             #region
             try
             {
-
                 dtRcvDtl = JsonConvert.DeserializeObject<DataTable>(rcvdtlStr);
                 if (int.TryParse(dtRcvDtl.Rows[0]["ponum"].ToString(), out poNum) == false) { return "0|ponum无效"; }
                 if (int.TryParse(dtRcvDtl.Rows[0]["poline"].ToString(), out poLine) == false) { return "0|poline无效"; }
-
             }
             catch (Exception ex)
             {
@@ -915,167 +814,6 @@ namespace ErpAPI
         }
 
 
-        //工单发料
-        public static string OneIssueReturnSTKMTL(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string lotNum, string companyId)
-        {
-            string tranReference = "工单发料";
-            string querysql = "";
-            string tracklots = Common.QueryERP("select tracklots from Erp.Part where Company='" + companyId + "' and PartNum='" + partNum + "'");
-            if (tracklots.ToLower() == "true" && !string.IsNullOrEmpty(lotNum))
-            {
-                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "') BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "'),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum and p.TrackLots=1 inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
-            }
-            else if (tracklots.ToLower() == "true" && string.IsNullOrEmpty(lotNum))
-            {
-                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum) BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
-            }
-            else if (tracklots.ToLower() == "false" && !string.IsNullOrEmpty(lotNum))
-            {
-                return "false|该物料未使用批次追踪.";
-            }
-            else
-            {
-                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum) BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
-            }
-            mtlSeq = Convert.ToInt32(Common.QueryERP("select MtlSeq from Erp.JobMtl jm where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "' "));
-            DataTable dt = Common.GetDataByERP(querysql);
-           
-            if (dt != null && dt.Rows.Count > 0)
-            {
-                if (tranQty > Convert.ToDecimal(dt.Rows[0]["OnhandQty"]))
-                {
-                    return "false|发料数量大于库存数量.";
-                }
-                else
-                {                   
-                    bool index = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, dt.Rows[0]["IUM"].ToString(), dt.Rows[0]["WarehouseCode"].ToString(), dt.Rows[0]["BinNum"].ToString(), dt.Rows[0]["InputWhse"].ToString(), dt.Rows[0]["InputBinNum"].ToString(), lotNum, tranReference, companyId);
-                    if (index)
-                    {
-                        return "true";
-                    }
-                    else
-                    {
-                        return "false|发料出错,请检查erp数据.";
-                    }
-                }
-            }
-            else
-            {
-                return "false|查询物料无库存或信息出错,请检查erp数据.";
-            }
-        }
-
-
-
-        //public static bool IssueReturnWithLotbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, decimal Qty, string tranReference, DataTable dt, int i, string companyId)
-        //{
-        //    bool index = true;
-        //    if (tranQty <= 0)
-        //    {
-        //        return true;
-        //    }
-        //    if (tranQty <= Convert.ToDecimal(dt.Rows[i]["OnhandQty"]))
-        //    {
-        //        index = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, ium, fromWarehouseCode, fromBinNum, toWarehouseCode, toBinNum, dt.Rows[i]["LotNum"].ToString(), tranReference, companyId);
-        //        if (!index)
-        //        {
-        //            return index;
-        //        }
-        //        return index;
-        //    }
-        //    else
-        //    {
-        //        index = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, Convert.ToDecimal(dt.Rows[i]["OnhandQty"]), tranDate, ium, fromWarehouseCode, fromBinNum, toWarehouseCode, toBinNum, dt.Rows[i]["LotNum"].ToString(), tranReference, companyId);
-        //        if (!index)
-        //        {
-        //            return index;
-        //        }
-        //        if (tranQty - Convert.ToDecimal(dt.Rows[i]["OnhandQty"]) > 0)
-        //        {
-        //            i++;
-        //            return IssueReturnWithLotbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty - Convert.ToDecimal(dt.Rows[i - 1]["OnhandQty"]), tranDate, ium, fromWarehouseCode, fromBinNum, toWarehouseCode, toBinNum, dt.Rows[i]["LotNum"].ToString(), Convert.ToDecimal(dt.Rows[i]["OnhandQty"]), tranReference, dt, i, companyId);
-        //        }
-        //        else
-        //        {
-        //            return true;
-        //        }
-        //    }
-
-        //}
-
-
-
-        private static bool IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId)
-        {
-            try
-            {
-                Session EpicorSession = Common.GetEpicorSession();
-                if (EpicorSession == null)
-                {
-                    return false;
-                }
-                EpicorSession.CompanyID = companyId;
-                IssueReturnImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<IssueReturnImpl>(EpicorSession, ImplBase<Erp.Contracts.IssueReturnSvcContract>.UriPath);
-                IssueReturnDataSet ds = new IssueReturnDataSet();
-                SelectedJobAsmblDataSet jads = new SelectedJobAsmblDataSet();
-                string pcTranType;
-                string pCallProcess;
-                pcTranType = "STK-MTL";
-                pCallProcess = "IssueMaterial";
-                System.String pcMessage = "";
-                System.String parttranpks = "";
-                bool result;
-                Guid pcMtlQueueRowid = new Guid();
-                adapter.GetNewJobAsmblMultiple(pcTranType, pcMtlQueueRowid, pCallProcess, jads, out pcMessage);
-                adapter.GetNewIssueReturnToJob(jobNum, assemblySeq, pcTranType, new Guid(), out pcMessage, ds);
-                adapter.GetNewJobAsmblMultiple(pcTranType, pcMtlQueueRowid, pCallProcess, jads, out pcMessage);
-                adapter.OnChangingToJobSeq(mtlSeq, ds);
-                ds.Tables["IssueReturn"].Rows[0]["ToJobSeq"] = mtlSeq;
-                adapter.OnChangeToJobSeq(ds, pCallProcess, out pcMessage);
-                ds.Tables["IssueReturn"].Rows[0]["TranQty"] = tranQty;
-                adapter.OnChangeTranQty(tranQty, ds);
-                string pUM = ium;
-                ds.Tables["IssueReturn"].Rows[0]["UM"] = ium;
-                adapter.OnChangeUM(pUM, ds);
-                ds.Tables["IssueReturn"].Rows[0]["TranDate"] = tranDate.ToString("yyyy-MM-dd");
-                ds.Tables["IssueReturn"].Rows[0]["FromWarehouseCode"] = fromWarehouseCode;
-                ds.Tables["IssueReturn"].Rows[0]["FromBinNum"] = fromBinNum;
-                ds.Tables["IssueReturn"].Rows[0]["ToWarehouseCode"] = toWarehouseCode;
-                ds.Tables["IssueReturn"].Rows[0]["ToBinNum"] = toBinNum;
-                ds.Tables["IssueReturn"].Rows[0]["LotNum"] = lotNum;
-                ds.Tables["IssueReturn"].Rows[0]["TranReference"] = tranReference;
-                bool plNegQtyAction = true;
-                System.String legalNumberMessage = "";
-                string partTranPKs = "";
-                //Call Adapter method
-                adapter.PrePerformMaterialMovement(ds, out plNegQtyAction);
-                //来源仓
-                //adapterIssueReturn.NegativeInventoryTest(partNum, fromWarehouseCode, fromBinNum, "", ium, 1, 1, out legalNumberMessage, out partTranPKs);
-                string pcNeqQtyAction = "";
-                string pcNeqQtyMessage = "";
-                string pcPCBinAction = "";
-                string pcPCBinMessage = "";
-                string pcOutBinAction = "";
-                string pcOutBinMessage = "";
-                adapter.MasterInventoryBinTests(ds, out pcNeqQtyAction, out pcNeqQtyMessage, out pcPCBinAction, out pcPCBinMessage, out pcOutBinAction, out pcOutBinMessage);
-                if (!string.IsNullOrEmpty(pcNeqQtyMessage) || (!string.IsNullOrEmpty(pcNeqQtyAction) && pcNeqQtyAction != "None"))
-                {
-                    string s = (pcNeqQtyMessage);
-                    string message = "工单：" + jobNum + "/" + assemblySeq + "/" + oprSeq + ",扣料时系统报错。物料：" + partNum + ",来源仓:" + fromWarehouseCode + "/" + fromBinNum + ",目标仓:" + toWarehouseCode + "/" + toBinNum + ",批次:" + lotNum + ",数量:" + tranQty + ".原因:" + s;
-                    //WriteTxt(message);
-                    return false;
-                }
-                adapter.PerformMaterialMovement(true, ds, out legalNumberMessage, out partTranPKs);
-                adapter.Dispose();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                string message = "工单：" + jobNum + "/" + assemblySeq + "/" + oprSeq + ",扣料时系统报错。物料：" + partNum + ",来源仓:" + fromWarehouseCode + "/" + fromBinNum + ",目标仓:" + toWarehouseCode + "/" + toBinNum + ",批次:" + lotNum + ",数量:" + tranQty + ".原因:" + ex.Message;
-                //WriteTxt(message);
-                return false;
-            }
-        }
-
+       
     }
 }

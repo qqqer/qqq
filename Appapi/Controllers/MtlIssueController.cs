@@ -7,7 +7,8 @@ using System.Web.Http;
 
 namespace Appapi.Controllers
 {
-    public class BGController : ApiController
+    public class MtlIssueController : ApiController
     {
+        
     }
 }

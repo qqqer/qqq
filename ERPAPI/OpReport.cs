@@ -18,7 +18,7 @@ using System.Web;
 
 namespace ErpAPI
 {
-    public static class BG
+    public static class OpReport
     {
         public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, string zxDate, string zxTime, string companyId)
         { //JobNum as string ,jobQty as decimal,partNum as string
@@ -116,6 +116,8 @@ inner join OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOpe
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrepQty"] = disQty;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrpRsnCode"] = disCode;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["TimeStatus"] = "A";
+                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockinTime"] = 
+                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockOutTime"] = 
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Date01"] = System.DateTime.Today;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ShortChar01"] = System.DateTime.Now.ToString("hh:mm:ss");
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["OpComplete"] = "1";

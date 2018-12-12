@@ -246,3 +246,4 @@ E:\Git\APPapi\Appapi\bin\zxing.presentation.xml
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.InvTransfer.dll
 E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.InvTransfer.resources.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.IssueReturn.dll
+E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.Labor.dll

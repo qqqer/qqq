@@ -9,7 +9,7 @@ using System.Web;
 
 namespace Appapi.Models
 {
-    public static class FtpRepository
+    public static class FTPRepository
     {
         public static readonly string ftpUserName = ConfigurationManager.ConnectionStrings["ftpUserName"].ToString();
         public static readonly string ftpPassword = ConfigurationManager.ConnectionStrings["ftpPassword"].ToString();

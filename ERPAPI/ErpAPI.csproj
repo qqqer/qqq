@@ -78,8 +78,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Common.cs" />
-    <Compile Include="ForBG.cs" />
-    <Compile Include="ForReceipt.cs" />
+    <Compile Include="MtlIssue.cs" />
+    <Compile Include="OpReport.cs" />
+    <Compile Include="Receipt.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

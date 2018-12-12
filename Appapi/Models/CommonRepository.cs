@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Web;
 
 namespace Appapi.Models
@@ -65,5 +68,99 @@ namespace Appapi.Models
             }
             return dt;
         }
+
+
+        public static bool VerifyAccount(string userid, string password)
+        {
+            MD5 md5 = new MD5CryptoServiceProvider();
+            byte[] t = md5.ComputeHash(System.Text.Encoding.UTF8.GetBytes(password));
+            md5.Dispose();
+
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < t.Length; i++)
+            {
+                sb.Append(t[i].ToString("X2"));
+            }
+
+            string sql = "select loginid from [dbo].[HrmResource] where loginid = '" + userid + "' and password = '" + sb.ToString() + "' ";
+            object loginid = SQLRepository.ExecuteScalarToObject(SQLRepository.OA_strConn, CommandType.Text, sql, null);
+
+
+            if (loginid != null)//OA账号表中验证成功
+                sql = "select * from userfile where userid = '" + (string)loginid + "' and disabled != 1";
+            else //OA里不存在该userid，则检查是否是自定义账号
+                sql = "select * from userfile where userid = '" + userid + "' and  password = '" + password + "'  and disabled != 1";
+
+
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+            if (dt != null)
+            {
+                HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
+                HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
+                HttpContext.Current.Session.Add("UserId", userid.ToUpper());
+                HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleID"]));
+                return true;
+            }
+
+            return false;
+        }
+
+
+        public static decimal GetOpSeqCompleteQty(string JobNum, int AssemblySeq, int JobSeq)//工序的完成数量
+        {
+            string sql = @"select top 1 jo.QtyCompleted from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                        where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq = " + JobSeq + " order by jo.OprSeq desc";
+
+            decimal QtyCompleted = (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return QtyCompleted;
+        }
+
+
+
+        public static decimal GetReqQtyOfAssemblySeq(string JobNum, int AssemblySeq)//获取当前工序所属的半成品的需求数量
+        {
+            string sql;
+
+            if(AssemblySeq == 0)
+                sql= @"select UDReqQty_c from JobHead  jh where jh.JobNum = '" + JobNum + "' ";
+            else
+                sql = @"select SurplusQty_c from JobAsmbl ja where ja.JobNum = '" + JobNum + "' and ja.AssemblySeq = " + AssemblySeq + "";
+
+            decimal RequiredQty = (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return RequiredQty;
+        }
+
+
+        public static string ConstructInsertValues(ArrayList array)
+        {
+            string values = "";
+            for (int i = 0; i < array.Count; i++)
+            {
+                if (array[i] == null)
+                    values += "null,";
+                else if (array[i].GetType() == typeof(int) || array[i].GetType() == typeof(decimal))
+                {
+                    values += array[i].ToString() + (i == array.Count - 1 ? "" : ",");
+                }
+                else if (array[i].GetType() == typeof(string))
+                {
+                    values += "'" + array[i] + "'" + (i == array.Count - 1 ? "" : ",");
+                }
+                else if (array[i].GetType() == typeof(bool))
+                {
+                    values += Convert.ToInt32(array[i]).ToString() + (i == array.Count - 1 ? "" : ",");
+                }
+                else if (array[i].GetType() == typeof(DateTime))
+                {
+                    values += "'" + array[i].ToString() + "'" + (i == array.Count - 1 ? "" : ",");
+                }
+            }
+            return values;
+        }//生成inser into语句中的values部分。为了方便处理string类型参数的两种情况：string不为null时需加'', 而string为null时则不必加'' 
+
+
     }
 }

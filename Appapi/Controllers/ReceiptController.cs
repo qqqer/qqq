@@ -19,23 +19,13 @@ namespace Appapi.Controllers
         #region 登录验证接口
         //Post:  /api/Receipt/Login
         [System.Web.Http.HttpPost]
-        public bool Login(dynamic Account) //ApiNum: 10000
+        public bool Login(dynamic Account)
         {
-            string OpDetail = "web登录", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
-            string userid = Convert.ToString(Account.userid);
-            string password = Convert.ToString(Account.password);
-
-            if (ReceiptRepository.VerifyAccount(userid, password))
-            {             
-                ReceiptRepository.AddOpLog(null, null, 10000, "SignIn", OpDate, OpDetail);
+            if (CommonRepository.VerifyAccount(Convert.ToString(Account.userid), Convert.ToString(Account.password)))
                 return true;
-            }
-            //HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
-            //HttpContext.Current.Response.AddHeader("ASP.NET_SessionId", HttpContext.Current.Session.SessionID);
-            return false;
 
-        }//登录验证
+            return false;
+        }
 
 
         //Post:  /api/Receipt/Login2
@@ -51,9 +41,9 @@ namespace Appapi.Controllers
             string password = arr[1];
 
 
-            if (ReceiptRepository.VerifyAccount(userid, password))
+            if (CommonRepository.VerifyAccount(userid, password))
             {
-                ReceiptRepository.AddOpLog(null,null, 10001, "SignIn", OpDate, OpDetail);
+                //ReceiptRepository.AddOpLog(null,null, 10001, "SignIn", OpDate, OpDetail);
                 return true;
             }
 
@@ -66,11 +56,11 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpGet]
         public void SignOut() //ApiNum: 10002   退出登录
         {
-            if (HttpContext.Current.Session.Count > 0) //若当前session有效
-            {
-                string OpDetail = "退出登录", OpDate = DateTime.Now.ToString();
-                ReceiptRepository.AddOpLog(null, null, 10002, "SignOut", OpDate, OpDetail);
-            }
+            //if (HttpContext.Current.Session.Count > 0) //若当前session有效
+            //{
+            //    string OpDetail = "退出登录", OpDate = DateTime.Now.ToString();
+            //    ReceiptRepository.AddOpLog(null, null, 10002, "SignOut", OpDate, OpDetail);
+            //}
 
             HttpContext.Current.Session.Abandon();
         }
@@ -342,7 +332,7 @@ namespace Appapi.Controllers
             string json = reader.ReadToEnd();
             Receipt IQCInfo = JsonConvert.DeserializeObject<Receipt>(json);
 
-
+                                                                                                                                                                                                                                
             return ReceiptRepository.ForceComplete(IQCInfo);
         }
 

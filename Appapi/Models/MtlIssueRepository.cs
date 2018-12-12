@@ -5,8 +5,7 @@ using System.Web;
 
 namespace Appapi.Models
 {
-    public static class BGRepository
+    public class MtlIssueRepository
     {
-
     }
 }
