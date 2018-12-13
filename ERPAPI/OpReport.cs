@@ -20,7 +20,7 @@ namespace ErpAPI
 {
     public static class OpReport
     {
-        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, string zxDate, string zxTime, string companyId)
+        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, decimal StartDate, decimal EndDate, string companyId)
         { //JobNum as string ,jobQty as decimal,partNum as string
 
             try

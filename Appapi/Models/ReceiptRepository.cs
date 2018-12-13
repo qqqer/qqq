@@ -334,6 +334,7 @@ namespace Appapi.Models
                 ph.Approve,
                 ph.Confirmed,
                 pd.openLine,
+                pd.PartNum,
                 pr.openRelease,
                 pr.TranType,
                 jh.jobClosed,
@@ -363,7 +364,9 @@ namespace Appapi.Models
             decimal NotReceiptQty = (decimal)dt.Rows[0]["NeedReceiptQty"] - (sum is DBNull || sum == null ? 0 : (decimal)sum);
 
             if (NotReceiptQty <= 0)
-                return "可收数量不足";
+                return "可收数量不足" + NotReceiptQty + " ";
+            else if (batInfo.PartNum != dt.Rows[0]["PartNum"].ToString())
+                return "物料编码不正确";
             else if ((bool)dt.Rows[0]["OpenOrder"] == false)
                 return "订单已关闭";
             else if ((bool)dt.Rows[0]["orderHeld"] == true)
@@ -390,10 +393,7 @@ namespace Appapi.Models
         }
 
 
-        private static string GetValueAsString(object o)
-        {
-            return Convert.IsDBNull(o) || o == null ? "" : o.ToString();
-        }
+       
 
 
 
@@ -402,7 +402,7 @@ namespace Appapi.Models
             string sql = @"select  pd.CommentText  from erp.PODetail pd  where pd.ponum = {0} and pd.poline = {1} and pd.company = '{2}'";
             sql = string.Format(sql, ponum, poline, company);
 
-            return GetValueAsString(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+            return CommonRepository.GetValueAsString(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
         }
 
 
@@ -601,7 +601,7 @@ namespace Appapi.Models
                 #region 调用现有接口打印
 
                 string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
-                jsonStr = string.Format(jsonStr, batInfo.PartNum, batInfo.BatchNo, GetValueAsString(batInfo.JobNum), GetValueAsString(batInfo.AssemblySeq), batInfo.SupplierNo, batInfo.PoNum, batInfo.PoLine, batInfo.ReceiveQty1, batInfo.PORelNum, batInfo.Company, GetValueAsString(batInfo.JobSeq), batInfo.HeatNum, batInfo.PartDesc);
+                jsonStr = string.Format(jsonStr, batInfo.PartNum, batInfo.BatchNo, CommonRepository.GetValueAsString(batInfo.JobNum), CommonRepository.GetValueAsString(batInfo.AssemblySeq), batInfo.SupplierNo, batInfo.PoNum, batInfo.PoLine, batInfo.ReceiveQty1, batInfo.PORelNum, batInfo.Company, CommonRepository.GetValueAsString(batInfo.JobSeq), batInfo.HeatNum, batInfo.PartDesc);
                 jsonStr = "[{" + jsonStr + "}]";
 
 
@@ -1149,21 +1149,21 @@ namespace Appapi.Models
 
                         rcvdtlStr = ConstructRcvdtlStr(
                                 new String[] {
-                                GetValueAsString(theBatch.PoNum),
-                                GetValueAsString(theBatch.PoLine),
-                                GetValueAsString(theBatch.PORelNum),
-                                GetValueAsString(theBatch.PartNum),
-                                GetValueAsString(AcceptInfo.ArrivedQty),
-                                GetValueAsString(theBatch.IUM),
-                                GetValueAsString(AcceptInfo.Warehouse),
-                                GetValueAsString(AcceptInfo.BinNum),
-                                GetValueAsString(theBatch.BatchNo),
-                                GetValueAsString(theBatch.JobNum),
-                                GetValueAsString(theBatch.AssemblySeq),
-                                GetValueAsString(theBatch.JobSeq),
-                                GetValueAsString(theBatch.CommentText),
-                                GetValueAsString(theBatch.TranType),
-                                GetValueAsString(theBatch.HeatNum)});
+                                CommonRepository.GetValueAsString(theBatch.PoNum),
+                                CommonRepository.GetValueAsString(theBatch.PoLine),
+                                CommonRepository.GetValueAsString(theBatch.PORelNum),
+                                CommonRepository.GetValueAsString(theBatch.PartNum),
+                                CommonRepository.GetValueAsString(AcceptInfo.ArrivedQty),
+                                CommonRepository.GetValueAsString(theBatch.IUM),
+                                CommonRepository.GetValueAsString(AcceptInfo.Warehouse),
+                                CommonRepository.GetValueAsString(AcceptInfo.BinNum),
+                                CommonRepository.GetValueAsString(theBatch.BatchNo),
+                                CommonRepository.GetValueAsString(theBatch.JobNum),
+                                CommonRepository.GetValueAsString(theBatch.AssemblySeq),
+                                CommonRepository.GetValueAsString(theBatch.JobSeq),
+                                CommonRepository.GetValueAsString(theBatch.CommentText),
+                                CommonRepository.GetValueAsString(theBatch.TranType),
+                                CommonRepository.GetValueAsString(theBatch.HeatNum)});
                         rcvdtlStr = "[" + rcvdtlStr + "]";
 
 
@@ -1209,21 +1209,21 @@ namespace Appapi.Models
                             {
                                 rcvdtlStr += ConstructRcvdtlStr(
                                     new String[] {
-                                GetValueAsString(theBatch.PoNum),
-                                GetValueAsString(dt.Rows[i]["poline"]),
-                                GetValueAsString(dt.Rows[i]["porelnum"]),
-                                GetValueAsString(theBatch.PartNum),
-                                GetValueAsString(AcceptInfo.ArrivedQty),
-                                GetValueAsString(theBatch.IUM),
-                                GetValueAsString(AcceptInfo.Warehouse),
-                                GetValueAsString(AcceptInfo.BinNum),
-                                GetValueAsString(theBatch.BatchNo),
-                                GetValueAsString(theBatch.JobNum),
-                                GetValueAsString(theBatch.AssemblySeq),
-                                GetValueAsString(dt.Rows[i]["jobseq"]),
-                                GetValueAsString(theBatch.CommentText),
-                                GetValueAsString(theBatch.TranType),
-                                GetValueAsString(theBatch.HeatNum)}) + (i == dt.Rows.Count - 1 ? "]" : ",");
+                                CommonRepository.GetValueAsString(theBatch.PoNum),
+                                CommonRepository.GetValueAsString(dt.Rows[i]["poline"]),
+                                CommonRepository.GetValueAsString(dt.Rows[i]["porelnum"]),
+                                CommonRepository.GetValueAsString(theBatch.PartNum),
+                                CommonRepository.GetValueAsString(AcceptInfo.ArrivedQty),
+                                CommonRepository.GetValueAsString(theBatch.IUM),
+                                CommonRepository.GetValueAsString(AcceptInfo.Warehouse),
+                                CommonRepository.GetValueAsString(AcceptInfo.BinNum),
+                                CommonRepository.GetValueAsString(theBatch.BatchNo),
+                                CommonRepository.GetValueAsString(theBatch.JobNum),
+                                CommonRepository.GetValueAsString(theBatch.AssemblySeq),
+                                CommonRepository.GetValueAsString(dt.Rows[i]["jobseq"]),
+                                CommonRepository.GetValueAsString(theBatch.CommentText),
+                                CommonRepository.GetValueAsString(theBatch.TranType),
+                                CommonRepository.GetValueAsString(theBatch.HeatNum)}) + (i == dt.Rows.Count - 1 ? "]" : ",");
                             }
 
                             //(res = ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功."
@@ -1349,7 +1349,7 @@ namespace Appapi.Models
 
                             if (res.Substring(0, 1).Trim().ToLower() == "p") //工序完成，收货至仓库
                             {
-                                res = ErpAPI.Receipt.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company);
+                                res = ErpAPI.Common.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company);
                                 if (res != "1|处理成功")
                                     return "错误：" + res;
                             }
@@ -1837,7 +1837,7 @@ namespace Appapi.Models
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
-            jsonStr = string.Format(jsonStr, info.PartNum, info.BatchNo, GetValueAsString(info.JobNum), GetValueAsString(info.AssemblySeq), info.SupplierNo, info.PoNum, info.PoLine, info.ReceiveQty1, info.PORelNum, info.Company, GetValueAsString(info.JobSeq), info.HeatNum, info.PartDesc);
+            jsonStr = string.Format(jsonStr, info.PartNum, info.BatchNo, CommonRepository.GetValueAsString(info.JobNum), CommonRepository.GetValueAsString(info.AssemblySeq), info.SupplierNo, info.PoNum, info.PoLine, info.ReceiveQty1, info.PORelNum, info.Company, CommonRepository.GetValueAsString(info.JobSeq), info.HeatNum, info.PartDesc);
             jsonStr = "[{" + jsonStr + "}]";
 
 
@@ -1868,7 +1868,7 @@ namespace Appapi.Models
         }
 
 
-        public static ScanResult GetRecordByQR(string values, bool IsForPrintQR)
+        public static ScanResult GetRecordByQR(string values, bool IsForPrintQR) //只根据APP数据库中的数据检查是否有操作权限
         {
             ScanResult sr = new ScanResult();
             sr.batch = null;
@@ -1906,7 +1906,7 @@ namespace Appapi.Models
                     else if ((int)dt.Rows[0]["Status"] == 2 && ((string)dt.Rows[0]["SecondUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
                     {
                         if (!Convert.IsDBNull(dt.Rows[0]["SecondUserID"]) && (string)HttpContext.Current.Session["UserId"] != (string)dt.Rows[0]["SecondUserID"])
-                            sr.error = "错误：当前批次的流程未在你的节点 或 你的角色无权操作当前批次";
+                            sr.error = "错误：需指定的办理人处理";
                         else
                             sr.batch = theBatch;
                     }
@@ -1914,7 +1914,7 @@ namespace Appapi.Models
                     else if ((int)dt.Rows[0]["Status"] == 3 && ((string)dt.Rows[0]["ThirdUserGroup"]).Contains((string)HttpContext.Current.Session["UserId"]))
                     {
                         if (!Convert.IsDBNull(dt.Rows[0]["ThirdUserID"]) && (string)HttpContext.Current.Session["UserId"] != (string)dt.Rows[0]["ThirdUserID"])
-                            sr.error = "错误：当前批次的流程未在你的节点 或 你的角色无权操作当前批次";
+                            sr.error = "错误：需指定的办理人处理";
                         else
                             sr.batch = theBatch;
                     }
@@ -1922,7 +1922,7 @@ namespace Appapi.Models
                         sr.batch = theBatch;
 
                     else
-                        sr.error = "错误：当前批次的流程未在你的节点 或 你的角色无权操作当前批次";
+                        sr.error = "错误：无权处理，账号不在节点的处理人列表中";
                 }
             }
             else

@@ -7,7 +7,7 @@ namespace Appapi.Models
 {
     public class ScanResult
     {
-        public Receipt batch { get; set; }
+        public dynamic batch { get; set; }
         public string error { get; set; }
     }
 }

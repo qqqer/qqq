@@ -19,7 +19,7 @@ namespace Appapi.Models
         public string TransformUserGroup { get; set; }
         public string NextUserGroup { get; set; }
         public string PartNum { get; set; }
-        public string PartDes { get; set; }
+        public string PartDesc { get; set; }
         public string JobNum { get; set; }
         public int? AssemblySeq { get; set; }
         public int? JobSeq { get; set; }
@@ -44,6 +44,12 @@ namespace Appapi.Models
         public string Plant { get; set; }
         public string Company { get; set; }
         public bool? IsPrint { get; set; }
+        public string BinNum { get; set; }
+        public int? PrintID { get; set; }
         public int? ID { get; set; }
+
+
+
+        public int? PrintQty { get; set; }
     }
 }

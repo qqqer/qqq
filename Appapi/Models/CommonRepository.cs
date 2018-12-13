@@ -110,7 +110,7 @@ namespace Appapi.Models
         public static decimal GetOpSeqCompleteQty(string JobNum, int AssemblySeq, int JobSeq)//工序的完成数量
         {
             string sql = @"select top 1 jo.QtyCompleted from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
-                        where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq = " + JobSeq + " order by jo.OprSeq desc";
+                        where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " order by jo.OprSeq desc";
 
             decimal QtyCompleted = (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
@@ -140,7 +140,7 @@ namespace Appapi.Models
             for (int i = 0; i < array.Count; i++)
             {
                 if (array[i] == null)
-                    values += "null,";
+                    values += "null" + (i == array.Count - 1 ? "" : ",");
                 else if (array[i].GetType() == typeof(int) || array[i].GetType() == typeof(decimal))
                 {
                     values += array[i].ToString() + (i == array.Count - 1 ? "" : ",");
@@ -162,5 +162,9 @@ namespace Appapi.Models
         }//生成inser into语句中的values部分。为了方便处理string类型参数的两种情况：string不为null时需加'', 而string为null时则不必加'' 
 
 
+        public static string GetValueAsString(object o)
+        {
+            return Convert.IsDBNull(o) || o == null ? "" : o.ToString();
+        }
     }
 }
