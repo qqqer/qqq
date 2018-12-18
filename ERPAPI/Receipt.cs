@@ -59,7 +59,7 @@ namespace ErpAPI
                 {
                     if (tranType == "pur-ukn")  //杂项采购一定是通过需求输入进行
                     {
-                        return "R|物料接收人:" + dt.Rows[0]["ReqDetail.RcvPerson_c"].ToString().Trim();
+                        return "R|物料接收人:" + dt.Rows[0]["ReqDetail.RcvPerson.c"].ToString().Trim();
                     }  //837133-1-1
                     else
                     {
@@ -562,11 +562,6 @@ namespace ErpAPI
                 return "0|" + ex.Message.ToString();
             }
         }
-
-
-        //D0506-01工单收货至库存
-
-
-       
+      
     }
 }

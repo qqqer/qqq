@@ -79,7 +79,6 @@ namespace Appapi.Models
    
 
 
-
         private static int GetLastOpSeqOfSeriesSUB(Receipt theBatch)//取出该订单中的连续委外工序中（包括当前处理的批次工序）最后一道的工序号
         {
             DataTable dt = GetAllOpSeqOfSeriesSUB(theBatch);
@@ -98,7 +97,7 @@ namespace Appapi.Models
 
             if (dt != null)
             {
-                for (int i = dt.Rows.Count - 1; i >= 0; i--)
+                for (int i = dt.Rows.Count - 1; i >= 0; i--)//排除连续委外表中重复的工序号
                 {
                     if ((int)dt.Rows[i]["jobseq"] == theBatch.JobSeq && ((int)dt.Rows[i]["poline"] != theBatch.PoLine || (int)dt.Rows[i]["porelnum"] != theBatch.PORelNum))
                         dt.Rows.RemoveAt(i);
@@ -393,9 +392,6 @@ namespace Appapi.Models
         }
 
 
-       
-
-
 
         private static string GetCommentText(int ponum, int poline, string company)
         {
@@ -407,9 +403,9 @@ namespace Appapi.Models
 
 
 
-        private static DataTable GetMtlsOfOpSeq(string jobnum, int AssemblySeq, int jobseq, string company)
+        private static DataTable GetMtlsOfOpSeq(string jobnum, int AssemblySeq, int jobseq, string company) //获取当前工序下所有的未发物料
         {
-            string sql = @"select partnum, mtlseq, qtyper from erp.JobMtl where jobnum ='{0}' and AssemblySeq = {1} and RelatedOperation = {2} and company = '{3}'";
+            string sql = @"select partnum, mtlseq, qtyper from erp.JobMtl where jobnum ='{0}' and AssemblySeq = {1} and RelatedOperation = {2} and company = '{3}' and IssuedComplete = 0";
             sql = string.Format(sql, jobnum, AssemblySeq, jobseq, company);
 
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
@@ -1187,7 +1183,7 @@ namespace Appapi.Models
                     {
                         DataTable dt = GetAllOpSeqOfSeriesSUB(theBatch);
 
-                        object PreOpSeq = GetPreOpSeq(theBatch);
+                        object PreOpSeq = CommonRepository.GetPreOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[0]["jobseq"]);
                         decimal CurrCompletedQty = CommonRepository.GetOpSeqCompleteQty(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)theBatch.JobSeq);
                         //临时取消完成数判断，财务上线+
                         //if (PreOpSeq == null || GetOpSeqCompleteQty(theBatch.Company, theBatch.Plant, theBatch.JobNum, (int)theBatch.AssemblySeq, (int)PreOpSeq) >= AcceptInfo.ArrivedQty + CurrCompletedQty) //(QtyCompletedQty) == 0 代表没有上到工序
@@ -1204,7 +1200,26 @@ namespace Appapi.Models
                             }
 
 
-                            rcvdtlStr = "[";
+                            //发料验证， 若该组委外工序中有多个相同化学品，每个单独验证时 数量满足， 但实际发料时 会有多次发料，则可能不够发， 
+                            for (int i = 0; i < dt.Rows.Count; i++)
+                            {
+                                DataTable mtls = GetMtlsOfOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], theBatch.Company);
+                                if (mtls != null)
+                                {
+                                    for (int j = 0; j < mtls.Rows.Count; j++)
+                                    {
+                                        if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
+                                        {
+                                            res = ErpAPI.MtlIssue.CheckIssue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty, DateTime.Parse(OpDate), theBatch.Company);
+                                            if (res != "true")
+                                                return "工单：" + theBatch.JobNum + "，阶层：" + theBatch.AssemblySeq.ToString() + "，工序：" + dt.Rows[i]["jobseq"].ToString() + "， 物料编码：" + mtls.Rows[j]["partnum"].ToString() + "  " + res;
+                                        }
+                                    }
+                                }
+                            }
+
+
+                                rcvdtlStr = "[";
                             for (int i = 0; i < dt.Rows.Count; i++)
                             {
                                 rcvdtlStr += ConstructRcvdtlStr(
@@ -1310,26 +1325,26 @@ namespace Appapi.Models
 
 
                                     //为当前工序下的化学品发料
-                                    string issue_res = "";
-                                    //DataTable mtls = GetMtlsOfOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], theBatch.Company);
-                                    //if(mtls != null)
-                                    //{
-                                    //    for(int j = 0; j < mtls.Rows.Count; j++)
-                                    //    {
-                                    //        if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
-                                    //        {
-                                    //            res = ErpAPI.Receipt.OneIssueReturnSTKMTL(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty, DateTime.Parse(OpDate), theBatch.BatchNo, theBatch.Company);
-                                    //            issue_res += mtls.Rows[j]["partnum"].ToString() + "：";
-                                    //            issue_res += (res == "true") ? (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty + ", " :  res + ", ";
-                                    //        }
-                                    //    }
-                                    //}
+                                    string issue_res = "";  //若issue_res不为空， 则表明虽通过了之前的发料验证，但实际发料时不够发导致失败
+                                    DataTable mtls = GetMtlsOfOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], theBatch.Company);
+                                    if (mtls != null)
+                                    {
+                                        for (int j = 0; j < mtls.Rows.Count; j++)
+                                        {
+                                            if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
+                                            {
+                                                res = ErpAPI.MtlIssue.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty, DateTime.Parse(OpDate),theBatch.Company);
+                                                issue_res += mtls.Rows[j]["partnum"].ToString() + "：";
+                                                issue_res += (res == "true") ? (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty + ", " : res + ", ";
+                                            }
+                                        }
+                                    }
 
 
-                                    //sql日志
-                                    sql2 = "insert into sqllog(ponum,poline,porel,sql) values(" + ponum + ", " + poline + ", " + porel + ", @sql) ";
-                                    SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@sql", sql) };
-                                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql2, ps);
+                                    ////sql日志
+                                    //sql2 = "insert into sqllog(ponum,poline,porel,sql) values(" + ponum + ", " + poline + ", " + porel + ", @sql) ";
+                                    //SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@sql", sql) };
+                                    //SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql2, ps);
 
                                     //执行sql
                                     SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -1367,8 +1382,8 @@ namespace Appapi.Models
             }
             catch (Exception ex)
             {
-                sql2 = "insert into sqllog(ponum,poline,porel,sql,catch) values(" + ponum + ", " + poline + ", " + porel + ", @sql, " + ex.Message + ") ";
-                SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@sql", sql) };
+                sql2 = "insert into sqllog(ponum,poline,porel,sql,catch) values(" + ponum + ", " + poline + ", " + porel + ", @sql, @ex) ";
+                SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@sql", sql), new SqlParameter("@ex", ex.Message) };
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql2, ps);
 
                 return "错误：" + ex.Message.ToString();
@@ -1415,8 +1430,18 @@ namespace Appapi.Models
 
                 if (Warehouse == null) return null;
 
-                sql = "select * from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647 and  CHARINDEX('" + Warehouse.ToString() + "', WhseGroup) > 0";
+                sql = "select UserID,UserName, WhseGroup from userfile where CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0 and disabled = 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
+
+                for (int i = dt.Rows.Count - 1; i >= 0; i--)
+                {
+                    if (dt.Rows[i]["WhseGroup"] != null)
+                    {
+                        string[] ss = dt.Rows[i]["WhseGroup"].ToString().Split(',');
+                        if (!ss.Contains(Warehouse.ToString().Trim()))
+                            dt.Rows.RemoveAt(i);
+                    }
+                }
             }
             else if (nextRole == 16)//
             {
@@ -1481,7 +1506,6 @@ namespace Appapi.Models
 
             return dt == null || dt.Rows.Count == 0 ? null : dt;
         }
-
 
 
 
@@ -1730,7 +1754,8 @@ namespace Appapi.Models
                     i.ReturnReason = i.ReturnReasonRemark = "";
             }
 
-            return GetValidBatchs(RBs);
+            return RBs;
+            //return GetValidBatchs(RBs);
         }
 
 
@@ -1930,10 +1955,6 @@ namespace Appapi.Models
 
             return sr;
         }
-
-
-
-
 
 
 

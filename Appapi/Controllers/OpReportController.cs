@@ -132,5 +132,13 @@ namespace Appapi.Controllers
             return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetNextUserGroup(OpCode, ID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
             //return OpReportRepository.GetNextUserGroup(OpCode, ID);
         }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/GetRecordByQR 
+        public ScanResult GetRecordByQR(string values)//ApiNum: 7   
+        {
+            return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
     }
 }

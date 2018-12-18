@@ -46,6 +46,8 @@ namespace Appapi.Models
         public bool? IsPrint { get; set; }
         public string BinNum { get; set; }
         public int? PrintID { get; set; }
+        public int? ErpCounter { get; set; }
+        public string Character05 { get; set; }
         public int? ID { get; set; }
 
 

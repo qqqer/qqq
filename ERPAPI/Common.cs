@@ -211,7 +211,7 @@ namespace ErpAPI
         }
 
 
-
+        //D0506-01工单收货至库存
         public static string D0506_01(string rqr, string JobNum, int asmSeq, decimal jobQty, string lotnum, string wh, string bin, string companyId)
         { //JobNum as string ,jobQty as decimal,partNum as string
             Session EpicorSession = Common.GetEpicorSession();

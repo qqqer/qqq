@@ -110,13 +110,12 @@ namespace Appapi.Models
         public static decimal GetOpSeqCompleteQty(string JobNum, int AssemblySeq, int JobSeq)//工序的完成数量
         {
             string sql = @"select top 1 jo.QtyCompleted from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
-                        where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " order by jo.OprSeq desc";
+                        where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq = " + JobSeq + " order by jo.OprSeq desc";
 
-            decimal QtyCompleted = (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            decimal QtyCompleted = Convert.ToDecimal(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
             return QtyCompleted;
         }
-
 
 
         public static decimal GetReqQtyOfAssemblySeq(string JobNum, int AssemblySeq)//获取当前工序所属的半成品的需求数量
@@ -128,7 +127,7 @@ namespace Appapi.Models
             else
                 sql = @"select SurplusQty_c from JobAsmbl ja where ja.JobNum = '" + JobNum + "' and ja.AssemblySeq = " + AssemblySeq + "";
 
-            decimal RequiredQty = (decimal)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            decimal RequiredQty = Convert.ToDecimal(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
             return RequiredQty;
         }
@@ -166,5 +165,17 @@ namespace Appapi.Models
         {
             return Convert.IsDBNull(o) || o == null ? "" : o.ToString();
         }
+
+
+        public static object GetPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
+        {
+            string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " order by jo.OprSeq desc";
+
+            object PreOpSeq = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return PreOpSeq;
+        }
+
     }
 }

@@ -26,19 +26,20 @@ namespace ErpAPI
             string tranReference = "工单发料";
             string querysql = "";
             string tracklots = Common.QueryERP("select tracklots from Erp.Part where Company='" + companyId + "' and PartNum='" + partNum + "'");
-            if (tracklots.ToLower() == "true" && !string.IsNullOrEmpty(lotNum))
+            if (tracklots.ToLower() == "true" && !string.IsNullOrEmpty(lotNum)) // 有批次追踪 且 有批次号
             {
-                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "') BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "'),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum and p.TrackLots=1 inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
+                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "') BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "'),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum and p.TrackLots=1 inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "' and WarehouseCode='wip'";
             }
-            else if (tracklots.ToLower() == "true" && string.IsNullOrEmpty(lotNum))
+            else if (tracklots.ToLower() == "true" && string.IsNullOrEmpty(lotNum))// 有批次追踪 且 没批次号
             {
-                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum) BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
+                return "false|该物料有批次追踪,但没有批次号.";
+
             }
-            else if (tracklots.ToLower() == "false" && !string.IsNullOrEmpty(lotNum))
+            else if (tracklots.ToLower() == "false" && !string.IsNullOrEmpty(lotNum))// 无批次追踪 且 有批次号
             {
-                return "false|该物料未使用批次追踪.";
+                querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "') BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + lotNum + "'),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "' and WarehouseCode='wip'";
             }
-            else
+            else//都没
             {
                 querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum) BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
             }
@@ -149,10 +150,70 @@ namespace ErpAPI
             string sql = @"select  [PartBin].[LotNum] as [PartBin_LotNum] 
                     from Erp.PartBin as PartBin
                     inner join Erp.Warehse as Warehse on PartBin.Company = Warehse.Company and PartBin.WarehouseCode = Warehse.WarehouseCode
-                    inner join Erp.Part as Part       on  PartBin.Company = Part.Company and PartBin.PartNum = Part.PartNum";
+                    inner join Erp.Part as Part       on  PartBin.Company = Part.Company and PartBin.PartNum = Part.PartNum
+                    where Warehse.WarehouseCode = 'wip' ";
             DataTable dt = Common.GetDataByERP(sql);
 
-            return null;
+            string res= "false|wip仓中没有该物料";
+
+            for (int i = 0; i < dt.Rows.Count; i++) //遍历wip仓中，该物料的所有批次
+            {
+                res = OneIssueReturnSTKMTL(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, dt.Rows[i]["PartBin_LotNum"].ToString(), companyId);
+                if (res == "true")
+                    break;
+            }
+            return res;
         }
+
+
+        public static string CheckIssue(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string companyId)
+        {
+            string sql = @"select  [PartBin].[LotNum] as [PartBin_LotNum] 
+                    from Erp.PartBin as PartBin
+                    inner join Erp.Warehse as Warehse on PartBin.Company = Warehse.Company and PartBin.WarehouseCode = Warehse.WarehouseCode
+                    inner join Erp.Part as Part       on  PartBin.Company = Part.Company and PartBin.PartNum = Part.PartNum
+                    where Warehse.WarehouseCode = 'wip' and [PartBin].[LotNum] != '' and tracklots != 'false' ";
+            DataTable dt = Common.GetDataByERP(sql);
+
+            if (dt != null || dt.Rows.Count == 0)return  "false|wip仓中没有该物料";
+
+            for (int i = 0; i < dt.Rows.Count; i++) //遍历wip仓中，该物料的所有批次
+            {
+                string querysql;
+                string tracklots = Common.QueryERP("select tracklots from Erp.Part where Company='" + companyId + "' and PartNum='" + partNum + "'");
+                if (tracklots.ToLower() == "true" && !string.IsNullOrEmpty(dt.Rows[i]["PartBin_LotNum"].ToString())) // 有批次追踪 且 有批次号
+                {
+                    querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + dt.Rows[i]["PartBin_LotNum"].ToString() + "') BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + dt.Rows[i]["PartBin_LotNum"].ToString() + "'),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum and p.TrackLots=1 inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "' and WarehouseCode='wip'";
+                }
+                else if (tracklots.ToLower() == "true" && string.IsNullOrEmpty(dt.Rows[i]["PartBin_LotNum"].ToString()))// 有批次追踪 且 没批次号
+                {
+                    return "false|该物料有批次追踪,但没有批次号.";
+
+                }
+                else if (tracklots.ToLower() == "false" && !string.IsNullOrEmpty(dt.Rows[i]["PartBin_LotNum"].ToString()))// 无批次追踪 且 有批次号
+                {
+                    querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + dt.Rows[i]["PartBin_LotNum"].ToString() + "') BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum and LotNum='" + dt.Rows[i]["PartBin_LotNum"].ToString() + "'),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "' and WarehouseCode='wip'";
+                }
+                else//都没
+                {
+                    querysql = "select jm.JobNum,jm.AssemblySeq,jm.RelatedOperation,jm.MtlSeq,jm.PartNum,jm.RequiredQty-jm.IssuedQty Qty,jm.IUM,jm.WarehouseCode,(select top(1) BinNum from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum) BinNum,rg.InputWhse,rg.InputBinNum,isnull((select top(1) OnhandQty from Erp.PartBin where Company=jm.Company and WarehouseCode=jm.WarehouseCode and PartNum=jm.PartNum),0) OnhandQty from Erp.JobMtl jm inner join Part p on jm.Company=p.Company and jm.PartNum=p.PartNum inner join erp.JobOpDtl jod on jm.Company=jod.Company and jm.JobNum=jod.JobNum and jm.AssemblySeq=jod.AssemblySeq and jm.RelatedOperation=jod.OprSeq inner join erp.ResourceGroup rg on jod.Company=rg.Company and jod.ResourceGrpID=rg.ResourceGrpID where jm.Company='" + companyId + "' and jm.JobNum='" + jobNum + "' and jm.AssemblySeq='" + assemblySeq + "' and jm.RelatedOperation='" + oprSeq + "' and jm.PartNum='" + partNum + "'";
+                }
+                DataTable dt2 = Common.GetDataByERP(querysql);
+
+                if (dt2 != null && dt2.Rows.Count > 0)
+                {
+                    if (tranQty > Convert.ToDecimal(dt2.Rows[0]["OnhandQty"]))
+                    {
+                        return "false|发料数量大于库存数量.";
+                    }
+                }
+                else
+                {
+                    return "false|查询物料无库存或信息出错,请检查erp数据.";
+                }
+            }
+            return "true";
+        }
+
     }
 }

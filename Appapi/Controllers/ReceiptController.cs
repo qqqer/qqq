@@ -32,20 +32,13 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public bool Login2() //ApiNum: 10001   winform登录
         {
-            string OpDetail = "winform登录", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
             StreamReader reader = new StreamReader(HttpContext.Current.Request.InputStream, System.Text.Encoding.Unicode);         
             string[] arr = reader.ReadToEnd().Split(',');
 
-            string userid = arr[0];
-            string password = arr[1];
-
+            string userid = arr[0], password = arr[1];
 
             if (CommonRepository.VerifyAccount(userid, password))
-            {
-                //ReceiptRepository.AddOpLog(null,null, 10001, "SignIn", OpDate, OpDetail);
                 return true;
-            }
 
             return false;
         }//登录验证
@@ -56,12 +49,6 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpGet]
         public void SignOut() //ApiNum: 10002   退出登录
         {
-            //if (HttpContext.Current.Session.Count > 0) //若当前session有效
-            //{
-            //    string OpDetail = "退出登录", OpDate = DateTime.Now.ToString();
-            //    ReceiptRepository.AddOpLog(null, null, 10002, "SignOut", OpDate, OpDetail);
-            //}
-
             HttpContext.Current.Session.Abandon();
         }
         #endregion

@@ -20,9 +20,9 @@ namespace ErpAPI
 {
     public static class OpReport
     {
-        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, decimal StartDate, decimal EndDate, string companyId)
+        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, decimal StartDate, decimal EndDate, string companyId, out string Character05)
         { //JobNum as string ,jobQty as decimal,partNum as string
-
+            Character05 = "";
             try
             {
                 DataTable dt = Common.GetDataByERP(@"select [JobOper].[JobNum] as [JobOper_JobNum],
@@ -54,7 +54,7 @@ inner join OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOpe
                     decimal.TryParse(dt.Rows[0]["JobOper.QtyCompleted"].ToString().Trim(), out compQty);
                     bool.TryParse(dt.Rows[0]["JobHead.JobComplete"].ToString().Trim(), out jobCom);
                     bool.TryParse(dt.Rows[0]["JobHead.JobReleased"].ToString().Trim(), out jobRes);
-                    empid = dt.Rows[0]["OpMaster.Character05"].ToString().Trim();
+                    Character05 = empid = dt.Rows[0]["OpMaster.Character05"].ToString().Trim();
                 }
                 if (jobCom)
                 {
@@ -71,7 +71,7 @@ inner join OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOpe
                     // EpicorSessionManager.DisposeSession();
                     return "0|以前报工数量" + compQty + "+ 本次报工数量" + (LQty + disQty) + ",>工序数量" + runQty + "，不能报工。";
                 }
-                if (empid.Trim() == "") { empid = "DB"; }
+                if (empid.Trim() == "") { Character05=empid = "DB"; }
       
                 
                 Session EpicorSession = Common.GetEpicorSession();
@@ -116,12 +116,14 @@ inner join OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOpe
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrepQty"] = disQty;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrpRsnCode"] = disCode;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["TimeStatus"] = "A";
-                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockinTime"] = 
-                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockOutTime"] = 
+                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockinTime"] = StartDate;
+                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockOutTime"] = EndDate;
+                //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborHrs"] = EndDate - StartDate;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Date01"] = System.DateTime.Today;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ShortChar01"] = System.DateTime.Now.ToString("hh:mm:ss");
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["OpComplete"] = "1";
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Complete"] = "1";
+                labAd.DefaultDtlTime(dsLabHed);
                 string cMessageText = "";
                 try
                 {
