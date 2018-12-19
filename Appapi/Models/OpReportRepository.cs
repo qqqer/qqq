@@ -64,14 +64,26 @@ namespace Appapi.Models
             string sql = @"select jh.jobClosed,jh.jobComplete from erp.JobHead jh where jh.JobNum = '" + jobnum + "'";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
 
-            if ((bool)dt.Rows[0]["jobClosed"] == true)
+            if(dt == null)
+                return "工单不存在";
+            else if ((bool)dt.Rows[0]["jobClosed"] == true)
                 return "关联的工单已关闭";
             else if ((bool)dt.Rows[0]["jobComplete"] == true)
                 return "关联的工单已完成";
 
             return "正常";
         }
-        
+
+
+        private static DataTable GetJobSeqInfo(string jobnum, int asmSeq, int oprseq)
+        {
+            string sql = @"select jh.Company, Plant,OpDesc, jo.OpCode from erp.JobHead jh left join erp.JobOper jo on jh.Company = jo.Company and jh.JobNum =jo.JobNum where jo.JobNum = '" + jobnum + "' and jo.AssemblySeq = " + asmSeq + " and  jo.OprSeq = " + oprseq + "";
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);           
+
+            return dt;
+        }
+
+
 
         private static string GetNextSetpInfo(string jobnum, int asmSeq, int oprseq, string companyId)
         {
@@ -107,19 +119,17 @@ namespace Appapi.Models
 
             string[] arr = values.Split('~'); //工单号~阶层号~工序序号~工序代码
 
-            string sql = @" Select jh.Company, Plant,OpDesc from erp.JobHead jh left join JobOper jo on jh.Company = jo.Company and jh.JobNum =jo.JobNum  where  jh.jobnum = '" + arr[0] + "' and jo.AssemblySeq = " + int.Parse(arr[1]) + " and  jo.OprSeq = " + int.Parse(arr[2]) + "";
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
-            string OpDesc = dt.Rows[0]["OpDesc"].ToString();
-
-
-
-            string ss = GetNextSetpInfo(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), dt.Rows[0]["Company"].ToString());
-            if (ss.Substring(0, 1).Trim() == "0")
-                return "0|错误：无法获取工序最终去向，" + ss;
 
             string res = CheckJobState(arr[0]);
             if (res != "正常")
                 return "0|错误：" + res;
+
+            if (GetJobSeqInfo(arr[0], int.Parse(arr[1]), int.Parse(arr[2])) == null)
+                return "0|错误：当前工序不存在";
+
+            string sql = @" Select jh.Company, Plant,OpDesc from erp.JobHead jh left join JobOper jo on jh.Company = jo.Company and jh.JobNum =jo.JobNum  where  jh.jobnum = '" + arr[0] + "' and jo.AssemblySeq = " + int.Parse(arr[1]) + " and  jo.OprSeq = " + int.Parse(arr[2]) + "";
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+            string OpDesc = dt.Rows[0]["OpDesc"].ToString();
 
             if (!HttpContext.Current.Session["Company"].ToString().Contains(dt.Rows[0]["Company"].ToString()))
                 return "0|错误：该账号没有相应的公司权限";
@@ -127,10 +137,9 @@ namespace Appapi.Models
             if (!HttpContext.Current.Session["Plant"].ToString().Contains(dt.Rows[0]["Plant"].ToString()))
                 return "0|错误：该账号没有相应的工厂权限";
 
-            sql = @" Select CreateUser  from BPMOpCode where  OpCode = '" + arr[3] + "' ";
-            string CreateUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            string CreateUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + arr[3] + "' ", null);
             if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
-                return "0|错误：该账号没有相应的工序权限";
+                return "0|错误：该账号没有该工序操作权限";
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
             if (PreOpSeq != null && !IsOpSeqComplete(arr[0], int.Parse(arr[1]), (int)PreOpSeq))
@@ -139,7 +148,12 @@ namespace Appapi.Models
             if (IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
                 return "错误：该工序已完成";
 
+            string ss = GetNextSetpInfo(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), dt.Rows[0]["Company"].ToString());
+            if (ss.Substring(0, 1).Trim() == "0")
+                return "0|错误：无法获取工序最终去向，" + ss;
 
+          
+            
 
             sql = @"select count(*) from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
             bool IsExistUserId = Convert.ToBoolean(SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null));
@@ -173,20 +187,31 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string sql = @" Select jh.Company, Plant, jh.PartNum, OpDesc from erp.JobHead jh left join JobOper jo on jh.Company = jo.Company and jh.JobNum =jo.JobNum  where  jh.jobnum = '" + ReportInfo.JobNum + "' and jo.AssemblySeq = " + ReportInfo.AssemblySeq + " and  jo.OprSeq = " + ReportInfo.JobSeq + "";
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
-
-            sql = @" Select PartNum, Description from erp.JobAsmbl  where  jobnum = '" + ReportInfo.JobNum + "' and AssemblySeq = " + ReportInfo.AssemblySeq + "";
-            DataTable partinfo = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
-
+            DataTable dt,dt2;
 
             string res = CheckJobState(ReportInfo.JobNum);
             if (res != "正常")
-                return "错误：" + res;
+                return "0|错误：" + res;
 
-            string ss = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
-            if (ss.Substring(0, 1).Trim() == "0")
-                return "错误：无法获取工序最终去向，" + ss;
+            if ((dt=GetJobSeqInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq)) == null)
+                return "0|错误：当前工序不存在";
+
+            dt2 = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'");
+            if(dt.Rows[0]["OpCode"].ToString() != dt2.Rows[0]["OpCode"].ToString())
+                return "0|错误：原工序编号" + dt.Rows[0]["OpCode"].ToString() + "， 现工序编号：" + dt2.Rows[0]["OpCode"].ToString();
+
+            if (!HttpContext.Current.Session["Company"].ToString().Contains(dt.Rows[0]["Company"].ToString()))
+                return "0|错误：该账号没有相应的公司权限";
+
+            if (!HttpContext.Current.Session["Plant"].ToString().Contains(dt.Rows[0]["Plant"].ToString()))
+                return "0|错误：该账号没有相应的工厂权限";
+
+            string CreateUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + 1 + "' ", null);
+            if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
+                return "0|错误：该账号没有该工序操作权限";
+
+            if (IsOpSeqComplete(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq))
+                return "错误：该工序已完成";
 
             if (ReportInfo.FirstQty <= 0)
                 return "错误：报工数量需大于0";
@@ -197,13 +222,24 @@ namespace Appapi.Models
             if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq) < ReportInfo.FirstQty + GetTotalQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0))
                 return "错误： 报工数超出上一道工序的完成数量";
 
+            string ss = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
+            if (ss.Substring(0, 1).Trim() == "0")
+                return "0|错误：获取下工序去向失败，" + ss;
 
-            //提交， 首先回写process
-            sql = "update process set EndDate='" + OpDate + "' ,Qty= " + ReportInfo.FirstQty + " where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and EndDate is null";
+
+
+            //////提交， 首先回写process
+            string sql = "update process set EndDate='" + OpDate + "' ,Qty= " + ReportInfo.FirstQty + " where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and EndDate is null";
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             sql = sql.Replace("'", "");
             AddOpLog(null,ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 102, OpDate, sql);
+            /////
+
+
+            sql = @" Select PartNum, Description from erp.JobAsmbl  where  jobnum = '" + ReportInfo.JobNum + "' and AssemblySeq = " + ReportInfo.AssemblySeq + "";
+            DataTable partinfo = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
 
             //去向仓库打印
             int PrintID = 0;

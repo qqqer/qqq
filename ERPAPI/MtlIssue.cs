@@ -151,7 +151,7 @@ namespace ErpAPI
                     from Erp.PartBin as PartBin
                     inner join Erp.Warehse as Warehse on PartBin.Company = Warehse.Company and PartBin.WarehouseCode = Warehse.WarehouseCode
                     inner join Erp.Part as Part       on  PartBin.Company = Part.Company and PartBin.PartNum = Part.PartNum
-                    where Warehse.WarehouseCode = 'wip' ";
+                    where Warehse.WarehouseCode = 'wip' and  PartBin.PartNum = '" + partNum + "' ";
             DataTable dt = Common.GetDataByERP(sql);
 
             string res= "false|wip仓中没有该物料";
@@ -172,12 +172,13 @@ namespace ErpAPI
                     from Erp.PartBin as PartBin
                     inner join Erp.Warehse as Warehse on PartBin.Company = Warehse.Company and PartBin.WarehouseCode = Warehse.WarehouseCode
                     inner join Erp.Part as Part       on  PartBin.Company = Part.Company and PartBin.PartNum = Part.PartNum
-                    where Warehse.WarehouseCode = 'wip' and [PartBin].[LotNum] != '' and tracklots != 'false' ";
+                    where Warehse.WarehouseCode = 'wip' and  PartBin.PartNum = '"+ partNum+"'";
             DataTable dt = Common.GetDataByERP(sql);
 
-            if (dt != null || dt.Rows.Count == 0)return  "false|wip仓中没有该物料";
+            if (dt == null || dt.Rows.Count == 0)return  "false|wip仓中没有该物料";
 
-            for (int i = 0; i < dt.Rows.Count; i++) //遍历wip仓中，该物料的所有批次
+            int i;
+            for (i = 0; i < dt.Rows.Count; i++) //遍历wip仓中，该物料的所有批次
             {
                 string querysql;
                 string tracklots = Common.QueryERP("select tracklots from Erp.Part where Company='" + companyId + "' and PartNum='" + partNum + "'");
@@ -187,8 +188,7 @@ namespace ErpAPI
                 }
                 else if (tracklots.ToLower() == "true" && string.IsNullOrEmpty(dt.Rows[i]["PartBin_LotNum"].ToString()))// 有批次追踪 且 没批次号
                 {
-                    return "false|该物料有批次追踪,但没有批次号.";
-
+                    continue;
                 }
                 else if (tracklots.ToLower() == "false" && !string.IsNullOrEmpty(dt.Rows[i]["PartBin_LotNum"].ToString()))// 无批次追踪 且 有批次号
                 {
@@ -203,16 +203,13 @@ namespace ErpAPI
                 if (dt2 != null && dt2.Rows.Count > 0)
                 {
                     if (tranQty > Convert.ToDecimal(dt2.Rows[0]["OnhandQty"]))
-                    {
-                        return "false|发料数量大于库存数量.";
-                    }
-                }
-                else
-                {
-                    return "false|查询物料无库存或信息出错,请检查erp数据.";
+                        continue;
+                    else
+                        break;
                 }
             }
-            return "true";
+
+           return  i == dt.Rows.Count ? "库存不足 或 信息出错,请检查erp数据" : "true";
         }
 
     }
