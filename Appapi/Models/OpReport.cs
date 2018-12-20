@@ -48,6 +48,19 @@ namespace Appapi.Models
         public int? PrintID { get; set; }
         public int? ErpCounter { get; set; }
         public string Character05 { get; set; }
+
+
+        public int? TranID { get; set; }
+        public int? DMRID { get; set; }
+        public decimal? DMRQualifiedQty { get; set; }
+        public decimal? DMRUnQualifiedQty { get; set; }
+        public decimal? DMRUnQualifiedReason { get; set; }
+        public string DMRWarehouseCode { get; set; }
+        public string DMRBinNum { get; set; }
+        public int? ParentID { get; set; }
+        public bool? IsSubProcess { get; set; }
+
+
         public int? ID { get; set; }
 
 
