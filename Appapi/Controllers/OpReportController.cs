@@ -140,5 +140,13 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/GetReason
+        public DataTable GetReason(string type)//ApiNum: 8   
+        {
+            return OpReportRepository.GetReason(type);
+        }
     }
 }

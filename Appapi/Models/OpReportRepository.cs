@@ -193,12 +193,16 @@ namespace Appapi.Models
             if (res != "正常")
                 return "0|错误：" + res;
 
-            if ((dt=GetJobSeqInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq)) == null)
+            if ((dt = GetJobSeqInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq)) == null)
+            {
                 return "0|错误：当前工序不存在";
+            }
 
             dt2 = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'");
-            if(dt.Rows[0]["OpCode"].ToString() != dt2.Rows[0]["OpCode"].ToString())
-                return "0|错误：原工序编号" + dt.Rows[0]["OpCode"].ToString() + "， 现工序编号：" + dt2.Rows[0]["OpCode"].ToString();
+            if (dt.Rows[0]["OpCode"].ToString() != dt2.Rows[0]["OpCode"].ToString())
+            {
+                return "0|错误：原工序编号" + dt2.Rows[0]["OpCode"].ToString() + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString();
+            }
 
             if (!HttpContext.Current.Session["Company"].ToString().Contains(dt.Rows[0]["Company"].ToString()))
                 return "0|错误：该账号没有相应的公司权限";
@@ -206,7 +210,7 @@ namespace Appapi.Models
             if (!HttpContext.Current.Session["Plant"].ToString().Contains(dt.Rows[0]["Plant"].ToString()))
                 return "0|错误：该账号没有相应的工厂权限";
 
-            string CreateUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + 1 + "' ", null);
+            string CreateUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + ReportInfo.OpCode + "' ", null);
             if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
                 return "0|错误：该账号没有该工序操作权限";
 
@@ -273,9 +277,6 @@ namespace Appapi.Models
 
 
             //再回写主表
-           
-
-
             sql = @"select enddate from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
             DateTime EndDate = (DateTime)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             TimeSpan LaborHrs = EndDate - ReportInfo.StartDate;
@@ -363,6 +364,8 @@ namespace Appapi.Models
 
             string sql = @"select * from BPM where Id = " + CheckInfo.ID + "";
 
+            DataTable dt, dt2;
+
             OpReport theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
             if (theReport.IsDelete == true)
@@ -376,17 +379,47 @@ namespace Appapi.Models
 
             string res = CheckJobState(theReport.JobNum);
             if (res != "正常")
-                return "错误：" + res;
+                return "0|错误：" + res;
 
-            string ss = GetNextSetpInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.Company);
-            if (ss.Substring(0, 1).Trim() == "0")
-                return "错误：无法获取工序最终去向，" + ss;
+            dt = GetJobSeqInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq); //erp抓取该工序的最新信息
+
+            if (dt == null)
+            {
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
+                return "0|错误：当前工序不存在，该报工流程已被自动删除";
+            }
+
+            if (dt.Rows[0]["OpCode"].ToString() !=  theReport.OpCode)
+            {
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
+                return "0|错误：原工序编号" + theReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
+            }
+
+            if (!HttpContext.Current.Session["Company"].ToString().Contains(dt.Rows[0]["Company"].ToString()))
+                return "0|错误：该账号没有相应的公司权限";
+
+            if (!HttpContext.Current.Session["Plant"].ToString().Contains(dt.Rows[0]["Plant"].ToString()))
+                return "0|错误：该账号没有相应的工厂权限";
+
+            string CreateUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + theReport.OpCode + "' ", null);
+            if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
+                return "0|错误：该账号没有该工序操作权限";
+
+            if (IsOpSeqComplete(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq))
+                return "错误：该工序已完成";
+
+            if (CheckInfo.FirstQty <= 0)
+                return "错误：报工数量需大于0";
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq);
-            if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq) < CheckInfo.QualifiedQty + GetTotalQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
+            if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq) < CheckInfo.QualifiedQty + GetTotalQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 0))
                 return "错误： 报工数超出该阶层物料的需求数量";
-            if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)PreOpSeq) < CheckInfo.QualifiedQty + GetTotalQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
+            if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)PreOpSeq) < CheckInfo.QualifiedQty + GetTotalQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 0))
                 return "错误： 报工数超出上一道工序的完成数量";
+
+            string ss = GetNextSetpInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, dt.Rows[0]["Company"].ToString());
+            if (ss.Substring(0, 1).Trim() == "0")
+                return "0|错误：获取下工序去向失败，" + ss;
 
 
             //再回写主表
@@ -727,6 +760,16 @@ namespace Appapi.Models
 
             return sr;
         }
+
+
+        public static DataTable GetReason(string type)
+        {
+            string sql = "select ReasonCode, Description from erp.Reason where ReasonType = '"+type+"' ";
+             DataTable Reasons = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+            return Reasons;
+        }
+
 
 
         private static void AddOpLog(int? id, string JobNum, int AssemblySeq, int JobSeq, int ApiNum, string OpDate, string OpDetail)

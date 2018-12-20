@@ -405,7 +405,7 @@ namespace Appapi.Models
 
         private static DataTable GetMtlsOfOpSeq(string jobnum, int AssemblySeq, int jobseq, string company) //获取当前工序下所有的未发物料
         {
-            string sql = @"select partnum, mtlseq, qtyper from erp.JobMtl where jobnum ='{0}' and AssemblySeq = {1} and RelatedOperation = {2} and company = '{3}' and IssuedComplete = 0";
+            string sql = @"select partnum, mtlseq, qtyper,RequiredQty  from erp.JobMtl where jobnum ='{0}' and AssemblySeq = {1} and RelatedOperation = {2} and company = '{3}' and IssuedComplete = 0";
             sql = string.Format(sql, jobnum, AssemblySeq, jobseq, company);
 
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
@@ -1210,8 +1210,8 @@ namespace Appapi.Models
                                     {
                                         if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
                                         {
-                                            res = ErpAPI.MtlIssue.CheckIssue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty, DateTime.Parse(OpDate), theBatch.Company);
-                                            if (res != "true")
+                                            res = ErpAPI.MtlIssue.CheckIssue(mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"]);
+                                            if (res.Substring(0, 1).Trim() == "0")
                                                 return "工单：" + theBatch.JobNum + "，阶层：" + theBatch.AssemblySeq.ToString() + "，工序：" + dt.Rows[i]["jobseq"].ToString() + "， 物料编码：" + mtls.Rows[j]["partnum"].ToString() + "  " + res;
                                         }
                                     }
@@ -1333,7 +1333,7 @@ namespace Appapi.Models
                                         {
                                             if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
                                             {
-                                                res = ErpAPI.MtlIssue.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty, DateTime.Parse(OpDate),theBatch.Company);
+                                                res = ErpAPI.MtlIssue.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"], DateTime.Parse(OpDate),theBatch.Company);
                                                 issue_res += mtls.Rows[j]["partnum"].ToString() + "：";
                                                 issue_res += (res == "true") ? (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty + ", " : res + ", ";
                                             }
