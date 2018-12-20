@@ -126,7 +126,7 @@ namespace ErpAPI
                 if (tranQty > Convert.ToDecimal(dt.Rows[i]["OnhandQty"]))
                     continue;
                 else
-                    return "1|" + dt.Rows[i]["LotNum"] + "~" + dt.Rows[i]["BinNum"] + "~" + dt.Rows[i]["IUM"]; 
+                    return "1|" + dt.Rows[i]["PartBin_LotNum"] + "~" + dt.Rows[i]["BinNum"] + "~" + dt.Rows[i]["IUM"]; 
             }
 
             return "0|库存不足 或 追踪的批次号为空";
