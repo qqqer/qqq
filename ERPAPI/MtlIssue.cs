@@ -103,7 +103,7 @@ namespace ErpAPI
                 if (IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, arr[2], "WIP", arr[1], "WIP", arr[1], arr[0], "工单发料", companyId))
                      res = "true";
                 else
-                    res = "发料出错,请检查erp数据";
+                     res = "发料出错,请检查erp数据";
             }
                        
             return res;

@@ -109,8 +109,7 @@ namespace Appapi.Models
 
         public static decimal GetOpSeqCompleteQty(string JobNum, int AssemblySeq, int JobSeq)//工序的完成数量
         {
-            string sql = @"select top 1 jo.QtyCompleted from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
-                        where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq = " + JobSeq + " order by jo.OprSeq desc";
+            string sql = @"select QtyCompleted from erp.JobOper where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + "  and OprSeq = " + JobSeq + " ";
 
             decimal QtyCompleted = Convert.ToDecimal(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 

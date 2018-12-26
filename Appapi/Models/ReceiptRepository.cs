@@ -62,22 +62,7 @@ namespace Appapi.Models
 
             return rcvdtlStr;
         }
-
-
-
-        private static object GetPreOpSeq(Receipt theBatch)//取出同阶层中上一道非该连委工序号，若没有返回null
-        {
-            DataTable dt = GetAllOpSeqOfSeriesSUB(theBatch);
-
-            string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
-                  where jo.Company = '" + theBatch.Company + "' and jh.Plant = '" + theBatch.Plant + "' and jo.JobNum = '" + theBatch.JobNum + "' and jo.AssemblySeq = " + theBatch.AssemblySeq + "  and  jo.OprSeq < " + dt.Rows[0]["jobseq"] + " order by jo.OprSeq desc";
-
-            object PreOpSeq = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-
-            return PreOpSeq;
-        }
    
-
 
         private static int GetLastOpSeqOfSeriesSUB(Receipt theBatch)//取出该订单中的连续委外工序中（包括当前处理的批次工序）最后一道的工序号
         {
@@ -87,7 +72,7 @@ namespace Appapi.Models
 
 
 
-        private static DataTable GetAllOpSeqOfSeriesSUB(Receipt theBatch) //取出该订单中的连续委外工序（包括当前处理的批次工序）的的工序号、poline、porelnum、工序描述、工序代码
+        private static DataTable GetAllOpSeqOfSeriesSUB(Receipt theBatch) //取出该订单中的连续委外工序（包括当前处理的批次工序）的工序号、poline、porelnum、工序描述、工序代码
         {
             string sql = @"  Select jobseq, poline,porelnum ,OpDesc,OpCode, pr.company,pr.ponum from erp.porel pr 
                           left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
@@ -117,7 +102,8 @@ namespace Appapi.Models
             var t = CommonRepository.DataTableToList<Receipt>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
             Receipt theBatch = t?.First(); //获取该批次记录
 
-            int nextStatsu = (theBatch != null ? (int)theBatch.Status : 1) + 1;
+            int nextStatsu = (theBatch != null ? (int)theBatch.Status : 1) + 1; 
+
 
             if (nextStatsu == 2)
             {
@@ -319,6 +305,26 @@ namespace Appapi.Models
 
 
 
+        private static decimal GetRunningQtyOfJobSeq(string jobnum, int asmSeq, int oprseq, int id) //获取本次收货工序的在跑数量, 不包括本次收货数量
+        {
+            //不能锁定ponum poline porel
+            string sql = "select sum(case when ArrivedQty is null then(case when  ReceiveQty2 is null then ReceiveQty1 else ReceiveQty2 end) else ArrivedQty end) from Receipt " +
+            "where isdelete != 1 and isComplete != 1 and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + " and id != " + id + "";
+            object sum = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            return sum is DBNull || sum == null ? 0 : (decimal)sum;
+        }
+
+
+        private static decimal GetTotalQtyOfJobSeq(string jobnum, int asmSeq, int oprseq, int id) //该工序的 在跑+erp 数量, 不包括本次收货数量
+        {
+            decimal bpm_qty = GetRunningQtyOfJobSeq(jobnum, asmSeq, oprseq, id);
+            decimal erp_qty = CommonRepository.GetOpSeqCompleteQty(jobnum, asmSeq, oprseq);
+
+            return bpm_qty + erp_qty;
+        }
+
+
         private static string GetErrorInfo(Receipt batInfo)
         {
             if (HttpContext.Current.Session["Company"].ToString().Contains(batInfo.Company) == false)
@@ -339,7 +345,9 @@ namespace Appapi.Models
                 jh.jobClosed,
                 jh.jobComplete,
                 jh.JobHeld,
-               (pr.XRelQty-pr.ArrivedQty) NeedReceiptQty
+               (pr.XRelQty-pr.ArrivedQty) NeedReceiptQty,
+                jh.JobEngineered,
+                jh.JobReleased
                 from erp.PORel pr
 
                 left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
@@ -384,6 +392,10 @@ namespace Appapi.Models
                     return "关联的工单已关闭";
                 else if ((bool)dt.Rows[0]["jobComplete"] == true)
                     return "关联的工单已完成";
+                else if ((bool)dt.Rows[0]["JobEngineered"] == false)
+                    return "关联的工单未设计";
+                else if ((bool)dt.Rows[0]["JobReleased"] == false)
+                    return "关联的工单未发放";
                 //else if ((bool)dt.Rows[0]["JobHeld"] == true)
                 //  return "关联的工单已冻结";
             }
@@ -444,6 +456,8 @@ namespace Appapi.Models
                 pr.AssemblySeq,               
                 jh.jobClosed,
                 jh.jobComplete,
+                jh.JobEngineered,
+                jh.JobReleased,
                 jh.JobHeld,
                 pc.Description   as  PartClassDesc,
                 (pr.XRelQty-pr.ArrivedQty) NeedReceiptQty, 
@@ -457,7 +471,7 @@ namespace Appapi.Models
                 left join erp.partclass pc  on pc.classid = pd.ClassID   and   pc.company = pd.company
                 left join erp.partplant pp  on pp.company = pr.Company   and   pp.plant = pr.plant   and   pp.PartNum = pd.PartNum
                 where CHARINDEX(pr.Company, '" + HttpContext.Current.Session["Company"].ToString() + "') > 0   and    CHARINDEX(pr.Plant, '" + HttpContext.Current.Session["Plant"].ToString() + "') > 0 " +
-                "and  ph.OpenOrder = 1   and    ph.orderHeld != 1    and    pd.openLine = 1     and      pr.openRelease = 1   and ph.Approve = 1 and ph.Confirmed =1";
+                "and  ph.OpenOrder = 1   and    ph.orderHeld != 1    and    pd.openLine = 1   and   pr.openRelease = 1   and  ph.Approve = 1 and ph.Confirmed =1";
 
             if (Condition.PoNum != null)
                 sql += "and pr.ponum = " + Condition.PoNum + " ";
@@ -467,8 +481,8 @@ namespace Appapi.Models
                 sql += "and pr.PORelNum = " + Condition.PORelNum + " ";
             if (Condition.PartNum != null && Condition.PartNum != "")
                 sql += "and pd.partnum like '%" + Condition.PartNum + "%' ";
-            //if (Condition.BatchNo != null && Condition.BatchNo != "")   //Condition.PartDesc != null && Condition.PartDesc != "" && 
-            //    sql += "and pd.LineDesc like '%" + Condition.PartDesc + "%' ";
+            if (Condition.BatchNo == null && Condition.PartDesc != null)
+                sql += "and pd.LineDesc like '%" + Condition.PartDesc + "%' ";
             if (Condition.Company != null)
                 sql += "and pr.Company = '" + Condition.Company + "' ";
             #endregion
@@ -483,10 +497,11 @@ namespace Appapi.Models
             for (int i = dt.Rows.Count - 1; i >= 0; i--)
             {
                 //如果该收货依据是外协或工单物料 ，且关联的工单已完成或关闭或冻结 则排除该收货依据
-                if (((string)dt.Rows[i]["TranType"] != "PUR-STK" && (string)dt.Rows[i]["TranType"] != "PUR-UKN") && ((bool)dt.Rows[i]["jobClosed"] == true || (bool)dt.Rows[i]["jobComplete"] == true))// || (bool)dt.Rows[i]["JobHeld"] == true))
+                if (((string)dt.Rows[i]["TranType"] != "PUR-STK" && (string)dt.Rows[i]["TranType"] != "PUR-UKN") && ((bool)dt.Rows[i]["jobClosed"] == true || (bool)dt.Rows[i]["jobComplete"] == true || (bool)dt.Rows[i]["JobEngineered"] == false || (bool)dt.Rows[i]["JobReleased"] == false))// || (bool)dt.Rows[i]["JobHeld"] == true))
                     dt.Rows.RemoveAt(i);
             }
             List<Receipt> RBs = CommonRepository.DataTableToList<Receipt>(dt);
+
 
 
 
@@ -560,11 +575,11 @@ namespace Appapi.Models
                 //临时取消完成数判断，财务上线 +
                 //if (RB.TranType == "PUR-SUB")
                 //{
-                //    object PreOpSeq = GetPreOpSeq(RB);
+                //    object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq);
 
-                //    if (PreOpSeq == null && GetReqQtyOfAssemblySeq(RB.Company, RB.Plant, RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1)
-                //        return "错误： 收货数超出需求数量";
-                //    if (PreOpSeq != null && GetOpSeqCompleteQty(RB.Company, RB.Plant, RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1)
+                //    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+                //        return "错误： 收货数超出阶层物料的需求数量";
+                //    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
                 //        return "错误： 收货数超出上一道非该供应商工序的完成数量";
                 //}
 
@@ -753,12 +768,16 @@ namespace Appapi.Models
             if (batInfo.ReceiveQty1 > RB.NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(batInfo.ReceiveQty1 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
 
+
+            //临时取消完成数判断，财务上线 +
             //if (RB.TranType == "PUR-SUB")
             //{
-            //    object PreOpSeq = GetPreOpSeq(RB);
+            //    object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq);
 
-            //    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1)
-            //        return "错误： 收货数超出上一道非该供应商的工序的完成数量";
+            //    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+            //        return "错误： 收货数超出阶层物料的需求数量";
+            //    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+            //        return "错误： 收货数超出上一道非该供应商工序的完成数量";
             //}
 
 
@@ -948,8 +967,16 @@ namespace Appapi.Models
 
             else //status == 2  更新批次信息。
             {
-                sql = @"update Receipt set OurFailedQty = " + (IQCInfo.OurFailedQty != null ? IQCInfo.OurFailedQty : 0) + ", PreStatus = " + theBatch.Status + " , IQCRemark = '" + IQCInfo.IQCRemark + "' ,  NBBatchNo = '" + IQCInfo.NBBatchNo + "', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Status= " + IQCInfo.Status + " ,ThirdUserGroup = '{5}', SecondUserID = '{6}', ReceiptNo = '{7}', ReceiveQty2 = {8}, AtRole = {10} where ID = {9}";
-                sql = string.Format(sql, Convert.ToInt32(IQCInfo.IsAllCheck), (IQCInfo.InspectionQty) == -1 ? "null" : IQCInfo.InspectionQty.ToString(), IQCInfo.PassedQty, IQCInfo.FailedQty, IQCInfo.Result, IQCInfo.ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), IQCInfo.ReceiptNo, IQCInfo.ReceiveQty2, IQCInfo.ID, IQCInfo.Status == 3 ? 4 : 2);
+                string PassedQty = IQCInfo.PassedQty != null ? IQCInfo.PassedQty.ToString() : "null";
+                string FailedQty = IQCInfo.FailedQty != null ? IQCInfo.FailedQty.ToString() : "null";
+                string OurFailedQty = IQCInfo.OurFailedQty != null ? IQCInfo.OurFailedQty.ToString() : "null";
+                string InspectionQty = IQCInfo.InspectionQty != -1 ? IQCInfo.InspectionQty.ToString() : "null";
+                string ThirdUserGroup = IQCInfo.ThirdUserGroup ?? "";
+                string ReceiptNo = IQCInfo.ReceiptNo ?? "";
+
+
+                sql = @"update Receipt set OurFailedQty = " + OurFailedQty + ", PreStatus = " + theBatch.Status + " , IQCRemark = '" + IQCInfo.IQCRemark + "' ,  NBBatchNo = '" + IQCInfo.NBBatchNo + "', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Status= " + IQCInfo.Status + " ,ThirdUserGroup = '{5}', SecondUserID = '{6}', ReceiptNo = '{7}', ReceiveQty2 = {8}, AtRole = {10} where ID = {9}";
+                sql = string.Format(sql, Convert.ToInt32(IQCInfo.IsAllCheck), InspectionQty, PassedQty, FailedQty, IQCInfo.Result, ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), ReceiptNo, IQCInfo.ReceiveQty2, IQCInfo.ID, IQCInfo.Status == 3 ? 4 : 2);
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
@@ -2074,7 +2101,7 @@ namespace Appapi.Models
 
 
 
-        public static DataTable GetAllCommentTextOfSeriesSUB(int PoNum, string JobNum, int AssemblySeq, string Company) //取出该订单中的连续委外工序（包括当前处理的批次工序）的的工序号、poline、porelnum、工序描述、工序代码
+        public static DataTable GetAllCommentTextOfSeriesSUB(int PoNum, string JobNum, int AssemblySeq, string Company) //获取所有连续委外工序的描述
         {
             DataTable dt = GetAllOpSeqOfSeriesSUB(new Receipt { PoNum = PoNum, JobNum = JobNum, AssemblySeq = AssemblySeq, Company = Company });
 
