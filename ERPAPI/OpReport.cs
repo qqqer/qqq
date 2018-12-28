@@ -20,9 +20,10 @@ namespace ErpAPI
 {
     public static class OpReport
     {
-        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, out string Character05)
+        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, out string Character05, out int tranid)
         { //JobNum as string ,jobQty as decimal,partNum as string
             Character05 = "";
+            tranid = -1;
             try
             {
                 DataTable dt = Common.GetDataByERP(@"select [JobOper].[JobNum] as [JobOper_JobNum],
@@ -111,8 +112,8 @@ namespace ErpAPI
                 dtLabDtl = dsLabHed.LaborDtl;
                 labAd.DefaultLaborQty(dsLabHed, LQty, out msg);
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborQty"] = LQty;
-                disQty = 0;  //先不回写不合格数量
-                disCode = "";
+                //disQty = disQty;  //先不回写不合格数量
+                //disCode = disCode;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrepQty"] = disQty;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrpRsnCode"] = disCode;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["TimeStatus"] = "A";
@@ -131,6 +132,10 @@ namespace ErpAPI
                 {
                     labAd.CheckWarnings(dsLabHed, out cMessageText);
                     labAd.Update(dsLabHed);
+                    string LaborDtlSeq = dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborDtlSeq"].ToString();
+             
+                    if (disQty > 0)
+                        tranid = int.Parse(Common.QueryERP("select * from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " "));
                 }
                 catch (Exception ex)
                 {
@@ -242,7 +247,7 @@ namespace ErpAPI
         //检查处理
         public static string StartInspProcessing(
             int TranID,
-            
+            decimal DMRQualifiedQty,
             decimal UnQualifiedQty ,//返修数(DMRRepairQty)+拒收数(DMRUnQualifiedQty)
             string FailedReasonCode,
             string FailedWarehouseCode ,
@@ -267,16 +272,23 @@ namespace ErpAPI
                 InspProcessingDataSet ds = adapter.GetByID(TranID);
                 //检验员
                 adapter.AssignInspectorNonConf(InspectorID, ds, out infoMsg);
-                //不合格数
-                ds.Tables["InspNonConf"].Rows[0]["DimPassedQty"] = UnQualifiedQty;
-                adapter.OnChangeFailedQty(ds, "NonConf", UnQualifiedQty, out infoMsg);
-                //不合格原因
-                ds.Tables["InspNonConf"].Rows[0]["FailedReasonCode"] = FailedReasonCode;
-                //不合格仓库
-                adapter.OnChangePassedWhse(ds, "NonConf", "Failed", FailedWarehouseCode);
-                //不合格库位
-                ds.Tables["InspNonConf"].Rows[0]["FailedBin"] = FailedBin;
-                ds.Tables["InspNonConf"].Rows[0]["RowMod"] = "U";
+                //合格数
+                ds.Tables["InspNonConf"].Rows[0]["DimPassedQty"] = DMRQualifiedQty;
+                adapter.OnChangePassedQty(ds, "NonConf", DMRQualifiedQty, out infoMsg);
+                if (UnQualifiedQty > 0)
+                {
+                    //不合格数
+                    ds.Tables["InspNonConf"].Rows[0]["DimFailedQty"] = UnQualifiedQty;
+                    adapter.OnChangeFailedQty(ds, "NonConf", UnQualifiedQty, out infoMsg);
+                    //不合格原因
+                    ds.Tables["InspNonConf"].Rows[0]["FailedReasonCode"] = FailedReasonCode;
+                    //不合格仓库
+                    adapter.OnChangePassedWhse(ds, "NonConf", "Failed", FailedWarehouseCode);
+                    //不合格库位
+                    ds.Tables["InspNonConf"].Rows[0]["FailedBin"] = FailedBin;
+                    ds.Tables["InspNonConf"].Rows[0]["RowMod"] = "U";
+                }
+
                 //保存
                 adapter.InspectOperation(out legalNumberMessage, out iDMRNum, ds);
 

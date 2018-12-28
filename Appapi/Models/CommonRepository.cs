@@ -12,6 +12,27 @@ namespace Appapi.Models
 {
     public static class CommonRepository
     {
+        public static DataTable UnionDataTable(DataTable dt1, DataTable dt2)
+        {
+            if (dt1 == null && dt2 == null) return null;
+
+            if (dt1 != null && dt2 == null) return dt1;
+
+            if (dt1 == null && dt2 != null) return dt2;
+
+
+            object[] obj = new object[dt2.Columns.Count];
+
+            for (int i = 0; i < dt2.Rows.Count; i++)
+            {
+                dt2.Rows[i].ItemArray.CopyTo(obj, 0);
+                dt1.Rows.Add(obj);
+            }
+
+            return dt1;
+        }
+
+
         public static List<T> DataTableToList<T>(DataTable dt) where T : class, new()
         {
             if (dt == null || dt.Rows.Count == 0) return null;

@@ -63,7 +63,11 @@ namespace Appapi.Models
         public bool? IsSubProcess { get; set; }
         public decimal? DMRRepairQty { get; set; }       
         public string DMRJobNum { get; set; }
-        
+        public int? CheckCounter { get; set; }
+        public string UnQualifiedGroup { get; set; }
+
+       
+
 
         public int? ID { get; set; }
         
