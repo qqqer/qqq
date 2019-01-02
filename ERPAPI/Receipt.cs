@@ -131,7 +131,6 @@ namespace ErpAPI
 
 
 
-
         public static string porcv(string packNum, string recdate, string vendorid, string rcvdtlStr, string c10, string companyId)
         {
             if (packNum.Trim() == "") { return "0|收货单号不可为空"; }
@@ -298,7 +297,9 @@ namespace ErpAPI
                         {
                             lotStr2 = lotStr;
                             if (lotStr.Trim() == "" && (ordertype.ToLower() == "pur-sub" || ordertype.ToLower() == "pur-mtl"))
-                            { lotStr = jobnum; }
+                            {
+                                lotStr = jobnum;
+                            }
                             string lotnum = Common.QueryERP("select pl.LotNum from erp.partlot pl left join erp.PODetail pd on pl.Company=pd.Company and pl.PartNum=pd.PartNum where pl.Company='" + companyId + "' and pd.PONUM=" + poNum + " and pd.POLine=" + poline + " and pl.LotNum='" + lotStr + "'");
                             if (!string.IsNullOrEmpty(lotnum))
                             {

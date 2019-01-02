@@ -357,11 +357,8 @@ E:\Git\APPapi\Appapi\bin\zh-CN\Ice.Lib.Deployment.resources.dll
 E:\Git\APPapi\Appapi\bin\zh-CN\Ice.Contracts.BO.UserFile.resources.dll
 E:\Git\APPapi\Appapi\bin\ClassLibrary1.dll
 E:\Git\APPapi\Appapi\bin\ClassLibrary1.pdb
-E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.PO.xml
-E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.PO.resources.dll
 E:\Git\APPapi\Appapi\bin\Ice.Contracts.BO.DynamicQuery.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.ReceiptsFromMfg.dll
-E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.ReceiptsFromMfg.resources.dll
 E:\Git\APPapi\Appapi\bin\zxing.dll
 E:\Git\APPapi\Appapi\bin\zxing.presentation.dll
 E:\Git\APPapi\Appapi\bin\zxing.pdb
@@ -369,7 +366,6 @@ E:\Git\APPapi\Appapi\bin\zxing.xml
 E:\Git\APPapi\Appapi\bin\zxing.presentation.pdb
 E:\Git\APPapi\Appapi\bin\zxing.presentation.xml
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.InvTransfer.dll
-E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.InvTransfer.resources.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.IssueReturn.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.Labor.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.NonConf.dll

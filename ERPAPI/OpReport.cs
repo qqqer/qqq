@@ -135,7 +135,7 @@ namespace ErpAPI
                     string LaborDtlSeq = dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborDtlSeq"].ToString();
              
                     if (disQty > 0)
-                        tranid = int.Parse(Common.QueryERP("select * from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " "));
+                        tranid = int.Parse(Common.QueryERP("select tranid from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " "));
                 }
                 catch (Exception ex)
                 {

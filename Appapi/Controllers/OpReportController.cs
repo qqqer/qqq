@@ -69,7 +69,7 @@ namespace Appapi.Controllers
 
         //Post:  /api/OpReport/AccepterCommit
         [System.Web.Http.HttpPost]
-        public string AccepterCommit(OpReport AcceptInfo) // ApiNum 401
+        public string AccepterCommit(OpReport AcceptInfo) // ApiNum 400
         {
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
@@ -77,6 +77,20 @@ namespace Appapi.Controllers
             string res = OpReportRepository.AccepterCommit(AcceptInfo);
 
             return res == "处理成功" ? res : res + "|401";
+        }
+
+
+
+        //Post:  /api/OpReport/DMRCommit
+        [System.Web.Http.HttpPost]
+        public string DMRCommit(OpReport DMRInfo) // ApiNum 500
+        {
+            if (HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+            string res = OpReportRepository.DMRCommit(DMRInfo);
+
+            return res == "处理成功" ? res : res + "|500";
         }
 
 
@@ -147,6 +161,30 @@ namespace Appapi.Controllers
         public DataTable GetReason(string type)//ApiNum: 8   
         {
             return OpReportRepository.GetReason(type);
+        }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/GetDMRNextUserGroup
+        public DataTable GetDMRNextUserGroup(string OpCode, int ID)//ApiNum: 9   
+        {
+            return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetDMRNextUserGroup(OpCode, ID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/GetDMRRemainsOfUser
+        public IEnumerable<OpReport> GetDMRRemainsOfUser()//ApiNum: 10   获取当前用户的待办事项
+        {
+            return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetDMRRemainsOfUser() : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/GetNextUserGroupOfSub 
+        public DataTable GetNextUserGroupOfSub(int ID)//ApiNum: 11  子流程选人 
+        {
+            return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetNextUserGroupOfSub(ID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
     }
 }
