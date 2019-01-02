@@ -1137,7 +1137,7 @@ namespace Appapi.Models
             string[] arr = ss.Split('~');
             if ((theReport.NextJobSeq == theReport.JobSeq && arr[0] != "仓库") || (theReport.NextOpCode != arr[1]))
             {
-                ReturnStatus((int)theReport.ID, (int)theReport.Status, 11, "工序去向已更改，主流程自动回退", 401);
+                ReturnStatus((bool)theReport.IsSubProcess, (int)theReport.ID, (int)theReport.Status, 11, "工序去向已更改，主流程自动回退", 401);
             }
 
 
