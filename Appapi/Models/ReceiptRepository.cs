@@ -459,6 +459,7 @@ namespace Appapi.Models
                 jh.JobEngineered,
                 jh.JobReleased,
                 jh.JobHeld,
+                ph.POType,
                 pc.Description   as  PartClassDesc,
                 (pr.XRelQty-pr.ArrivedQty) NeedReceiptQty, 
                 pp.PrimWhse as Warehouse
@@ -573,23 +574,23 @@ namespace Appapi.Models
                     return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(batInfo.ReceiveQty1 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
 
                 //临时取消完成数判断，财务上线 +
-                //if (RB.TranType == "PUR-SUB")
-                //{
-                //    object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq);
+                if (RB.TranType == "PUR-SUB")
+                {
+                    object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq);
 
-                //    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
-                //        return "错误： 收货数超出阶层物料的需求数量";
-                //    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
-                //        return "错误： 收货数超出上一道非该供应商工序的完成数量";
-                //}
+                    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+                        return "错误： 收货数超出阶层物料的需求数量";
+                    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+                        return "错误： 收货数超出上一道非该供应商工序的完成数量";
+                }
 
                 #region 计算批次号
                 string sql = "select * from SerialNumber where name = 'BAT'";
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
 
-                string OriDay = dt.Rows[0]["time"].ToString().Substring(0, 10);//截取从数据库获得的时间的年月日部分
-                string today = DateTime.Now.ToString().Substring(0, 10);//截取当前时间的年月日部分
+                string OriDay = ((DateTime)dt.Rows[0]["time"]).ToString("yyyy-MM-dd");//截取从数据库获得的时间的年月日部分
+                string today = DateTime.Now.ToString("yyyy-MM-dd");//截取当前时间的年月日部分
 
 
                 if (OriDay == today) // 如果从数据库获得的日期 是今天 
@@ -678,7 +679,8 @@ namespace Appapi.Models
                             isAuto,
                             isComplete,
                             PackSlip,
-                            ReceiptDate                           
+                            ReceiptDate,
+                            POType
                             ) values({0}) ";
                     string values = CommonRepository.ConstructInsertValues(new ArrayList
                     {
@@ -721,7 +723,8 @@ namespace Appapi.Models
                         0,
                         0,
                         RB.SupplierNo + batInfo.BatchNo,
-                        OpDate
+                        OpDate,
+                        RB.POType
                     });
                     sql = string.Format(sql, values);
                     #endregion
@@ -770,15 +773,15 @@ namespace Appapi.Models
 
 
             //临时取消完成数判断，财务上线 +
-            //if (RB.TranType == "PUR-SUB")
-            //{
-            //    object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq);
+            if (RB.TranType == "PUR-SUB")
+            {
+                object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq);
 
-            //    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
-            //        return "错误： 收货数超出阶层物料的需求数量";
-            //    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
-            //        return "错误： 收货数超出上一道非该供应商工序的完成数量";
-            //}
+                if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+                    return "错误： 收货数超出阶层物料的需求数量";
+                if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+                    return "错误： 收货数超出上一道非该供应商工序的完成数量";
+            }
 
 
             string sql = "select status, isdelete, iscomplete from Receipt where BatchNo = '" + batInfo.BatchNo + "' ";
@@ -827,7 +830,8 @@ namespace Appapi.Models
                         isAuto,
                         isComplete,
                         PackSlip,
-                        ReceiptDate
+                        ReceiptDate,
+                        POType
                         ) values({0}) ";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
                 {
@@ -870,7 +874,8 @@ namespace Appapi.Models
                     0,
                     0,
                     RB.SupplierNo + batInfo.BatchNo,
-                    OpDate
+                    OpDate,
+                    RB.POType
                 });
                 sql = string.Format(sql, values);
                 #endregion
@@ -1211,9 +1216,12 @@ namespace Appapi.Models
                         DataTable dt = GetAllOpSeqOfSeriesSUB(theBatch);
 
                         object PreOpSeq = CommonRepository.GetPreOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[0]["jobseq"]);
-                        decimal CurrCompletedQty = CommonRepository.GetOpSeqCompleteQty(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)theBatch.JobSeq);
-                        //临时取消完成数判断，财务上线+
-                        //if (PreOpSeq == null || GetOpSeqCompleteQty(theBatch.Company, theBatch.Plant, theBatch.JobNum, (int)theBatch.AssemblySeq, (int)PreOpSeq) >= AcceptInfo.ArrivedQty + CurrCompletedQty) //(QtyCompletedQty) == 0 代表没有上到工序
+                        if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
+                            return "错误： 收货数超出阶层物料的需求数量";
+                        if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
+                            return "错误： 收货数超出上一道非该供应商工序的完成数量";
+
+
                         {
                             packnum = vendorid + theBatch.BatchNo;
                             if (packnum.Length > 20)
@@ -1853,7 +1861,6 @@ namespace Appapi.Models
 
             string sql = "select * from Receipt where ID = " + ReceiptID + "";
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
-
 
 
             sql = @"select WarehouseCode, wh.Description from erp.partplant pp  LEFT JOIN erp.Warehse wh on pp.PrimWhse = wh.WarehouseCode and pp.Company = wh.Company and pp.Plant = wh.Plant   

@@ -202,17 +202,17 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
-    <Compile Include="Controllers\MtlIssueController.cs" />
+    <Compile Include="Controllers\MtlReportController.cs" />
     <Compile Include="Controllers\OpReportController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\ReceiptController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\MtlReportRepository.cs" />
     <Compile Include="Models\OpReport.cs" />
     <Compile Include="Models\OpReportRepository.cs" />
     <Compile Include="Models\FTPRepository.cs" />
-    <Compile Include="Models\MtlIssueRepository.cs" />
     <Compile Include="Models\Reason.cs" />
     <Compile Include="Models\CommonRepository.cs" />
     <Compile Include="Models\Receipt.cs" />

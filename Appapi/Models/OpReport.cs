@@ -52,6 +52,7 @@ namespace Appapi.Models
 
 
 
+
         public int? TranID { get; set; }
         public int? DMRID { get; set; }
         public decimal? DMRQualifiedQty { get; set; }
@@ -65,8 +66,8 @@ namespace Appapi.Models
         public string DMRJobNum { get; set; }
         public int? CheckCounter { get; set; }
         public string UnQualifiedGroup { get; set; }
+        public int? UnQualifiedType { get; set; }
 
-       
 
 
         public int? ID { get; set; }

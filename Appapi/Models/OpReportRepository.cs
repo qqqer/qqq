@@ -84,6 +84,16 @@ namespace Appapi.Models
         }
 
 
+        private static string CheckBinNum(string company, string binnum, string WarehouseCode)
+        {
+            string sql = "select count(*) from erp.WhseBin where Company = '{0}' and  WarehouseCode = '{1}' and BinNum = '{2}'";
+            sql = string.Format(sql, company, WarehouseCode, binnum);
+            int exist = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return exist == 0 ? "错误：库位与仓库不匹配" : "ok";
+        }
+
+
         private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, string dmrid)
         {
             string sql = @"
@@ -142,21 +152,12 @@ namespace Appapi.Models
                   ,{2}
                   ,[ReturnThree]
                   ,[CheckCounter]
+                  ,1
              from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRQualifiedQty, Id, 1, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), dmrid);
 
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-        }
-
-
-        private static string CheckBinNum(string company, string binnum, string WarehouseCode)
-        {
-            string sql = "select count(*) from erp.WhseBin where Company = '{0}' and  WarehouseCode = '{1}' and BinNum = '{2}'";
-            sql = string.Format(sql, company, WarehouseCode, binnum);
-            int exist = (int)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-
-            return exist == 0 ? "错误：库位与仓库不匹配" : "ok";
         }
 
 
@@ -218,6 +219,7 @@ namespace Appapi.Models
                   ,{2}
                   ,[ReturnThree]
                   ,[CheckCounter]
+                  ,1
              from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRRepairQty, Id, 1, DMRJobNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString());
@@ -284,6 +286,7 @@ namespace Appapi.Models
               ,{2}
               ,[ReturnThree]
               ,[CheckCounter]
+              ,1
          from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRUnQualifiedQty, Id, 1, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString());

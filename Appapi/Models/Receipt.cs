@@ -75,7 +75,7 @@ namespace Appapi.Models
         public int PreStatus { get; set; }
         public string PackSlip { get; set; }
         public decimal? OurFailedQty { get; set; }
-
+        public string POType { get; set; }
 
 
 
@@ -84,6 +84,7 @@ namespace Appapi.Models
         public int Colour { get; set; }
         public string ReturnReason { get; set; }
         public string ReturnReasonRemark { get; set; }
-        public bool IsForPrintQR { get; set; }
+        public bool IsForPrintQR { get; set; }      
+        public int? PrintQty { get; set; }
     }
 }
