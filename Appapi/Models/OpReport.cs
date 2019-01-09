@@ -51,8 +51,6 @@ namespace Appapi.Models
         public int? ReturnThree { get; set; }
 
 
-
-
         public int? TranID { get; set; }
         public int? DMRID { get; set; }
         public decimal? DMRQualifiedQty { get; set; }
@@ -68,6 +66,8 @@ namespace Appapi.Models
         public string UnQualifiedGroup { get; set; }
         public int? UnQualifiedType { get; set; }
 
+        public int? MtlSeq { get; set; }
+        public string LotNum { get; set; }
 
 
         public int? ID { get; set; }

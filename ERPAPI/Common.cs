@@ -459,5 +459,287 @@ namespace ErpAPI
                 return "0|" + ex.Message.ToString();
             }
         }
+
+
+
+        //不合格品发起
+        public static string Startnonconf(
+                string JobNum,
+                int AssemblySeq,
+                string Company,
+                int MtlSeq,
+                decimal Qty,//让步数(DMRQualifiedQty) + 返修数(DMRRepairQty)+拒收数(DMRUnQualifiedQty) + 
+                string WarehouseCode,
+                string BinNum,
+                string ReasonCode,
+                string plant,
+                string LotNum,
+                out int tranid)
+        {
+
+            tranid = -1;
+            Session EpicorSession = Common.GetEpicorSession();
+            if (EpicorSession == null)
+            {
+                return "0|GetEpicorSession失败，请稍候再试|Startnonconf";
+            }
+
+            try
+            {
+                bool plAsmReturned = true;
+                string snWarning = "";
+
+                NonConfImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<NonConfImpl>(EpicorSession, ImplBase<Erp.Contracts.NonConfSvcContract>.UriPath);
+                //EpicorSessionManager.EpicorSession.CompanyID = Company;
+                //EpicorSessionManager.EpicorSession.PlantID = plant;
+
+                //新增物料
+                NonConfDataSet ds = adapter.AddNonConf("JobMaterial");
+                //加入工单
+                adapter.OnChangeJobNum(JobNum, out plAsmReturned, out snWarning, ds);
+                //选择阶层
+                ds.Tables["NonConf"].Rows[0]["JobNum"] = JobNum;
+                ds.Tables["NonConf"].Rows[0]["AssemblySeq"] = AssemblySeq;
+                adapter.OnChangeJobAsm(AssemblySeq, ds);
+                //选择物料
+                adapter.OnChangeJobMtl(MtlSeq, ds);
+                ds.Tables["NonConf"].Rows[0]["FromOprSeq"] = MtlSeq;
+                //填数量
+                adapter.OnChangeTranQty(Qty, ds);
+                ds.Tables["NonConf"].Rows[0]["Quantity"] = Qty;
+                //选仓库
+                adapter.OnChangeWarehouseCode(WarehouseCode, false, ds);
+                ds.Tables["NonConf"].Rows[0]["ToWarehouseCode"] = WarehouseCode;
+                ds.Tables["NonConf"].Rows[0]["WarehouseCode"] = "WIP";
+                //填库位
+                adapter.OnChangeBinNum(BinNum, false, ds);
+                ds.Tables["NonConf"].Rows[0]["ToBinNum"] = BinNum;
+                ds.Tables["NonConf"].Rows[0]["BinNum"] = "01";
+                //原因
+                ds.Tables["NonConf"].Rows[0]["ReasonCode"] = ReasonCode;
+                //批次
+                ds.Tables["NonConf"].Rows[0]["LotNum"] = LotNum;
+
+                //保存
+                adapter.Update(ds);
+                tranid = int.Parse(ds.Tables["NonConf"].Rows[0]["TranID"].ToString());
+
+                return "1";
+            }
+            catch (Exception ex)
+            {
+                return "0|" + ex.Message;
+            }
+        }
+
+
+        //检查处理
+        public static string StartInspProcessing(
+            int TranID,
+            decimal DMRQualifiedQty,
+            decimal UnQualifiedQty,//返修数(DMRRepairQty)+拒收数(DMRUnQualifiedQty)
+            string FailedReasonCode,
+            string FailedWarehouseCode,
+            string FailedBin,
+            string type,
+            out int dmrid)
+        {
+            dmrid = -1;
+            Session EpicorSession = Common.GetEpicorSession();
+            if (EpicorSession == null)
+            {
+                return "0|GetEpicorSession失败，请稍候再试|StartInspProcessing";
+            }
+
+            try
+            {
+                string infoMsg = "";
+                string legalNumberMessage = "";
+                int iDMRNum = 0;
+                string InspectorID = "Q01";
+
+                InspProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<InspProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.InspProcessingSvcContract>.UriPath);
+                InspProcessingDataSet ds = adapter.GetByID(TranID);
+                //检验员
+                ds.Tables["InspNonConf"].Rows[0]["InspectorID"] = InspectorID;
+                adapter.AssignInspectorNonConf(InspectorID, ds, out infoMsg);
+
+                //合格数
+                if (type == "报工")
+                {
+                    ds.Tables["InspNonConf"].Rows[0]["DimPassedQty"] = DMRQualifiedQty;
+                    adapter.OnChangePassedQty(ds, "NonConf", DMRQualifiedQty, out infoMsg);
+                }
+
+                //不合格数
+                ds.Tables["InspNonConf"].Rows[0]["DimFailedQty"] = UnQualifiedQty;
+                adapter.OnChangeFailedQty(ds, "NonConf", UnQualifiedQty, out infoMsg);
+                //不合格原因
+                ds.Tables["InspNonConf"].Rows[0]["FailedReasonCode"] = FailedReasonCode;
+                //不合格仓库
+                adapter.OnChangePassedWhse(ds, "NonConf", "Failed", FailedWarehouseCode);
+                //不合格库位
+                ds.Tables["InspNonConf"].Rows[0]["FailedBin"] = FailedBin;
+                ds.Tables["InspNonConf"].Rows[0]["RowMod"] = "U";
+                //保存
+                if (type == "物料")
+                    adapter.InspectMaterial(out legalNumberMessage, out iDMRNum, ds);
+                if (type == "报工")
+                    adapter.InspectOperation(out legalNumberMessage, out iDMRNum, ds);
+
+
+                dmrid = iDMRNum;
+
+
+                return "1";
+            }
+            catch (Exception ex)
+            {
+                return "0|" + ex.Message;
+            }
+        }
+
+
+        //返修
+        public static string RepairDMRProcessing(
+            int DMRID,
+        string Company,
+        string plant,
+        string PartNum,
+        decimal DMRRepairQty,//返修         
+        string DMRJobNum)
+        {
+            Session EpicorSession = Common.GetEpicorSession();
+            if (EpicorSession == null)
+            {
+                return "0|GetEpicorSession失败，请稍候再试|RepairDMRProcessing";
+            }
+
+            try
+            {
+                int AssemblySeq = 0;
+                bool multipleMatch = false;
+                bool vSubAvail = false;
+                string vMsgText = "";
+                string vMsgType = "";
+                bool opPartChgCompleted = false;
+                string opMtlIssuedAction = "";
+                Guid ss = new Guid();
+                DateTime time = DateTime.Now;
+                string opLegalNumberMessage = "";
+
+                DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
+                JobEntryImpl adapter1 = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<JobEntryImpl>(EpicorSession, ImplBase<Erp.Contracts.JobEntrySvcContract>.UriPath);
+                //EpicorSessionManager.EpicorSession.CompanyID = Company;
+                // EpicorSessionManager.EpicorSession.PlantID = plant;
+                //开返修工单
+                adapter1.ValidateJobNum(DMRJobNum);
+                JobEntryDataSet dsJ = adapter1.GetDatasetForTree(DMRJobNum, 0, 0, false, "MFG,PRJ,SRV");
+                adapter1.GetNewJobHead(dsJ);
+                dsJ.Tables["JobHead"].Rows[0]["JobNum"] = DMRJobNum;
+                dsJ.Tables["JobHead"].Rows[0]["PartNum"] = PartNum;
+                dsJ.Tables["JobHead"].Rows[0]["JobType"] = "MFG";
+                adapter1.ChangeJobHeadPartNum(dsJ);
+                dsJ.Tables["JobHead"].Rows[0]["PlantMaintPlant"] = plant;
+                dsJ.Tables["JobHead"].Rows[0]["Plant"] = plant;
+                dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "Main Site";
+
+                adapter1.Update(dsJ);
+                //物料
+                JobEntryDataSet dsM = adapter1.GetDatasetForTree(DMRJobNum, 0, 0, false, "MFG,PRJ,SRV");
+                adapter1.GetNewJobMtl(dsM, DMRJobNum, 0);
+                dsM.Tables["JobMtl"].Rows[0]["PartNum"] = PartNum;
+                adapter1.ChangeJobMtlPartNum(dsM, true, ref PartNum, ss, "", "", out vMsgText, out vSubAvail, out vMsgType, out multipleMatch, out opPartChgCompleted, out opMtlIssuedAction);
+
+                adapter1.Update(dsM);
+                //工单是否发放
+                dsJ.Tables["JobHead"].Rows[0]["JobEngineered"] = true;
+                dsJ.Tables["JobHead"].Rows[0]["JobReleased"] = true;
+                dsJ.Tables["JobHead"].Rows[0]["ReqDueDate"] = time;
+                adapter1.Update(dsJ);
+                //工序接收返修
+                DMRProcessingDataSet ds = adapter.GetByID(DMRID);
+                int i = ds.Tables["DMRActn"].Rows.Count;
+                adapter.GetNewDMRActnAcceptMTL(ds, DMRID);
+                ds.Tables["DMRActn"].Rows[i]["DMRNum"] = DMRID;
+                ds.Tables["DMRActn"].Rows[i]["Company"] = Company;
+
+                adapter.ChangeJobNum(ds, DMRJobNum);
+                ds.Tables["DMRActn"].Rows[i]["JobNum"] = DMRJobNum;
+
+                adapter.ChangeJobAsmSeq(ds, AssemblySeq);
+                ds.Tables["DMRActn"].Rows[i]["AssemblySeq"] = AssemblySeq;
+
+                adapter.ChangeJobMtlSeq(ds, 10);//10是序号，默认写死
+
+                ds.Tables["DMRActn"].Rows[i]["DispQuantity"] = DMRRepairQty;
+                ds.Tables["DMRActn"].Rows[i]["TranQty"] = DMRRepairQty;
+                ds.Tables["DMRActn"].Rows[i]["Quantity"] = 0;
+                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = "PCS";
+                ds.Tables["DMRActn"].Rows[i]["TranUOM"] = "PCS";
+                adapter.DefaultIssueComplete(ds);
+
+                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
+                ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
+                adapter.ChangeWarehouse(ds);
+                ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D03";//返工
+                                                                   //保存
+                adapter.CustomUpdate(ds, out opLegalNumberMessage);
+                return "1";
+            }
+            catch (Exception ex)
+            {
+                return "0|" + ex.Message;
+            }
+        }
+
+
+
+        /// <summary>
+        /// 拒收
+        /// </summary>
+        public static string RefuseDMRProcessing(string Company,
+        string plant,
+        decimal DMRUnQualifiedQty,
+        string DMRUnQualifiedReason,
+        int DMRID)
+        {
+
+            Session EpicorSession = Common.GetEpicorSession();
+            if (EpicorSession == null)
+            {
+                return "0|GetEpicorSession失败，请稍候再试|RepairDMRProcessing";
+            }
+
+            try
+            {
+                string opLegalNumberMessage = "";
+
+                DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
+                //EpicorSessionManager.EpicorSession.CompanyID = Company;
+                //EpicorSessionManager.EpicorSession.PlantID = plant;
+
+
+                DMRProcessingDataSet ds = adapter.GetByID(DMRID);
+                int i = ds.Tables["DMRActn"].Rows.Count;
+                adapter.GetNewDMRActnReject(ds, DMRID);
+                ds.Tables["DMRActn"].Rows[i]["DMRNum"] = DMRID;
+                ds.Tables["DMRActn"].Rows[i]["Company"] = Company;
+                ds.Tables["DMRActn"].Rows[i]["DispQuantity"] = DMRUnQualifiedQty;
+                ds.Tables["DMRActn"].Rows[i]["Quantity"] = 0;
+                ds.Tables["DMRActn"].Rows[i]["TranQty"] = 0;
+                //ds.Tables["DMRActn"].Rows[0]["TotRemainQty"] = tqty;
+                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = "PCS";
+                ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = DMRUnQualifiedReason;
+
+                //保存
+                adapter.CustomUpdate(ds, out opLegalNumberMessage);
+                return "1";
+            }
+            catch (Exception ex)
+            {
+                return "0|" + ex.Message;
+            }
+        }
     }
 }

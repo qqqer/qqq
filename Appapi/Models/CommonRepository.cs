@@ -128,6 +128,57 @@ namespace Appapi.Models
         }
 
 
+        public static void SignOut()
+        {
+            HttpContext.Current.Session.Abandon();
+        }
+
+
+        public static bool CheckVersion(string version)//ApiNum: 19   检测版本号
+        {
+            string sql = "select Version from SerialNumber";
+            object Version = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            if (Version.ToString().Trim() == version.Trim())
+                return true;
+
+            return false;
+        }
+
+
+
+        public static DataTable GetMtlsOfOpSeq(string jobnum, int AssemblySeq, int jobseq, string company) //获取当前工序下所有的未发物料
+        {
+            string sql = @"select partnum, mtlseq, qtyper,RequiredQty  from erp.JobMtl where jobnum ='{0}' and AssemblySeq = {1} and RelatedOperation = {2} and company = '{3}' and IssuedComplete = 0";
+            sql = string.Format(sql, jobnum, AssemblySeq, jobseq, company);
+
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+            return dt;
+        }
+
+
+
+        public static string CheckJobHeadState(string jobnum)
+        {
+            string sql = @"select jh.jobClosed,jh.jobComplete, jh.JobEngineered, jh.JobReleased from erp.JobHead jh where jh.JobNum = '" + jobnum + "'";
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+            if (dt == null)
+                return "工单不存在";
+            else if ((bool)dt.Rows[0]["jobClosed"] == true)
+                return "关联的工单已关闭";
+            else if ((bool)dt.Rows[0]["jobComplete"] == true)
+                return "关联的工单已完成";
+            else if ((bool)dt.Rows[0]["JobEngineered"] == false)
+                return "关联的工单未设计";
+            else if ((bool)dt.Rows[0]["JobReleased"] == false)
+                return "关联的工单未发放";
+
+            return "正常";
+        }
+
+
         public static decimal GetOpSeqCompleteQty(string JobNum, int AssemblySeq, int JobSeq)//工序的完成数量
         {
             string sql = @"select QtyCompleted from erp.JobOper where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + "  and OprSeq = " + JobSeq + " ";
@@ -187,6 +238,7 @@ namespace Appapi.Models
         }
 
 
+
         public static object GetPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
         {
             string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
@@ -195,6 +247,15 @@ namespace Appapi.Models
             object PreOpSeq = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
             return PreOpSeq;
+        }
+
+
+
+        public static bool IsOpSeqComplete(string JobNum, int AssemblySeq, int JobSeq)
+        {
+            string sql = @"select OpComplete  from erp.JobOper where jobnum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and  OprSeq = " + JobSeq + "";
+
+            return Convert.ToBoolean(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
         }
 
     }

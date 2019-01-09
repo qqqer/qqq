@@ -32,43 +32,43 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Epicor.ServiceModel">
-      <HintPath>\\192.168.9.100\ERP10.1.600.0Deployment\Client\Epicor.ServiceModel.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Client\Epicor.ServiceModel.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.DMRProcessing">
-      <HintPath>\\192.168.9.100\EpicorPilot-EWA\assemblies\Erp.Contracts.BO.DMRProcessing.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.DMRProcessing.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.InspProcessing">
-      <HintPath>\\192.168.9.100\EpicorPilot-EWA\assemblies\Erp.Contracts.BO.InspProcessing.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.InspProcessing.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.InvTransfer">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.InvTransfer.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.IssueReturn">
-      <HintPath>\\192.168.9.100\EpicorPilot-EWA\assemblies\Erp.Contracts.BO.IssueReturn.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.IssueReturn.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.JobEntry">
-      <HintPath>\\192.168.9.100\EpicorPilot-EWA\assemblies\Erp.Contracts.BO.JobEntry.dll</HintPath>
+      <HintPath>\\\192.168.9.100\EpicorTest\Erp.Contracts.BO.JobEntry.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.Labor">
-      <HintPath>\\192.168.9.100\EpicorPilot-EWA\assemblies\Erp.Contracts.BO.Labor.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.Labor.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.LotSelectUpdate">
-      <HintPath>\\192.168.9.100\ERP10.1.600.0Deployment\Client\Erp.Contracts.BO.LotSelectUpdate.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Client\Erp.Contracts.BO.LotSelectUpdate.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.NonConf">
-      <HintPath>\\192.168.9.100\EpicorPilot-EWA\assemblies\Erp.Contracts.BO.NonConf.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.NonConf.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.PO">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.PO.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.Receipt">
-      <HintPath>\\192.168.9.100\ERP10.1.600.0Deployment\Client\Erp.Contracts.BO.Receipt.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Client\Erp.Contracts.BO.Receipt.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.ReceiptsFromMfg">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.ReceiptsFromMfg.dll</HintPath>
     </Reference>
     <Reference Include="Ice.Contracts.BO.DynamicQuery">
-      <HintPath>\\192.168.9.100\ERP10.1.600.0Deployment\Client\Ice.Contracts.BO.DynamicQuery.dll</HintPath>
+      <HintPath>\\192.168.9.100\EpicorTest\Client\Ice.Contracts.BO.DynamicQuery.dll</HintPath>
     </Reference>
     <Reference Include="Ice.Core.Session">
       <HintPath>\\192.168.9.100\EpicorTest\Ice.Core.Session.dll</HintPath>

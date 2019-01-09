@@ -49,7 +49,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpGet]
         public void SignOut() //ApiNum: 10002   退出登录
         {
-            HttpContext.Current.Session.Abandon();
+            CommonRepository.SignOut();
         }
         #endregion
 
@@ -302,7 +302,7 @@ namespace Appapi.Controllers
         //Get:  /api/Receipt/CheckVersion
         public bool CheckVersion(string version)//ApiNum: 19   检测版本号
         {
-            return ReceiptRepository.CheckVersion(version);
+            return CommonRepository.CheckVersion(version);
         }
 
 
