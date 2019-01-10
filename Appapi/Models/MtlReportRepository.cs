@@ -52,7 +52,8 @@ namespace Appapi.Models
                     ,[IsComplete]
                     ,[IsDelete]
                     ,[IsSubProcess]
-                    ,[LotNum]) values({0})";
+                    ,[LotNum]
+                    ,[Responsibility]) values({0})";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
             {
                 theReport.CreateUser,
@@ -79,7 +80,8 @@ namespace Appapi.Models
                 0,
                 0,
                 1,
-                theReport.LotNum
+                theReport.LotNum,
+                theReport.Responsibility
             });
             sql = string.Format(sql, valueStr);
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -120,7 +122,8 @@ namespace Appapi.Models
                     ,[IsComplete]
                     ,[IsDelete]
                     ,[IsSubProcess]
-                    ,[LotNum]) values({0})";
+                    ,[LotNum]
+                    ,[Responsibility]) values({0})";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
             {
                 theReport.CreateUser,
@@ -148,7 +151,8 @@ namespace Appapi.Models
                 0,
                 0,
                 1,
-                theReport.LotNum
+                theReport.LotNum,
+                theReport.Responsibility
             });
             sql = string.Format(sql, valueStr);
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -191,7 +195,8 @@ namespace Appapi.Models
                     ,[IsComplete]
                     ,[IsDelete]
                     ,[IsSubProcess]
-                    ,[LotNum]) values({0})";
+                    ,[LotNum]
+                    ,[Responsibility]) values({0})";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
             {
                 theReport.CreateUser,
@@ -221,7 +226,8 @@ namespace Appapi.Models
                 0,
                 0,
                 1,
-                theReport.LotNum
+                theReport.LotNum,
+                theReport.Responsibility
             });
             sql = string.Format(sql, valueStr);
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -418,7 +424,8 @@ namespace Appapi.Models
                        "DMRUnQualifiedReason = '" + DMRInfo.DMRUnQualifiedReason + "', " +
                        "DMRJobNum = '" + DMRInfo.DMRJobNum + "'," +
                        "DMRWarehouseCode = '" + DMRInfo.DMRWarehouseCode + "'," +
-                       "DMRBinNum = '" + DMRInfo.DMRBinNum + "' " +
+                       "DMRBinNum = '" + DMRInfo.DMRBinNum + "', " +
+                       "Responsibility = '" + DMRInfo.Responsibility + "' " +
                        "where id = " + DMRInfo.ID + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }

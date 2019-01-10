@@ -127,6 +127,7 @@ namespace Appapi.Models
                   ,1
                   ,null
                   ,null
+                  ,[Responsibility]
              from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRQualifiedQty, Id, 1, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), dmrid);
@@ -196,6 +197,7 @@ namespace Appapi.Models
                   ,1
                   ,null
                   ,null
+                  ,[Responsibility]
              from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRRepairQty, Id, 1, DMRJobNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString());
@@ -265,6 +267,7 @@ namespace Appapi.Models
               ,1
               ,null
               ,null
+              ,[Responsibility]
          from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRUnQualifiedQty, Id, 1, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString());
@@ -692,14 +695,15 @@ namespace Appapi.Models
             if (theReport.ErpCounter < 1) //没交互过，或第一次交互失败,允许更改数量
             {
                 sql = "update bpm set " +
-                   "DMRQualifiedQty = " + DMRInfo.DMRQualifiedQty + ", " +
-                   "DMRRepairQty = " + DMRInfo.DMRRepairQty + "," +
-                   "DMRUnQualifiedQty = " + DMRInfo.DMRUnQualifiedQty + "," +
-                   "DMRUnQualifiedReason = '" + DMRInfo.DMRUnQualifiedReason + "', " +
-                   "DMRJobNum = '" + DMRInfo.DMRJobNum + "'," +
-                   "DMRWarehouseCode = '" + DMRInfo.DMRWarehouseCode + "'," +
-                   "DMRBinNum = '" + DMRInfo.DMRBinNum + "' " +
-                   "where id = " + DMRInfo.ID + "";
+                       "DMRQualifiedQty = " + DMRInfo.DMRQualifiedQty + ", " +
+                       "DMRRepairQty = " + DMRInfo.DMRRepairQty + "," +
+                       "DMRUnQualifiedQty = " + DMRInfo.DMRUnQualifiedQty + "," +
+                       "DMRUnQualifiedReason = '" + DMRInfo.DMRUnQualifiedReason + "', " +
+                       "DMRJobNum = '" + DMRInfo.DMRJobNum + "'," +
+                       "DMRWarehouseCode = '" + DMRInfo.DMRWarehouseCode + "'," +
+                       "DMRBinNum = '" + DMRInfo.DMRBinNum + "', " +
+                       "Responsibility = '" + DMRInfo.Responsibility + "' " +
+                       "where id = " + DMRInfo.ID + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
             else //交互成功过，只能使用原始数量值
