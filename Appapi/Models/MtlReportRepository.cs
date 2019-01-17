@@ -291,6 +291,9 @@ namespace Appapi.Models
             if (0 >= ReportInfo.UnQualifiedQty)
                 return "错误：数量需大于0";
 
+            if (ReportInfo.PartNum.Substring(0, 1).Trim().ToLower() == "c")
+                return "错误：化学品暂不能上报";
+
             if (GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq) < ReportInfo.UnQualifiedQty)
                 return "错误：上报数量大于物料的已发料数量，或该物料未发料";
 
