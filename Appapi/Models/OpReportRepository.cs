@@ -626,11 +626,35 @@ namespace Appapi.Models
 
             string Character05;
             int TranID = -1;
-            //decimal start = Convert.ToDecimal(theReport.StartDate.TimeOfDay.TotalHours.ToString("N2"));
-            //decimal end = Convert.ToDecimal(theReport.EndDate.TimeOfDay.TotalHours.ToString("N2"));
-            res = ErpAPI.OpReport.D0505("", theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)CheckInfo.QualifiedQty, (decimal)CheckInfo.UnQualifiedQty, CheckInfo.UnQualifiedReason, "", theReport.StartDate, theReport.EndDate, theReport.Company, theReport.Plant, (decimal)theReport.LaborHrs, out Character05, out TranID);
-            if (res.Substring(0, 1).Trim() != "1")
-                return "错误：" + res;
+            if (theReport.ErpCounter < 1)//时间费用
+            {
+                res = ErpAPI.OpReport.D0505("", theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)CheckInfo.QualifiedQty, (decimal)CheckInfo.UnQualifiedQty, CheckInfo.UnQualifiedReason, "", theReport.StartDate, theReport.EndDate, theReport.Company, theReport.Plant, (decimal)theReport.LaborHrs, out Character05, out TranID);
+                if (res.Substring(0, 1).Trim() != "1")
+                    return "错误：" + res;
+
+                sql =  "update bpm set ErpCounter = 1 ," +
+                        "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
+                        "QualifiedQty = " + CheckInfo.QualifiedQty + ", " +
+                        "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + " " +
+                        "where id = " + CheckInfo.ID + ""; //时间费用成功
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            }
+
+            if (theReport.ErpCounter < 2)//检验处理
+            {
+                sql = @"select * from BPM where Id = " + theReport.ID + "";
+                theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
+
+                int DMRID =-1;
+                if (theReport.UnQualifiedQty > 0)
+                {
+                    res = ErpAPI.Common.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, "报工", out DMRID);
+                    if (res.Substring(0, 1).Trim() != "1")
+                        return "错误：" + res;
+                }
+                sql = " update bpm set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + CheckInfo.ID + "";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            }
 
 
             sql = "update bpm set " +
@@ -676,6 +700,11 @@ namespace Appapi.Models
             DMRInfo.DMRRepairQty = Convert.ToDecimal(DMRInfo.DMRRepairQty);
             DMRInfo.DMRUnQualifiedQty = Convert.ToDecimal(DMRInfo.DMRUnQualifiedQty);
 
+            //decimal theReportDMRQualifiedQty = Convert.ToDecimal(theReport.DMRQualifiedQty);
+            //decimal theReportDMRRepairQty = Convert.ToDecimal(theReport.DMRRepairQty);
+            //decimal theReportDMRUnQualifiedQty = Convert.ToDecimal(theReport.DMRUnQualifiedQty);
+
+            decimal determinedQty = Convert.ToDecimal(theReport.DMRQualifiedQty)+ Convert.ToDecimal(theReport.DMRRepairQty) + Convert.ToDecimal(theReport.DMRUnQualifiedQty);
 
             if (DMRInfo.DMRQualifiedQty < 0)
                 return "错误：让步数量不能为负";
@@ -686,8 +715,8 @@ namespace Appapi.Models
             if (DMRInfo.DMRUnQualifiedQty < 0)
                 return "错误：废弃数量不能为负";
 
-            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty != theReport.UnQualifiedQty)
-                return "错误：让步数 + 返修数 + 废弃数 不等于原待检数";
+            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.UnQualifiedQty - determinedQty)
+                return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数量";
 
             if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum == "")
                 return "错误：返修工单号不能为空";
@@ -708,30 +737,30 @@ namespace Appapi.Models
                 return "错误：库位与仓库不匹配";
 
 
-            if (theReport.ErpCounter < 1) //没交互过，或第一次交互失败,允许更改数量
-            {
-                sql = "update bpm set " +
-                       "DMRQualifiedQty = " + DMRInfo.DMRQualifiedQty + ", " +
-                       "DMRRepairQty = " + DMRInfo.DMRRepairQty + "," +
-                       "DMRUnQualifiedQty = " + DMRInfo.DMRUnQualifiedQty + "," +
-                       "DMRUnQualifiedReason = '" + DMRInfo.DMRUnQualifiedReason + "', " +
-                       "DMRJobNum = '" + DMRInfo.DMRJobNum + "'," +
-                       "DMRWarehouseCode = '" + DMRInfo.DMRWarehouseCode + "'," +
-                       "DMRBinNum = '" + DMRInfo.DMRBinNum + "', " +
-                       "Responsibility = '" + DMRInfo.Responsibility + "' " +
-                       "where id = " + DMRInfo.ID + "";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            }
-            else //交互成功过，只能使用原始数量值
-            {
-                DMRInfo.DMRQualifiedQty = theReport.DMRQualifiedQty;
-                DMRInfo.DMRRepairQty = theReport.DMRRepairQty;
-                DMRInfo.DMRUnQualifiedQty = theReport.DMRUnQualifiedQty;
-                DMRInfo.DMRUnQualifiedReason = theReport.DMRUnQualifiedReason;
-                DMRInfo.DMRJobNum = theReport.DMRJobNum;
-                DMRInfo.DMRWarehouseCode = theReport.DMRWarehouseCode;
-                DMRInfo.DMRBinNum = theReport.DMRBinNum;
-            }
+            //if (theReport.ErpCounter < 1) //没交互过，或第一次交互失败,允许更改数量
+            //{
+            //    sql = "update bpm set " +
+            //           "DMRQualifiedQty = " + DMRInfo.DMRQualifiedQty + ", " +
+            //           "DMRRepairQty = " + DMRInfo.DMRRepairQty + "," +
+            //           "DMRUnQualifiedQty = " + DMRInfo.DMRUnQualifiedQty + "," +
+            //           "DMRUnQualifiedReason = '" + DMRInfo.DMRUnQualifiedReason + "', " +
+            //           "DMRJobNum = '" + DMRInfo.DMRJobNum + "'," +
+            //           "DMRWarehouseCode = '" + DMRInfo.DMRWarehouseCode + "'," +
+            //           "DMRBinNum = '" + DMRInfo.DMRBinNum + "', " +
+            //           "Responsibility = '" + DMRInfo.Responsibility + "' " +
+            //           "where id = " + DMRInfo.ID + "";
+            //    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            //}
+            //else //交互成功过，只能使用原始数量值
+            //{
+            //    DMRInfo.DMRQualifiedQty = theReport.DMRQualifiedQty;
+            //    DMRInfo.DMRRepairQty = theReport.DMRRepairQty;
+            //    DMRInfo.DMRUnQualifiedQty = theReport.DMRUnQualifiedQty;
+            //    DMRInfo.DMRUnQualifiedReason = theReport.DMRUnQualifiedReason;
+            //    DMRInfo.DMRJobNum = theReport.DMRJobNum;
+            //    DMRInfo.DMRWarehouseCode = theReport.DMRWarehouseCode;
+            //    DMRInfo.DMRBinNum = theReport.DMRBinNum;
+            //}
 
 
             int DMRID; string res;

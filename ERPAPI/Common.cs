@@ -489,6 +489,7 @@ namespace ErpAPI
 
             try
             {
+                EpicorSession.PlantID = plant;
                 bool plAsmReturned = true;
                 string snWarning = "";
 
@@ -545,6 +546,7 @@ namespace ErpAPI
             string FailedWarehouseCode,
             string FailedBin,
             string type,
+            string plant,
             out int dmrid)
         {
             dmrid = -1;
@@ -556,6 +558,7 @@ namespace ErpAPI
 
             try
             {
+                EpicorSession.PlantID = plant;
                 string infoMsg = "";
                 string legalNumberMessage = "";
                 int iDMRNum = 0;
@@ -620,6 +623,7 @@ namespace ErpAPI
 
             try
             {
+                EpicorSession.PlantID = plant;
                 int AssemblySeq = 0;
                 bool multipleMatch = false;
                 bool vSubAvail = false;
@@ -709,6 +713,7 @@ namespace ErpAPI
         {
 
             Session EpicorSession = Common.GetEpicorSession();
+
             if (EpicorSession == null)
             {
                 return "0|GetEpicorSession失败，请稍候再试|RepairDMRProcessing";
@@ -716,6 +721,7 @@ namespace ErpAPI
 
             try
             {
+                EpicorSession.PlantID = plant;
                 string opLegalNumberMessage = "";
 
                 DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
