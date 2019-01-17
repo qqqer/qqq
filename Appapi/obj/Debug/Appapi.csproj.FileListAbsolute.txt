@@ -374,3 +374,6 @@ E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.DMRProcessing.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.JobEntry.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.PO.xml
 E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.PO.resources.dll
+E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.JobEntry.resources.dll
+E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.LotSelectUpdate.resources.dll
+E:\Git\APPapi\Appapi\bin\zh-CN\Epicor.ServiceModel.resources.dll

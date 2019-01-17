@@ -292,7 +292,7 @@ namespace Appapi.Models
                 return "错误：数量需大于0";
 
             if (GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq) < ReportInfo.UnQualifiedQty)
-                return "错误：上报数量大于物料的已发料数量";
+                return "错误：上报数量大于物料的已发料数量，或该物料未发料";
 
 
             string sql = @"select jh.Company, Plant from erp.JobHead jh  where jh.JobNum = '" + ReportInfo.JobNum + "' ";
@@ -620,10 +620,10 @@ namespace Appapi.Models
         }
 
 
-
+        
         public static IEnumerable<OpReport> GetDMRRemainsOfUser()
         {
-            if ((int)HttpContext.Current.Session["RoleId"] == 1024)
+            if (((int)HttpContext.Current.Session["RoleId"] & 1024) != 0)
             {
                 string sql = @"select * from MtlReport where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 order by CreateDate desc";
                 sql = string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());

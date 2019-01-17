@@ -6,7 +6,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <_PublishTargetUrl>D:\webapi_test</_PublishTargetUrl>
+    <_PublishTargetUrl>D:\webapi</_PublishTargetUrl>
   </PropertyGroup>
   <ItemGroup>
     <File Include="ApplicationInsights.config">
@@ -82,19 +82,19 @@
       <publishTime>09/19/2018 13:30:42</publishTime>
     </File>
     <File Include="bin/Appapi.dll">
-      <publishTime>01/09/2019 12:09:46</publishTime>
+      <publishTime>01/16/2019 16:56:54</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
-      <publishTime>01/09/2019 12:09:46</publishTime>
+      <publishTime>01/16/2019 16:56:54</publishTime>
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.dll">
-      <publishTime>01/09/2019 12:09:45</publishTime>
+      <publishTime>01/16/2019 15:23:49</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.pdb">
-      <publishTime>01/09/2019 12:09:45</publishTime>
+      <publishTime>01/16/2019 15:23:49</publishTime>
     </File>
     <File Include="bin/CommonClass.dll">
       <publishTime>10/18/2018 11:44:41</publishTime>
@@ -109,7 +109,7 @@
       <publishTime>07/23/2018 18:55:10</publishTime>
     </File>
     <File Include="bin/Epicor.ServiceModel.dll">
-      <publishTime>04/12/2017 13:47:42</publishTime>
+      <publishTime>04/12/2017 00:47:44</publishTime>
     </File>
     <File Include="bin/EpicorAPIManager.dll">
       <publishTime>10/18/2018 11:44:48</publishTime>
@@ -142,7 +142,7 @@
       <publishTime>04/12/2017 00:44:42</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.JobEntry.dll">
-      <publishTime>12/28/2018 00:48:34</publishTime>
+      <publishTime>04/12/2017 00:44:42</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.Labor.dll">
       <publishTime>04/12/2017 00:44:44</publishTime>
@@ -151,7 +151,7 @@
       <publishTime>04/12/2017 13:44:43</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.LotSelectUpdate.dll">
-      <publishTime>04/12/2017 13:44:44</publishTime>
+      <publishTime>04/12/2017 00:44:46</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.NonConf.dll">
       <publishTime>04/12/2017 00:44:50</publishTime>
@@ -166,7 +166,7 @@
       <publishTime>07/23/2018 18:54:42</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.Receipt.dll">
-      <publishTime>04/12/2017 13:45:01</publishTime>
+      <publishTime>04/12/2017 00:45:02</publishTime>
     </File>
     <File Include="bin/Erp.Contracts.BO.ReceiptsFromMfg.dll">
       <publishTime>04/12/2017 00:45:02</publishTime>
@@ -175,7 +175,7 @@
       <publishTime>07/23/2018 18:54:42</publishTime>
     </File>
     <File Include="bin/Ice.Contracts.BO.DynamicQuery.dll">
-      <publishTime>04/12/2017 13:48:10</publishTime>
+      <publishTime>04/12/2017 00:48:12</publishTime>
     </File>
     <File Include="bin/Ice.Contracts.BO.UserFile.dll">
       <publishTime>04/12/2017 00:48:24</publishTime>
@@ -409,7 +409,7 @@
       <publishTime>09/19/2018 13:30:44</publishTime>
     </File>
     <File Include="bin/zh-CN/Epicor.ServiceModel.resources.dll">
-      <publishTime>12/07/2017 00:01:04</publishTime>
+      <publishTime>12/28/2018 00:01:04</publishTime>
     </File>
     <File Include="bin/zh-CN/Erp.Contracts.BO.APInvGrp.resources.dll">
       <publishTime>04/04/2018 00:01:04</publishTime>
@@ -426,8 +426,11 @@
     <File Include="bin/zh-CN/Erp.Contracts.BO.IssueReturn.resources.dll">
       <publishTime>12/30/2017 00:01:04</publishTime>
     </File>
+    <File Include="bin/zh-CN/Erp.Contracts.BO.JobEntry.resources.dll">
+      <publishTime>12/29/2018 00:01:04</publishTime>
+    </File>
     <File Include="bin/zh-CN/Erp.Contracts.BO.LotSelectUpdate.resources.dll">
-      <publishTime>12/19/2017 00:01:04</publishTime>
+      <publishTime>01/02/2019 00:01:04</publishTime>
     </File>
     <File Include="bin/zh-CN/Erp.Contracts.BO.NonConf.resources.dll">
       <publishTime>03/23/2018 00:01:04</publishTime>
@@ -448,34 +451,34 @@
       <publishTime>12/28/2018 00:01:04</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Net.Http.Formatting.resources.dll">
-      <publishTime>09/19/2018 13:30:42</publishTime>
+      <publishTime>02/01/2018 12:17:22</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.Helpers.resources.dll">
-      <publishTime>09/19/2018 13:30:43</publishTime>
+      <publishTime>02/01/2018 12:21:00</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.Http.resources.dll">
-      <publishTime>09/19/2018 13:30:42</publishTime>
+      <publishTime>02/01/2018 12:17:44</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.Http.WebHost.resources.dll">
-      <publishTime>09/19/2018 13:30:43</publishTime>
+      <publishTime>02/01/2018 12:19:30</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.Mvc.resources.dll">
-      <publishTime>09/19/2018 13:30:42</publishTime>
+      <publishTime>02/01/2018 12:16:38</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.Optimization.resources.dll">
-      <publishTime>09/19/2018 13:30:42</publishTime>
+      <publishTime>02/11/2014 15:28:40</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.Razor.resources.dll">
-      <publishTime>09/19/2018 13:30:42</publishTime>
+      <publishTime>02/01/2018 12:17:00</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.WebPages.Deployment.resources.dll">
-      <publishTime>09/19/2018 13:30:43</publishTime>
+      <publishTime>02/01/2018 12:21:00</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.WebPages.Razor.resources.dll">
-      <publishTime>09/19/2018 13:30:43</publishTime>
+      <publishTime>02/01/2018 12:21:00</publishTime>
     </File>
     <File Include="bin/zh-Hans/System.Web.WebPages.resources.dll">
-      <publishTime>09/19/2018 13:30:43</publishTime>
+      <publishTime>02/01/2018 12:21:00</publishTime>
     </File>
     <File Include="bin/zxing.dll">
       <publishTime>04/14/2018 18:39:12</publishTime>
@@ -580,7 +583,7 @@
       <publishTime>09/19/2018 13:30:41</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>01/07/2019 13:17:01</publishTime>
+      <publishTime>01/14/2019 12:45:53</publishTime>
     </File>
   </ItemGroup>
 </Project>

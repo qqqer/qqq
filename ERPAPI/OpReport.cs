@@ -20,7 +20,7 @@ namespace ErpAPI
 {
     public static class OpReport
     {
-        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, out string Character05, out int tranid)
+        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId,string plantId, decimal labh, out string Character05, out int tranid)
         { //JobNum as string ,jobQty as decimal,partNum as string
             Character05 = "";
             tranid = -1;
@@ -70,7 +70,7 @@ namespace ErpAPI
                 if ((compQty + LQty + disQty) > runQty)
                 {
                     // EpicorSessionManager.DisposeSession();
-                    return "0|以前报工数量" + compQty + "+ 本次报工数量" + (LQty + disQty) + ",>工序数量" + runQty + "，不能报工。";
+                    return "0|以前报工数量" + compQty + "+ 本次报工数量" + (LQty + disQty) + "  >  工序数量" + runQty + "，不能报工。";
                 }
                 if (empid.Trim() == "") { Character05=empid = "DB"; }
       
@@ -81,6 +81,7 @@ namespace ErpAPI
                     return "0|erp用户数不够，请稍候再试.接口号：D0505";
                 }
                 EpicorSession.CompanyID = companyId;
+                EpicorSession.PlantID = plantId;
                 WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionidd", "");
                 LaborImpl labAd = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<LaborImpl>(EpicorSession, ImplBase<Erp.Contracts.LaborSvcContract>.UriPath);
                 LaborDataSet dsLabHed = new LaborDataSet();
@@ -102,10 +103,11 @@ namespace ErpAPI
                     dsLabHed = labAd.GetByID(labHedSeq);
                 }
                 outTime  = EndDate.Hour;// + System.DateTime.Now.Minute / 100;
-                labAd.GetNewLaborDtlWithHdr(dsLabHed, StartDate.Date, 0, EndDate.Date, outTime, labHedSeq);
-
+                labAd.GetNewLaborDtlWithHdr(dsLabHed, System.DateTime.Today, 0, System.DateTime.Today, outTime, labHedSeq);
+                 
                 labAd.DefaultLaborType(dsLabHed, "P");
                 labAd.DefaultJobNum(dsLabHed, JobNum);
+               /// labAd.defaultjo
                 labAd.DefaultAssemblySeq(dsLabHed, asmSeq);
                 string msg;
                 labAd.DefaultOprSeq(dsLabHed, oprSeq, out msg);
@@ -114,12 +116,15 @@ namespace ErpAPI
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborQty"] = LQty;
                 //disQty = disQty;  //先不回写不合格数量
                 //disCode = disCode;
+
+                TimeSpan timeSpan = EndDate - StartDate;
+
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrepQty"] = disQty;
-                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrpRsnCode"] = disCode;
-                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["TimeStatus"] = "A";
+                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrpRsnCode"] = disQty > 0 ? disCode : "";
+                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["TimeStatus"] = "A"; 
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockinTime"] = Convert.ToDecimal(StartDate.TimeOfDay.TotalHours.ToString("N2"));
-                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockOutTime"] = Convert.ToDecimal(EndDate.TimeOfDay.TotalHours.ToString("N2"));
-                //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborHrs"] = EndDate - StartDate;
+                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockOutTime"] = timeSpan.TotalMinutes < 1 ? Convert.ToDecimal(EndDate.AddMinutes(1).TimeOfDay.TotalHours.ToString("N2")) : Convert.ToDecimal(EndDate.TimeOfDay.TotalHours.ToString("N2"));
+                //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborHrs"] = labh;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Date01"] = System.DateTime.Today;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ShortChar01"] = System.DateTime.Now.ToString("hh:mm:ss");
 

@@ -253,7 +253,7 @@ namespace Appapi.Models
 
         public static bool IsOpSeqComplete(string JobNum, int AssemblySeq, int JobSeq)
         {
-            string sql = @"select OpComplete  from erp.JobOper where jobnum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and  OprSeq = " + JobSeq + "";
+            string sql = @"select  OpComplete  from erp.JobOper where jobnum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and  OprSeq = " + JobSeq + "";
 
             return Convert.ToBoolean(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
         }

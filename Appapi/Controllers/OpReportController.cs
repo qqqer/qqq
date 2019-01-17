@@ -16,6 +16,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpGet]
         public string Start(string values) // ApiNum 101
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
@@ -30,6 +31,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public string ReporterCommit(OpReport ReportInfo) // ApiNum 102
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
@@ -44,6 +46,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public string CheckerCommit(OpReport CheckInfo) // ApiNum 201
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
@@ -55,42 +58,47 @@ namespace Appapi.Controllers
 
         //Post:  /api/OpReport/TransferCommit
         [System.Web.Http.HttpPost]
-        public string TransferCommit(OpReport TransmitInfo) // ApiNum 301
+        public string TransferCommit(OpReport TransmitInfo) // ApiNum 301 or 302
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
             string res = OpReportRepository.TransferCommit(TransmitInfo);
+            string apinum = (bool)TransmitInfo.IsSubProcess ? "|302" : "|301";
 
-            return res == "处理成功" ? res : res + "|301";
+            return res == "处理成功" ? res : res + apinum;
         }
 
 
 
         //Post:  /api/OpReport/AccepterCommit
         [System.Web.Http.HttpPost]
-        public string AccepterCommit(OpReport AcceptInfo) // ApiNum 400
+        public string AccepterCommit(OpReport AcceptInfo) // ApiNum 401 or 402
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
             string res = OpReportRepository.AccepterCommit(AcceptInfo);
 
-            return res == "处理成功" ? res : res + "|401";
+            string apinum = (bool)AcceptInfo.IsSubProcess ? "|402" : "|401";
+            return res == "处理成功" ? res : res + apinum;
         }
 
 
 
         //Post:  /api/OpReport/DMRCommit
         [System.Web.Http.HttpPost]
-        public string DMRCommit(OpReport DMRInfo) // ApiNum 500
+        public string DMRCommit(OpReport DMRInfo) // ApiNum 601
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
             string res = OpReportRepository.DMRCommit(DMRInfo);
 
-            return res == "处理成功" ? res : res + "|500";
+            return res == "处理成功" ? res : res + "|601";
         }
 
 
@@ -148,12 +156,12 @@ namespace Appapi.Controllers
         }
 
 
-        [HttpGet]
-        //Get:  /api/OpReport/GetRecordByQR 
-        public ScanResult GetRecordByQR(string values)//ApiNum: 7   
-        {
-            return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
-        }
+        //[HttpGet]
+        ////Get:  /api/OpReport/GetRecordByQR 
+        //public ScanResult GetRecordByQR(string values)//ApiNum: 7   
+        //{
+        //    //return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        //}
 
 
         [HttpGet]
@@ -185,6 +193,38 @@ namespace Appapi.Controllers
         public DataTable GetNextUserGroupOfSub(int ID)//ApiNum: 11  子流程选人 
         {
             return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetNextUserGroupOfSub(ID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
+
+        [HttpGet]
+        //Get:  /api/OpReport/ClearProcess
+        public string ClearProcess() //ApiNum: 12 强制清空当前开始的工序
+        {
+            OpReportRepository.ClearProcess();
+            return "取消成功";
+        }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/GetRecordsForPrint
+        public IEnumerable<OpReport> GetRecordsForPrint(string JobNum, int? AssemblySeq, int? JobSeq) //ApiNum: 13 获取可选的打印记录集合
+        {
+            return OpReportRepository.GetRecordsForPrint(JobNum, AssemblySeq, JobSeq);
+        }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/PrintQR
+        public string PrintQR(int id, int printqty) //ApiNum: 14 打印复制二维码
+        {
+            return  OpReportRepository.PrintQR(id, printqty);
+        }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/GetRecordByQR
+        public ScanResult GetRecordByQR(string values) //ApiNum: 15
+        {
+            return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
     }
 }

@@ -31,8 +31,9 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Epicor.ServiceModel">
-      <HintPath>\\192.168.9.100\EpicorTest\Client\Epicor.ServiceModel.dll</HintPath>
+    <Reference Include="Epicor.ServiceModel, Version=3.1.600.0, Culture=neutral, PublicKeyToken=37a5ccb872c00aec, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>\\192.168.9.100\EpicorTest\Epicor.ServiceModel.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.DMRProcessing">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.DMRProcessing.dll</HintPath>
@@ -46,14 +47,17 @@
     <Reference Include="Erp.Contracts.BO.IssueReturn">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.IssueReturn.dll</HintPath>
     </Reference>
-    <Reference Include="Erp.Contracts.BO.JobEntry">
-      <HintPath>\\\192.168.9.100\EpicorTest\Erp.Contracts.BO.JobEntry.dll</HintPath>
+    <Reference Include="Erp.Contracts.BO.JobEntry, Version=10.1.600.0, Culture=neutral, PublicKeyToken=5d3fa3c7105d7992, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.JobEntry.dll</HintPath>
     </Reference>
-    <Reference Include="Erp.Contracts.BO.Labor">
+    <Reference Include="Erp.Contracts.BO.Labor, Version=10.1.600.0, Culture=neutral, PublicKeyToken=5d3fa3c7105d7992, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.Labor.dll</HintPath>
     </Reference>
-    <Reference Include="Erp.Contracts.BO.LotSelectUpdate">
-      <HintPath>\\192.168.9.100\EpicorTest\Client\Erp.Contracts.BO.LotSelectUpdate.dll</HintPath>
+    <Reference Include="Erp.Contracts.BO.LotSelectUpdate, Version=10.1.600.0, Culture=neutral, PublicKeyToken=5d3fa3c7105d7992, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.LotSelectUpdate.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.NonConf">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.NonConf.dll</HintPath>
@@ -61,14 +65,16 @@
     <Reference Include="Erp.Contracts.BO.PO">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.PO.dll</HintPath>
     </Reference>
-    <Reference Include="Erp.Contracts.BO.Receipt">
-      <HintPath>\\192.168.9.100\EpicorTest\Client\Erp.Contracts.BO.Receipt.dll</HintPath>
+    <Reference Include="Erp.Contracts.BO.Receipt, Version=10.1.600.0, Culture=neutral, PublicKeyToken=5d3fa3c7105d7992, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.Receipt.dll</HintPath>
     </Reference>
     <Reference Include="Erp.Contracts.BO.ReceiptsFromMfg">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.ReceiptsFromMfg.dll</HintPath>
     </Reference>
-    <Reference Include="Ice.Contracts.BO.DynamicQuery">
-      <HintPath>\\192.168.9.100\EpicorTest\Client\Ice.Contracts.BO.DynamicQuery.dll</HintPath>
+    <Reference Include="Ice.Contracts.BO.DynamicQuery, Version=3.1.600.0, Culture=neutral, PublicKeyToken=5d3fa3c7105d7992, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>\\192.168.9.100\EpicorTest\Ice.Contracts.BO.DynamicQuery.dll</HintPath>
     </Reference>
     <Reference Include="Ice.Core.Session">
       <HintPath>\\192.168.9.100\EpicorTest\Ice.Core.Session.dll</HintPath>

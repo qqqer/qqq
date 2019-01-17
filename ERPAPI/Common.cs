@@ -212,9 +212,10 @@ namespace ErpAPI
 
 
         //D0506-01工单收货至库存
-        public static string D0506_01(string rqr, string JobNum, int asmSeq, decimal jobQty, string lotnum, string wh, string bin, string companyId)
+        public static string D0506_01(string rqr, string JobNum, int asmSeq, decimal jobQty, string lotnum, string wh, string bin, string companyId, string plantId)
         { //JobNum as string ,jobQty as decimal,partNum as string
             Session EpicorSession = Common.GetEpicorSession();
+            EpicorSession.PlantID = plantId;
             try
             {
                 DataTable dt = Common.GetDataByERP("select [JobOper].[JobNum] as [JobOper_JobNum],[JobOper].[AssemblySeq] as [JobOper_AssemblySeq],[JobOper].[OprSeq] as [JobOper_OprSeq],[JobOper].[RunQty] as [JobOper_RunQty],[JobOper].[QtyCompleted] as [JobOper_QtyCompleted],[JobAsmbl].[PartNum] as [JobAsmbl_PartNum],[JobAsmbl].[RequiredQty] as [JobAsmbl_RequiredQty],[JobPart].[ReceivedQty] as [JobPart_ReceivedQty],[JobHead].[JobComplete] as [JobHead_JobComplete],[JobHead].[JobReleased] as [JobHead_JobReleased] from Erp.JobOper as JobOper left outer join Erp.JobAsmbl as JobAsmbl on JobOper.Company = JobAsmbl.Company and JobOper.JobNum = JobAsmbl.JobNum and JobOper.AssemblySeq = JobAsmbl.AssemblySeq left outer join Erp.JobPart as JobPart on JobAsmbl.Company = JobPart.Company and JobAsmbl.JobNum = JobPart.JobNum and JobAsmbl.PartNum = JobPart.PartNum left outer join Erp.JobHead as JobHead on JobOper.Company = JobHead.Company and JobOper.JobNum = JobHead.JobNum where(JobOper.Company = '" + companyId + "'  and JobOper.JobNum = '" + JobNum + "'  and JobOper.AssemblySeq ='" + asmSeq.ToString() + "') order by JobOper.OprSeq Desc");
@@ -604,7 +605,7 @@ namespace ErpAPI
 
         //返修
         public static string RepairDMRProcessing(
-            int DMRID,
+        int DMRID,
         string Company,
         string plant,
         string PartNum,
@@ -662,7 +663,7 @@ namespace ErpAPI
                 //工序接收返修
                 DMRProcessingDataSet ds = adapter.GetByID(DMRID);
                 int i = ds.Tables["DMRActn"].Rows.Count;
-                adapter.GetNewDMRActnAcceptMTL(ds, DMRID);
+                adapter.GetNewDMRActnAcceptMTL(ds, DMRID); // adapter.GetNewDMRActnAcceptOPR(ds, DMRID);
                 ds.Tables["DMRActn"].Rows[i]["DMRNum"] = DMRID;
                 ds.Tables["DMRActn"].Rows[i]["Company"] = Company;
 
@@ -684,8 +685,8 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
                 adapter.ChangeWarehouse(ds);
-                ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D03";//返工
-                                                                   //保存
+                ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D03"; //返修D03，  让步接收？
+                //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
                 return "1";
             }

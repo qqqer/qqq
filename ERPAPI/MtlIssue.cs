@@ -20,14 +20,14 @@ namespace ErpAPI
 {
     public static class MtlIssue
     {
-        private static bool IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId)
+        private static string IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId)
         {
             try
             {
                 Session EpicorSession = Common.GetEpicorSession();
                 if (EpicorSession == null)
                 {
-                    return false;
+                    return "0|Get EpicorSession failed";
                 }
                 EpicorSession.CompanyID = companyId;
                 IssueReturnImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<IssueReturnImpl>(EpicorSession, ImplBase<Erp.Contracts.IssueReturnSvcContract>.UriPath);
@@ -78,17 +78,17 @@ namespace ErpAPI
                     string s = (pcNeqQtyMessage);
                     string message = "工单：" + jobNum + "/" + assemblySeq + "/" + oprSeq + ",扣料时系统报错。物料：" + partNum + ",来源仓:" + fromWarehouseCode + "/" + fromBinNum + ",目标仓:" + toWarehouseCode + "/" + toBinNum + ",批次:" + lotNum + ",数量:" + tranQty + ".原因:" + s;
                     //WriteTxt(message);
-                    return false;
+                    return "0|" + s;
                 }
                 adapter.PerformMaterialMovement(true, ds, out legalNumberMessage, out partTranPKs);
                 adapter.Dispose();
-                return true;
+                return "1";
             }
             catch (Exception ex)
             {
                 string message = "工单：" + jobNum + "/" + assemblySeq + "/" + oprSeq + ",扣料时系统报错。物料：" + partNum + ",来源仓:" + fromWarehouseCode + "/" + fromBinNum + ",目标仓:" + toWarehouseCode + "/" + toBinNum + ",批次:" + lotNum + ",数量:" + tranQty + ".原因:" + ex.Message;
                 //WriteTxt(message);
-                return false;
+                return "0|" + ex.Message;
             }
         }
 
@@ -100,10 +100,11 @@ namespace ErpAPI
             if (res.Substring(0, 1).Trim() == "1")
             {
                 string [] arr = res.Substring(2).Split('~');
-                if (IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, arr[2], "WIP", arr[1], "WIP", arr[1], arr[0], "工单发料", companyId))
+                string ss = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, arr[2], "WIP", arr[1], "WIP", arr[1], arr[0], "工单发料", companyId);
+                if (ss.Substring(0, 1).Trim() == "1")
                      res = "true";
                 else
-                     res = "发料出错,请检查erp数据";
+                     res = ss.Substring(2);
             }
                        
             return res;

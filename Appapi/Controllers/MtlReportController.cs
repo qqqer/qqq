@@ -33,6 +33,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public string ReportCommit(OpReport CreateInfo) // ApiNum 101   
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
@@ -46,6 +47,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public string DMRCommit(OpReport DMRInfo) // ApiNum 201
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
@@ -59,6 +61,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public string TransferCommit(OpReport TransferInfo) // ApiNum 301   
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
@@ -72,6 +75,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public string AcceptCommit(OpReport AcceptInfo) // ApiNum 401   
         {
+            //throw new HttpResponseException(HttpStatusCode.Forbidden);
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 

@@ -249,3 +249,6 @@ E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.NonConf.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.InspProcessing.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.DMRProcessing.dll
 E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.JobEntry.dll
+E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.JobEntry.resources.dll
+E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.LotSelectUpdate.resources.dll
+E:\Git\APPapi\Appapi\bin\zh-CN\Epicor.ServiceModel.resources.dll
