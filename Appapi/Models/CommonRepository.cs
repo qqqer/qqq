@@ -91,6 +91,17 @@ namespace Appapi.Models
         }
 
 
+        public static string GetUserName(string userid)
+        {
+            string  sql = "select * from userfile where userid = '" + userid + "'";
+
+            string UserName = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            return UserName;
+        }
+
+
+
         public static bool VerifyAccount(string userid, string password)
         {
             MD5 md5 = new MD5CryptoServiceProvider();
@@ -118,6 +129,7 @@ namespace Appapi.Models
             if (dt != null)
             {
                 HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
+                HttpContext.Current.Session.Add("UserName", Convert.ToString(dt.Rows[0]["UserName"]));
                 HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
                 HttpContext.Current.Session.Add("UserId", userid.ToUpper());
                 HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleID"]));

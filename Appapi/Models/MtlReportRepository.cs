@@ -269,7 +269,7 @@ namespace Appapi.Models
 
         public static DataTable GetPartLots(string PartNum)
         {
-            string sql = "select LotNum from erp.PartLot where PartNum = '" + PartNum + "' and OnHand = 1";
+            string sql = "select LotNum from erp.PartLot where PartNum = '" + PartNum + "' and PartNum != '' and OnHand = 1";
 
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
             return dt;
@@ -290,6 +290,9 @@ namespace Appapi.Models
 
             if (0 >= ReportInfo.UnQualifiedQty)
                 return "错误：数量需大于0";
+
+            if (ReportInfo.PartNum.Substring(0, 1).Trim().ToLower() == "c")
+                return "错误：化学品不能上报";
 
             if (GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq) < ReportInfo.UnQualifiedQty)
                 return "错误：上报数量大于物料的已发料数量，或该物料未发料";
@@ -444,7 +447,7 @@ namespace Appapi.Models
             int DMRID; string res;
             if (theReport.ErpCounter < 1)//让步
             {
-                res = ErpAPI.Common.StartInspProcessing((int)theReport.TranID, 0, (decimal)(DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty), DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,"物料", out DMRID);
+                res = ErpAPI.Common.StartInspProcessing((int)theReport.TranID, 0, (decimal)(DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty), DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,"物料",theReport.Plant, out DMRID);
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res;
 

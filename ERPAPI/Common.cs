@@ -486,7 +486,7 @@ namespace ErpAPI
             {
                 return "0|GetEpicorSession失败，请稍候再试|Startnonconf";
             }
-
+            EpicorSession.PlantID = plant;
             try
             {
                 bool plAsmReturned = true;
@@ -545,6 +545,7 @@ namespace ErpAPI
             string FailedWarehouseCode,
             string FailedBin,
             string type,
+            string plant,
             out int dmrid)
         {
             dmrid = -1;
@@ -553,6 +554,8 @@ namespace ErpAPI
             {
                 return "0|GetEpicorSession失败，请稍候再试|StartInspProcessing";
             }
+
+            EpicorSession.PlantID = plant;
 
             try
             {
@@ -617,7 +620,7 @@ namespace ErpAPI
             {
                 return "0|GetEpicorSession失败，请稍候再试|RepairDMRProcessing";
             }
-
+            EpicorSession.PlantID = plant;
             try
             {
                 int AssemblySeq = 0;
@@ -660,6 +663,10 @@ namespace ErpAPI
                 dsJ.Tables["JobHead"].Rows[0]["JobReleased"] = true;
                 dsJ.Tables["JobHead"].Rows[0]["ReqDueDate"] = time;
                 adapter1.Update(dsJ);
+
+                //SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "update jobhead set UDReqQty_c = "+DMRRepairQty+" where jobnum = '"+ DMRJobNum +"'", null);
+                ExecuteSql("update jobhead set UDReqQty_c = " + DMRRepairQty + " where jobnum = '" + DMRJobNum + "'");
+
                 //工序接收返修
                 DMRProcessingDataSet ds = adapter.GetByID(DMRID);
                 int i = ds.Tables["DMRActn"].Rows.Count;
@@ -713,7 +720,7 @@ namespace ErpAPI
             {
                 return "0|GetEpicorSession失败，请稍候再试|RepairDMRProcessing";
             }
-
+            EpicorSession.PlantID = plant;
             try
             {
                 string opLegalNumberMessage = "";
