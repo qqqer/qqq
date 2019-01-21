@@ -695,7 +695,9 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
                 adapter.ChangeWarehouse(ds);
+
                 ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D03"; //返修D03，  让步接收？
+
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
                 return "1";

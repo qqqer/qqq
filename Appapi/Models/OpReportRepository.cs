@@ -771,15 +771,13 @@ namespace Appapi.Models
 
             int DMRID; string res;
             if (theReport.ErpCounter < 1)//让步
-            {
-                res = ErpAPI.Common.StartInspProcessing((int)theReport.TranID, (decimal)DMRInfo.DMRQualifiedQty, (decimal)(DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty), DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, "报工", theReport.Plant, out DMRID);
-                if (res.Substring(0, 1).Trim() != "1")
-                    return "错误：" + res;
-
-                string dmrid = DMRInfo.DMRQualifiedQty == theReport.UnQualifiedQty ? "null" : DMRID.ToString();
-
+            {      
                 if (DMRInfo.DMRQualifiedQty > 0)
                 {
+                    res = ErpAPI.Common.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRQualifiedQty, theReport.JobNum);
+                    if (res.Substring(0, 1).Trim() != "1")
+                        return "错误：" + res;
+
                     InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, dmrid);
                     AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "让步接收子流程生成");
                 }
