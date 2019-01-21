@@ -226,5 +226,22 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetRecordByQR(values) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/DeleteProcess
+        public string DeleteProcess(int ID) //ApiNum: 16 二节点强制删除当前报工流程
+        {
+            OpReportRepository.DeleteProcess(ID);
+            return "删除成功";
+        }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/GetRelatedJobNum
+        public DataTable GetRelatedJobNum(string JobNum) //ApiNum: 17 所有返修工单
+        {
+            return OpReportRepository.GetRelatedJobNum(JobNum);
+        }
     }
 }

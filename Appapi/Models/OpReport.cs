@@ -76,5 +76,6 @@ namespace Appapi.Models
 
 
         public int? PrintQty { get; set; }
+        public string FromUser { get; set; }
     }
 }

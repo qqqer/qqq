@@ -269,7 +269,7 @@ namespace Appapi.Models
 
         public static DataTable GetPartLots(string PartNum)
         {
-            string sql = "select LotNum from erp.PartLot where PartNum = '" + PartNum + "' and OnHand = 1";
+            string sql = "select LotNum from erp.PartLot where PartNum = '" + PartNum + "' and PartNum != '' and OnHand = 1";
 
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
             return dt;
@@ -293,6 +293,7 @@ namespace Appapi.Models
 
             if (ReportInfo.PartNum.Substring(0, 1).Trim().ToLower() == "c")
                 return "错误：化学品暂不能上报";
+
 
             if (GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq) < ReportInfo.UnQualifiedQty)
                 return "错误：上报数量大于物料的已发料数量，或该物料未发料";
@@ -447,7 +448,7 @@ namespace Appapi.Models
             int DMRID; string res;
             if (theReport.ErpCounter < 1)//让步
             {
-                res = ErpAPI.Common.StartInspProcessing((int)theReport.TranID, 0, (decimal)(DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty), DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,"物料", out DMRID);
+                res = ErpAPI.Common.StartInspProcessing((int)theReport.TranID, 0, (decimal)(DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty), DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,"物料",theReport.Plant, out DMRID);
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res;
 
@@ -628,7 +629,7 @@ namespace Appapi.Models
         {
             if (((int)HttpContext.Current.Session["RoleId"] & 1024) != 0)
             {
-                string sql = @"select * from MtlReport where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 order by CreateDate desc";
+                string sql = @"select * from MtlReport where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 and isdelete != 1 order by CreateDate desc";
                 sql = string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
 
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
@@ -636,6 +637,16 @@ namespace Appapi.Models
                     return null;               
 
                 List<OpReport> Remains = CommonRepository.DataTableToList<OpReport>(dt);
+
+
+                if (Remains != null)
+                {
+                    for (int i = 0; i < Remains.Count; i++)
+                    {
+                        string userid  = Remains[i].CreateUser;                  
+                        Remains[i].FromUser = CommonRepository.GetUserName(userid);
+                    }
+                }
 
                 return Remains;
             }
@@ -665,6 +676,19 @@ namespace Appapi.Models
             }
             List<OpReport> Remains = CommonRepository.DataTableToList<OpReport>(dt);
 
+            if (Remains != null)
+            {
+                for (int i = 0; i < Remains.Count; i++)
+                {
+                    string userid = "";
+                    if (Remains[i].Status == 3)
+                        userid = Remains[i].CheckUser;
+                    if (Remains[i].Status == 4)
+                        userid = Remains[i].TransformUser;
+                    Remains[i].FromUser = CommonRepository.GetUserName(userid);
+                }
+            }
+
             return Remains;
 
         }
@@ -675,7 +699,7 @@ namespace Appapi.Models
         {
             string sql = "";
             DataTable dt = null;
-            if (!IsSubProcess)
+            if (!IsSubProcess)//2选3
             {
                 sql = @"select * from MtlReport where Id = " + id + "";
                 OpReport theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
@@ -689,10 +713,10 @@ namespace Appapi.Models
                 sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
                 string TransformUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
+                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and CHARINDEX('" + theReport.Plant + "', plant) > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
-            else
+            else//3选4
             {
                 sql = @"select * from bpmsub where Id = " + id + "";
                 OpReport theSubReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
@@ -713,7 +737,7 @@ namespace Appapi.Models
                     sql = "select NextUser from BPMOpCode where OpCode = '" + nextOpCode + "'";
                     string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                    sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX(userid, '" + NextUser + "') > 0 and RoleID & " + 128 + " != 0 and RoleID != 2147483647";
+                    sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0 and  CHARINDEX(userid, '" + NextUser + "') > 0 and  RoleID & " + 128 + " != 0 and RoleID != 2147483647";
                 }
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
