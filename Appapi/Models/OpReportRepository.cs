@@ -311,7 +311,7 @@ namespace Appapi.Models
                     else //不良品处理已结束
                     {
                         decimal DMRRepairQty =  dt.Rows[i]["DMRRepairQty"] is DBNull || dt.Rows[i]["DMRRepairQty"] == null ? 0 : (decimal)dt.Rows[i]["DMRRepairQty"] ;
-                        bpm_qty += (decimal)dt.Rows[i]["UnQualifiedQty"] + DMRRepairQty; //返修数算作原工单的报工数
+                        bpm_qty += DMRRepairQty; //返修数算作原工单的报工数
                     }
                 }
             }
