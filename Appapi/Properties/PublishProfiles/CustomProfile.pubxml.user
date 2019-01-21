@@ -82,19 +82,19 @@
       <publishTime>09/19/2018 13:30:42</publishTime>
     </File>
     <File Include="bin/Appapi.dll">
-      <publishTime>01/18/2019 14:10:37</publishTime>
+      <publishTime>01/21/2019 09:46:12</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
-      <publishTime>01/18/2019 14:10:37</publishTime>
+      <publishTime>01/21/2019 09:46:12</publishTime>
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.dll">
-      <publishTime>01/18/2019 13:52:55</publishTime>
+      <publishTime>01/19/2019 09:01:58</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.pdb">
-      <publishTime>01/18/2019 13:52:55</publishTime>
+      <publishTime>01/19/2019 09:01:58</publishTime>
     </File>
     <File Include="bin/CommonClass.dll">
       <publishTime>10/18/2018 11:44:41</publishTime>

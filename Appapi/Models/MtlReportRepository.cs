@@ -628,7 +628,7 @@ namespace Appapi.Models
         {
             if (((int)HttpContext.Current.Session["RoleId"] & 1024) != 0)
             {
-                string sql = @"select * from MtlReport where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 order by CreateDate desc";
+                string sql = @"select * from MtlReport where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 and isdelete != 1 order by CreateDate desc";
                 sql = string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
 
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
@@ -636,6 +636,16 @@ namespace Appapi.Models
                     return null;               
 
                 List<OpReport> Remains = CommonRepository.DataTableToList<OpReport>(dt);
+
+
+                if (Remains != null)
+                {
+                    for (int i = 0; i < Remains.Count; i++)
+                    {
+                        string userid  = Remains[i].CreateUser;                  
+                        Remains[i].FromUser = CommonRepository.GetUserName(userid);
+                    }
+                }
 
                 return Remains;
             }
@@ -665,6 +675,19 @@ namespace Appapi.Models
             }
             List<OpReport> Remains = CommonRepository.DataTableToList<OpReport>(dt);
 
+            if (Remains != null)
+            {
+                for (int i = 0; i < Remains.Count; i++)
+                {
+                    string userid = "";
+                    if (Remains[i].Status == 3)
+                        userid = Remains[i].CheckUser;
+                    if (Remains[i].Status == 4)
+                        userid = Remains[i].TransformUser;
+                    Remains[i].FromUser = CommonRepository.GetUserName(userid);
+                }
+            }
+
             return Remains;
 
         }
@@ -675,7 +698,7 @@ namespace Appapi.Models
         {
             string sql = "";
             DataTable dt = null;
-            if (!IsSubProcess)
+            if (!IsSubProcess)//2选3
             {
                 sql = @"select * from MtlReport where Id = " + id + "";
                 OpReport theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
@@ -689,10 +712,10 @@ namespace Appapi.Models
                 sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
                 string TransformUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
+                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and CHARINDEX('" + theReport.Plant + "', plant) > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
-            else
+            else//3选4
             {
                 sql = @"select * from bpmsub where Id = " + id + "";
                 OpReport theSubReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
@@ -713,7 +736,7 @@ namespace Appapi.Models
                     sql = "select NextUser from BPMOpCode where OpCode = '" + nextOpCode + "'";
                     string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                    sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX(userid, '" + NextUser + "') > 0 and RoleID & " + 128 + " != 0 and RoleID != 2147483647";
+                    sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0 and  CHARINDEX(userid, '" + NextUser + "') > 0 and  RoleID & " + 128 + " != 0 and RoleID != 2147483647";
                 }
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }

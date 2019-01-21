@@ -93,7 +93,7 @@ namespace Appapi.Models
 
         public static string GetUserName(string userid)
         {
-            string  sql = "select * from userfile where userid = '" + userid + "'";
+            string  sql = "select username from userfile where userid = '" + userid + "'";
 
             string UserName = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 

@@ -291,9 +291,31 @@ namespace Appapi.Models
 
         private static decimal GetTotalQtyOfJobSeq(string jobnum, int asmSeq, int oprseq, int id) //该工序的 在跑+erp 数量, 不包括本次报工数量
         {
-            string sql = @"select sum(firstqty) from bpm where id != " + id + " and status < 3  and  isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
-            object o = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            decimal bpm_qty = o is DBNull ? 0 : Convert.ToDecimal(o);
+            string sql = @"select * from bpm where id != " + id + " and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+
+            decimal bpm_qty =0;
+
+            if (dt != null)
+            {
+                for(int i =0; i < dt.Rows.Count; i++)
+                {
+                    if ((int)dt.Rows[i]["Status"] < 3) //未写时间费用
+                        bpm_qty += (decimal)dt.Rows[i]["FirstQty"];
+
+                    else if ((int)dt.Rows[i]["Status"] > 2 && (int)dt.Rows[i]["CheckCounter"] < 2)//已写时间费用，不良品还未介入
+                    {
+                        bpm_qty += (decimal)dt.Rows[i]["UnQualifiedQty"];
+                    }
+                    else //不良品处理已结束
+                    {
+                        decimal DMRRepairQty = dt.Rows[i]["DMRRepairQty"] != null ? (decimal)dt.Rows[i]["DMRRepairQty"] : 0;
+                        bpm_qty += (decimal)dt.Rows[i]["UnQualifiedQty"] + DMRRepairQty; //返修数算作原工单的报工数
+                    }
+                }
+            }
+
             decimal erp_qty = CommonRepository.GetOpSeqCompleteQty(jobnum, asmSeq, oprseq);
 
             return bpm_qty + erp_qty;
@@ -400,6 +422,9 @@ namespace Appapi.Models
 
             if (ReportInfo.FirstQty <= 0)
                 return "错误：报工数量需大于0";
+
+            if (ReportInfo.CheckUserGroup == "")
+                return "错误：下步接收人不能为空";
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
             if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq) < ReportInfo.FirstQty + GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0))
@@ -603,8 +628,8 @@ namespace Appapi.Models
                 return "0|错误：原工序编号" + theReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
             }
 
-            if (CommonRepository.IsOpSeqComplete(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq))
-                return "错误：该工序已完成";
+            //if (CommonRepository.IsOpSeqComplete(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq))
+            //    return "错误：该工序已完成";
 
 
             //object PreOpSeq = CommonRepository.GetPreOpSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq);
@@ -1230,7 +1255,7 @@ namespace Appapi.Models
         {
             if (((int)HttpContext.Current.Session["RoleId"] & 1024) != 0)
             {
-                string sql = @"select * from BPM where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 order by CreateDate desc";
+                string sql = @"select * from BPM where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 and isdelete != 1 order by CreateDate desc";
                 sql = string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
 
                 DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
@@ -1381,34 +1406,40 @@ namespace Appapi.Models
             {
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, "select * from bpm where id = " + id + "");
 
-                sql = "select UserID, UserName from userfile where disabled = 0 and  CHARINDEX('" + dt.Rows[0]["Company"].ToString() + "', company) > 0 and CHARINDEX('" + dt.Rows[0]["Plant"].ToString() + "', plant) > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
+                sql = "select UserID, UserName from userfile where disabled = 0  and  CHARINDEX('" + dt.Rows[0]["Company"].ToString() + "', company) > 0 and CHARINDEX('" + dt.Rows[0]["Plant"].ToString() + "', plant) > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
             else if (nextRole == 256)
             {
+                dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, "select * from bpm where id = " + id + "");
+
                 sql = "select CheckUser from BPMOpCode where OpCode = '" + OpCode + "'";
                 string CheckUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + CheckUser + "') > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
+                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + CheckUser + "') > 0 and  RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
             else if (nextRole == 512)
             {
+                dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, "select * from bpm where id = " + id + "");
+
                 sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
                 string TransformUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
+                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and CHARINDEX('" + dt.Rows[0]["Plant"].ToString() + "', plant) > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
             else if (nextRole == 128)//
             {
+                dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, "select * from bpm where id = " + id + "");
+
                 sql = "select NextOpCode from bpm where id = " + id + "";
                 string NextOpCode = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 sql = "select NextUser from BPMOpCode where OpCode = '" + NextOpCode + "'";
                 string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX(userid, '" + NextUser + "') > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
+                sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + dt.Rows[0]["Plant"].ToString() + "', plant) > 0 and CHARINDEX(userid, '" + NextUser + "') > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
 
@@ -1484,7 +1515,7 @@ namespace Appapi.Models
                 sql = "select NextUser from BPMOpCode where OpCode = '" + nextOpCode + "'";
                 string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX(userid, '" + NextUser + "') > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
+                sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0 and CHARINDEX(userid, '" + NextUser + "') > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
 
@@ -1497,8 +1528,10 @@ namespace Appapi.Models
             string sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
             string TransformUsers = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUsers + "') > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
+            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, "select * from bpm where id = " + id + "");
+
+            sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX('" + dt.Rows[0]["Plant"].ToString() + "', plant) > 0 and CHARINDEX(userid, '" + TransformUsers + "') > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
+            dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
 
             return dt == null || dt.Rows.Count == 0 ? null : dt;
         }
@@ -1607,7 +1640,7 @@ namespace Appapi.Models
 
         public static DataTable GetReason(string type)
         {
-            string sql = "select ReasonCode, Description from erp.Reason where ReasonType = '" + type + "' ";
+            string sql = "select ReasonCode, Description from erp.Reason where Company = '001' and ReasonType = '" + type + "' ";
             DataTable Reasons = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
 
             return Reasons;
