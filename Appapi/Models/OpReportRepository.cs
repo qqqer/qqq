@@ -743,7 +743,7 @@ namespace Appapi.Models
 
             if (theReport.ErpCounter < 1) //没交互过，或第一次交互失败,允许更改数量
             {
-                sql = "update bpm set " +
+                sql = " update bpm set " +
                        "DMRQualifiedQty = " + DMRInfo.DMRQualifiedQty + ", " +
                        "DMRRepairQty = " + DMRInfo.DMRRepairQty + "," +
                        "DMRUnQualifiedQty = " + DMRInfo.DMRUnQualifiedQty + "," +
