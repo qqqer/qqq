@@ -23,9 +23,9 @@ namespace Appapi.Controllers
       
         //Get:  /api/MtlReport/GetPartLots
         [System.Web.Http.HttpGet]
-        public DataTable GetPartLots(string PartNum) // ApiNum 3     
+        public DataTable GetPartLots(string PartNum, int MtlSeq, string JobNum, int AssemblySeq) // ApiNum 3     
         {
-            return MtlReportRepository.GetPartLots(PartNum);
+            return MtlReportRepository.GetPartLots(PartNum, MtlSeq, JobNum, AssemblySeq);
         }
 
 

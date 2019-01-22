@@ -259,7 +259,7 @@ namespace Appapi.Models
 
         public static DataTable GetMtlInfo(string JobNum, int AssemblySeq)
         {
-            string sql = "select MtlSeq,PartNum,Description from erp.JobMtl where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + "";
+            string sql = "select MtlSeq,PartNum,Description,JobNum,AssemblySeq from erp.JobMtl where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + "";
 
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
             return dt;
@@ -267,9 +267,9 @@ namespace Appapi.Models
 
 
 
-        public static DataTable GetPartLots(string PartNum)
+        public static DataTable GetPartLots(string PartNum, int MtlSeq, string JobNum, int AssemblySeq)
         {
-            string sql = "select LotNum from erp.PartLot where PartNum = '" + PartNum + "' and PartNum != '' and OnHand = 1";
+            string sql = " select LotNum from erp.PartTran where TranType='stk-mtl' and JobNum='"+ JobNum + "' and JobSeq = "+ MtlSeq + " and PartNum = '"+ PartNum + "' and AssemblySeq = "+AssemblySeq+"";
 
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
             return dt;
