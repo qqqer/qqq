@@ -527,11 +527,12 @@ namespace ErpAPI
                 //保存
                 adapter.Update(ds);
                 tranid = int.Parse(ds.Tables["NonConf"].Rows[0]["TranID"].ToString());
-
+                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
+                EpicorSession.Dispose();
                 return "0|" + ex.Message;
             }
         }
@@ -597,12 +598,13 @@ namespace ErpAPI
 
 
                 dmrid = iDMRNum;
-
+                EpicorSession.Dispose();
 
                 return "1";
             }
             catch (Exception ex)
             {
+                EpicorSession.Dispose();
                 return "0|" + ex.Message;
             }
         }
@@ -808,10 +810,13 @@ namespace ErpAPI
 
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
+
+                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
+                EpicorSession.Dispose();
                 return "0|" + ex.Message;
             }
         }
@@ -859,10 +864,12 @@ namespace ErpAPI
 
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
+                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
+                EpicorSession.Dispose();
                 return "0|" + ex.Message;
             }
         }

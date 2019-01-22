@@ -1363,7 +1363,8 @@ namespace Appapi.Models
         }
 
 
-        public static DataTable GetNextUserGroup(string OpCode, int id, params string [] pa) //pa[0] jobnum
+
+        public static DataTable GetNextUserGroup(string OpCode, int id, string jobnum)
         {
             DataTable dt = null;
             string sql = null;
@@ -1407,7 +1408,11 @@ namespace Appapi.Models
             }
             else if (nextRole == 256)
             {
+<<<<<<< HEAD
                 sql = @"select Plant from erp.JobHead where jobnum = '"+ pa[0] +"'";
+=======
+                sql = @"select Plant from erp.JobHead where jobnum = '" + jobnum + "'";
+>>>>>>> zsq
                 string Plant = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                 sql = "select CheckUser from BPMOpCode where OpCode = '" + OpCode + "'";

@@ -388,6 +388,8 @@ namespace ErpAPI
         {
             int rcnt = 0, i = 0, j = 0;
             string partnum;
+
+
             try
             {
 
@@ -481,6 +483,7 @@ namespace ErpAPI
 
 
                 Session EpicorSession = Common.GetEpicorSession();
+
                 if (EpicorSession == null)
                 {
                     return "-1|erp用户数不够，请稍候再试.ERR:tranStk";

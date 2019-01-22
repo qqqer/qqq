@@ -111,10 +111,12 @@ namespace ErpAPI
                 labAd.DefaultAssemblySeq(dsLabHed, asmSeq);
                 string msg;
                 labAd.DefaultOprSeq(dsLabHed, oprSeq, out msg);
+
                 dtLabDtl = dsLabHed.LaborDtl;
 
                 if(LQty > 0 )
                     labAd.DefaultLaborQty(dsLabHed, LQty, out msg);
+
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborQty"] = LQty;
                 //disQty = disQty;  //先不回写不合格数量
                 //disCode = disCode;
