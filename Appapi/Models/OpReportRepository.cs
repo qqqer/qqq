@@ -1092,7 +1092,7 @@ namespace Appapi.Models
 
                 //自动回退检测
                 string[] arr = NextSetpInfo.Split('~');
-                if ((theSubReport.NextJobSeq == theSubReport.JobSeq && arr[0] != "仓库") || (theSubReport.NextOpCode != arr[1]))
+                if (theSubReport.NextOpCode != arr[1])
                 {
                     ReturnStatus((bool)theSubReport.IsSubProcess, (int)theSubReport.ID, (int)theSubReport.Status, 11, "工序去向已更改，子流程自动回退", 402);
                     return "错误： 工序去向已更改，流程已自动回退至上一节点";
