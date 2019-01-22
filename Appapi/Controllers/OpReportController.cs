@@ -149,9 +149,9 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/OpReport/GetNextUserGroup 
-        public DataTable GetNextUserGroup(string OpCode, int ID)//ApiNum: 6   
+        public DataTable GetNextUserGroup(string OpCode, int ID, params string[] pa)//ApiNum: 6   
         {
-            return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetNextUserGroup(OpCode, ID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetNextUserGroup(OpCode, ID,pa) : throw new HttpResponseException(HttpStatusCode.Forbidden);
             //return OpReportRepository.GetNextUserGroup(OpCode, ID);
         }
 

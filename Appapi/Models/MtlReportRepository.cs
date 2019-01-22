@@ -471,7 +471,7 @@ namespace Appapi.Models
 
                 if (!Convert.IsDBNull(dmrid) && DMRInfo.DMRRepairQty > 0)
                 {
-                    res = ErpAPI.Common.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum);
+                    res = ErpAPI.Common.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, "D03");
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 
