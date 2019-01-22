@@ -111,7 +111,7 @@ namespace ErpAPI
                 labAd.DefaultAssemblySeq(dsLabHed, asmSeq);
                 string msg;
                 labAd.DefaultOprSeq(dsLabHed, oprSeq, out msg);
-                dtLabDtl = dsLabHed.LaborDtl;
+                dtLabDtl = dsLabHed.LaborDtl;                
                 labAd.DefaultLaborQty(dsLabHed, LQty, out msg);
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborQty"] = LQty;
                 //disQty = disQty;  //先不回写不合格数量

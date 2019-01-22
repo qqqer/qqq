@@ -1367,7 +1367,7 @@ namespace Appapi.Models
         }
 
 
-        public static DataTable GetNextUserGroup(string OpCode, int id)
+        public static DataTable GetNextUserGroup(string OpCode, int id, string jobnum)
         {
             DataTable dt = null;
             string sql = null;
@@ -1411,12 +1411,13 @@ namespace Appapi.Models
             }
             else if (nextRole == 256)
             {
-                dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, "select * from bpm where id = " + id + "");
+                sql = @"select Plant from erp.JobHead where jobnum = '" + jobnum + "'";
+                string Plant = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                 sql = "select CheckUser from BPMOpCode where OpCode = '" + OpCode + "'";
                 string CheckUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + CheckUser + "') > 0 and  RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
+                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + CheckUser + "') > 0 and CHARINDEX('" + Plant + "', plant) > 0 and RoleID & " + nextRole + " != 0 and RoleID != 2147483647";
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
             else if (nextRole == 512)
