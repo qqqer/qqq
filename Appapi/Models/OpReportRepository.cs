@@ -653,6 +653,9 @@ namespace Appapi.Models
             if (CheckInfo.UnQualifiedQty < 0)
                 return "错误：不合格数量不能为负";
 
+            if (CheckInfo.UnQualifiedQty > 0 && CheckInfo.UnQualifiedReason == "")
+                return "错误：不合格原因不能为空";
+
             if (CheckInfo.QualifiedQty + CheckInfo.UnQualifiedQty != theReport.FirstQty)
                 return "错误：不合格数 + 合格数 不等于报工数";
 
