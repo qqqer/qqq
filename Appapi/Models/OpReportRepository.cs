@@ -1408,11 +1408,7 @@ namespace Appapi.Models
             }
             else if (nextRole == 256)
             {
-<<<<<<< HEAD
-                sql = @"select Plant from erp.JobHead where jobnum = '"+ pa[0] +"'";
-=======
                 sql = @"select Plant from erp.JobHead where jobnum = '" + jobnum + "'";
->>>>>>> zsq
                 string Plant = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                 sql = "select CheckUser from BPMOpCode where OpCode = '" + OpCode + "'";
