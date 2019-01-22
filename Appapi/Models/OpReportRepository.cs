@@ -663,6 +663,7 @@ namespace Appapi.Models
             if (CheckInfo.QualifiedQty + CheckInfo.UnQualifiedQty != theReport.FirstQty)
                 return "错误：不合格数 + 合格数 不等于报工数";
 
+
             #endregion
             string Character05 = "";
             int TranID = -1;
