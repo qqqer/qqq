@@ -288,7 +288,7 @@ namespace Appapi.Models
             if (!IsExistMtl(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq, ReportInfo.PartNum))
                 return "错误：物料不存在";
 
-            if (0 >= ReportInfo.UnQualifiedQty)
+            if (0 >= Convert.ToDecimal(ReportInfo.UnQualifiedQty))
                 return "错误：数量需大于0";
 
             if (ReportInfo.PartNum.Substring(0, 1).Trim().ToLower() == "c")
@@ -385,6 +385,9 @@ namespace Appapi.Models
             if (DMRInfo.DMRUnQualifiedQty < 0)
                 return "错误：废弃数量不能为负";
 
+            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty == 0)
+                return "错误：数量不能都为0";
+
             if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty != theReport.UnQualifiedQty)
                 return "错误：让步数 + 返修数 + 废弃数 不等于原待检数";
 
@@ -471,7 +474,7 @@ namespace Appapi.Models
 
                 if (!Convert.IsDBNull(dmrid) && DMRInfo.DMRRepairQty > 0)
                 {
-                    res = ErpAPI.Common.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, "D03");
+                    res = ErpAPI.Common.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum);
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 

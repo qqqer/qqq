@@ -602,6 +602,7 @@ namespace Appapi.Models
 
         public static string CheckerCommit(OpReport CheckInfo)
         {
+            static int 
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             #region
@@ -756,6 +757,9 @@ namespace Appapi.Models
             if (DMRInfo.DMRUnQualifiedQty < 0)
                 return "错误：废弃数量不能为负";
 
+            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty == 0)
+                return "错误：数量不能都为0";
+
             if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.UnQualifiedQty - determinedQty)
                 return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数量" + (theReport.UnQualifiedQty - determinedQty);
 
@@ -782,7 +786,7 @@ namespace Appapi.Models
             string res;
             if (DMRInfo.DMRQualifiedQty > 0)
             {
-                res = ErpAPI.Common.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRQualifiedQty, theReport.JobNum, "D01");
+                res = ErpAPI.Common.ConcessionDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)DMRInfo.DMRQualifiedQty, theReport.JobNum);
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量"; 
 
@@ -796,7 +800,7 @@ namespace Appapi.Models
 
             if (DMRInfo.DMRRepairQty > 0)
             {
-                res = ErpAPI.Common.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, "D03");
+                res = ErpAPI.Common.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)theReport.DMRRepairQty + (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum);
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
 
