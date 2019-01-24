@@ -1282,9 +1282,9 @@ namespace Appapi.Models
                         string userid = "";
                         if (Remains[i].Status == 2)
                             userid = Remains[i].CreateUser;
-                        if (Remains[i].Status == 3)
+                        if (Remains[i].Status == 3 || (Remains[i].PreStatus == 2 && Remains[i].Status == 99))
                             userid = Remains[i].CheckUser;
-                        if (Remains[i].Status == 4)
+                        if (Remains[i].Status == 4 || (Remains[i].PreStatus == 4 && Remains[i].Status == 99))
                             userid = Remains[i].TransformUser;
                         Remains[i].FromUser = CommonRepository.GetUserName(userid);
                     }
@@ -1606,7 +1606,11 @@ namespace Appapi.Models
 
             string sql = "select * from bpm where printID = " + printid.ToString();
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
-
+            if (dt == null)
+            {
+                sr.error = "错误：该二维码数据有误，请重新打印该工序二维码";
+                return sr;
+            }
 
             OpReport theReport = CommonRepository.DataTableToList<OpReport>(dt).First();
             sr.batch = theReport;
