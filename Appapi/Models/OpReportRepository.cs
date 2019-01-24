@@ -11,6 +11,16 @@ namespace Appapi.Models
 {
     public static class OpReportRepository
     {
+        private static readonly object lock_check = new object();
+        private static List<int> check_IDs = new List<int>();
+
+        private static readonly object lock_accept_main = new object();
+        private static List<int> accept_IDs_main = new List<int>();
+
+        private static readonly object lock_accept_sub = new object();
+        private static List<int> accept_IDs_sub = new List<int>();
+
+
         private static long GetNextRole(int id)
         {
             long nextRole = 1152921504606846976;//2^60
@@ -602,128 +612,140 @@ namespace Appapi.Models
 
         public static string CheckerCommit(OpReport CheckInfo)
         {
-            //static int 
-            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
-            #region
-            string sql = @"select * from BPM where Id = " + CheckInfo.ID + "";
-
-            OpReport theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
-
-            if (theReport.IsDelete == true)
-                return "错误：该批次的流程已删除";
-
-            if (theReport.IsComplete == true)
-                return "错误：该批次的流程已结束";
-
-            if (theReport.Status != 2)
-                return "错误：流程未在当前节点上";
-
-            string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
-            if (res != "正常")
-                return "0|错误：" + res;
-
-            DataTable dt = GetJobSeqInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq); //erp抓取该工序的最新信息
-            if (dt == null)
+            lock(lock_check)
             {
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
-                return "0|错误：当前工序不存在，该报工流程已被自动删除";
+                if (check_IDs.Contains((int)CheckInfo.ID))
+                    return "错误：其他账号正在提交该待办事项";
+                check_IDs.Add((int)CheckInfo.ID);
             }
 
-            if (dt.Rows[0]["OpCode"].ToString() != theReport.OpCode)
+            try
             {
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
-                return "0|错误：原工序编号" + theReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
-            }
+                string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            //if (CommonRepository.IsOpSeqComplete(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq))
-            //    return "错误：该工序已完成";
+                #region
+                string sql = @"select * from BPM where Id = " + CheckInfo.ID + "";
 
+                OpReport theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
-            //object PreOpSeq = CommonRepository.GetPreOpSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq);
-            //if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq) < theReport.FirstQty + GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
-            //    return "错误： 报工数超出该阶层的可生产数量";
-            //if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)PreOpSeq) < theReport.FirstQty + GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
-            //    return "错误： 当前报工数超出上一道工序的报工数";
+                if (theReport.IsDelete == true)
+                    return "错误：该批次的流程已删除";
 
+                if (theReport.IsComplete == true)
+                    return "错误：该批次的流程已结束";
 
-            string NextSetpInfo = GetNextSetpInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, dt.Rows[0]["Company"].ToString());
-            if (NextSetpInfo.Substring(0, 1).Trim() == "0")
-                return "0|错误：获取下工序去向失败，" + NextSetpInfo;
+                if (theReport.Status != 2)
+                    return "错误：流程未在当前节点上";
 
+                string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
+                if (res != "正常")
+                    return "0|错误：" + res;
 
-            CheckInfo.QualifiedQty = Convert.ToDecimal(CheckInfo.QualifiedQty);
-            CheckInfo.UnQualifiedQty = Convert.ToDecimal(CheckInfo.UnQualifiedQty);
-
-            if (CheckInfo.QualifiedQty < 0)
-                return "错误：合格数量不能为负";
-
-            if (CheckInfo.UnQualifiedQty < 0)
-                return "错误：不合格数量不能为负";
-
-            if (CheckInfo.UnQualifiedQty > 0 && CheckInfo.UnQualifiedReason == "")
-                return "错误：不合格原因不能为空";
-
-            if (CheckInfo.QualifiedQty + CheckInfo.UnQualifiedQty != theReport.FirstQty)
-                return "错误：不合格数 + 合格数 不等于报工数";
-
-
-            #endregion
-            string Character05 = "";
-            int TranID = -1;
-            if (theReport.ErpCounter < 1)//时间费用
-            {
-                res = ErpAPI.OpReport.D0505("", theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)CheckInfo.QualifiedQty, (decimal)CheckInfo.UnQualifiedQty, CheckInfo.UnQualifiedReason, "", theReport.StartDate, theReport.EndDate, theReport.Company, theReport.Plant, (decimal)theReport.LaborHrs, out Character05, out TranID);
-                if (res.Substring(0, 1).Trim() != "1")
-                    return "错误：" + res;
-
-                sql = "update bpm set ErpCounter = 1 ," +
-                        "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
-                        "QualifiedQty = " + CheckInfo.QualifiedQty + ", " +
-                        "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + " " +
-                        "where id = " + CheckInfo.ID + ""; //时间费用成功
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            }
-
-            if (theReport.ErpCounter < 2)//检验处理
-            {
-                sql = @"select * from BPM where Id = " + theReport.ID + "";
-                theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
-
-                int DMRID = -1;
-                if (theReport.UnQualifiedQty > 0)
+                DataTable dt = GetJobSeqInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq); //erp抓取该工序的最新信息
+                if (dt == null)
                 {
-                    res = ErpAPI.Common.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, out DMRID); //产品其它不良 D22  D
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
+                    return "0|错误：当前工序不存在，该报工流程已被自动删除";
+                }
+
+                if (dt.Rows[0]["OpCode"].ToString() != theReport.OpCode)
+                {
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
+                    return "0|错误：原工序编号" + theReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
+                }
+
+                //if (CommonRepository.IsOpSeqComplete(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq))
+                //    return "错误：该工序已完成";
+
+
+                //object PreOpSeq = CommonRepository.GetPreOpSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq);
+                //if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq) < theReport.FirstQty + GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
+                //    return "错误： 报工数超出该阶层的可生产数量";
+                //if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)PreOpSeq) < theReport.FirstQty + GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
+                //    return "错误： 当前报工数超出上一道工序的报工数";
+
+
+                string NextSetpInfo = GetNextSetpInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, dt.Rows[0]["Company"].ToString());
+                if (NextSetpInfo.Substring(0, 1).Trim() == "0")
+                    return "0|错误：获取下工序去向失败，" + NextSetpInfo;
+
+
+                CheckInfo.QualifiedQty = Convert.ToDecimal(CheckInfo.QualifiedQty);
+                CheckInfo.UnQualifiedQty = Convert.ToDecimal(CheckInfo.UnQualifiedQty);
+
+                if (CheckInfo.QualifiedQty < 0)
+                    return "错误：合格数量不能为负";
+
+                if (CheckInfo.UnQualifiedQty < 0)
+                    return "错误：不合格数量不能为负";
+
+                if (CheckInfo.UnQualifiedQty > 0 && CheckInfo.UnQualifiedReason == "")
+                    return "错误：不合格原因不能为空";
+
+                if (CheckInfo.QualifiedQty + CheckInfo.UnQualifiedQty != theReport.FirstQty)
+                    return "错误：不合格数 + 合格数 不等于报工数";
+
+
+                #endregion
+                string Character05 = "";
+                int TranID = -1;
+                if (theReport.ErpCounter < 1)//时间费用
+                {
+                    res = ErpAPI.OpReport.D0505("", theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)CheckInfo.QualifiedQty, (decimal)CheckInfo.UnQualifiedQty, CheckInfo.UnQualifiedReason, "", theReport.StartDate, theReport.EndDate, theReport.Company, theReport.Plant, (decimal)theReport.LaborHrs, out Character05, out TranID);
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
+
+                    sql = "update bpm set ErpCounter = 1 ," +
+                            "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
+                            "QualifiedQty = " + CheckInfo.QualifiedQty + ", " +
+                            "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + " " +
+                            "where id = " + CheckInfo.ID + ""; //时间费用成功
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
-                sql = " update bpm set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + CheckInfo.ID + "";
+
+                if (theReport.ErpCounter < 2)//检验处理
+                {
+                    sql = @"select * from BPM where Id = " + theReport.ID + "";
+                    theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
+
+                    int DMRID = -1;
+                    if (theReport.UnQualifiedQty > 0)
+                    {
+                        res = ErpAPI.Common.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, out DMRID); //产品其它不良 D22  D
+                        if (res.Substring(0, 1).Trim() != "1")
+                            return "错误：" + res;
+                    }
+                    sql = " update bpm set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + CheckInfo.ID + "";
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                }
+
+
+                sql = "update bpm set " +
+                       "CheckUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
+                       "CheckDate = '" + OpDate + "'," +
+                       "TransformUserGroup = '" + CheckInfo.TransformUserGroup + "'," +
+                       "QualifiedQty = " + CheckInfo.QualifiedQty + ", " +
+                       "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + "," +
+                       "UnQualifiedReason = '" + (CheckInfo.UnQualifiedQty > 0 ? CommonRepository.GetValueAsString(CheckInfo.UnQualifiedReason) : "") + "'," +
+                       "Status = " + (CheckInfo.QualifiedQty > 0 ? theReport.Status + 1 : 99) + "," +
+                       "PreStatus = " + theReport.Status + "," +
+                       "Character05 = '" + Character05 + "'," +
+                       "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
+                       "AtRole = 512, " +
+                       "CheckCounter = " + (CheckInfo.UnQualifiedQty > 0 ? CheckInfo.UnQualifiedQty : 0) + ", " +
+                       "IsComplete = " + (CheckInfo.QualifiedQty > 0 ? 0 : 1) + " " +
+                       "where id = " + (theReport.ID) + "";
+
+
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                sql = sql.Replace("'", "");
+                AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, sql);
+
+                return "处理成功";
             }
-
-
-            sql = "update bpm set " +
-                   "CheckUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
-                   "CheckDate = '" + OpDate + "'," +
-                   "TransformUserGroup = '" + CheckInfo.TransformUserGroup + "'," +
-                   "QualifiedQty = " + CheckInfo.QualifiedQty + ", " +
-                   "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + "," +
-                   "UnQualifiedReason = '" + (CheckInfo.UnQualifiedQty > 0 ? CommonRepository.GetValueAsString(CheckInfo.UnQualifiedReason) : "") + "'," +
-                   "Status = " + (CheckInfo.QualifiedQty > 0 ? theReport.Status + 1 : 99) + "," +
-                   "PreStatus = " + theReport.Status + "," +
-                   "Character05 = '" + Character05 + "'," +
-                   "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
-                   "AtRole = 512, " +
-                   "CheckCounter = " + (CheckInfo.UnQualifiedQty > 0 ? CheckInfo.UnQualifiedQty : 0) + ", " +
-                   "IsComplete = " + (CheckInfo.QualifiedQty > 0 ? 0 : 1) + " " +
-                   "where id = " + (theReport.ID) + "";
-
-
-            SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            sql = sql.Replace("'", "");
-            AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, sql);
-
-            return "处理成功";
+            finally {
+                check_IDs.Remove((int)CheckInfo.ID);
+            }
         }
 
 
@@ -1041,210 +1063,238 @@ namespace Appapi.Models
 
         private static string AccepterCommitOfSub(OpReport AcceptInfo)//apinum 402
         {
-            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
-            string sql = @"select * from bpmsub where Id = " + AcceptInfo.ID + "";
-            OpReport theSubReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
-
-            if (theSubReport.IsComplete == true)
-                return "错误：该批次的流程已结束";
-
-            if (theSubReport.IsDelete == true)
-                return "错误：该批次的流程已删除";
-
-            if (theSubReport.Status != 4)
-                return "错误：流程未在当前节点上";
-
-
-            if ((theSubReport.DMRQualifiedQty) != null)
+            lock (lock_accept_sub)
             {
-                string res = CommonRepository.CheckJobHeadState(theSubReport.JobNum);
-                if (res != "正常")
-                    return "错误：" + res;
+                if (accept_IDs_sub.Contains((int)AcceptInfo.ID))
+                    return "错误：其他账号正在提交该待办事项";
+                accept_IDs_sub.Add((int)AcceptInfo.ID);
+            }
 
-                sql = "select isdelete from bpm where ID = " + theSubReport.RelatedID + "";
-                bool mainIsDeleted = (bool)(SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null));
-                if (mainIsDeleted)
+            try
+            {
+                string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+                string sql = @"select * from bpmsub where Id = " + AcceptInfo.ID + "";
+                OpReport theSubReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
+
+                if (theSubReport.IsComplete == true)
+                    return "错误：该批次的流程已结束";
+
+                if (theSubReport.IsDelete == true)
+                    return "错误：该批次的流程已删除";
+
+                if (theSubReport.Status != 4)
+                    return "错误：流程未在当前节点上";
+
+
+                if ((theSubReport.DMRQualifiedQty) != null)
                 {
-                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
-                    return "0|错误：所属的主流程已被删除，该子流程已被自动删除";
-                }
-
-                DataTable dt = GetJobSeqInfo(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq); //erp抓取该工序的最新信息
-                if (dt == null)
-                {
-                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
-                    return "0|错误：当前工序不存在，该报工流程已被自动删除";
-                }
-
-                if (dt.Rows[0]["OpCode"].ToString() != theSubReport.OpCode)
-                {
-                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
-                    return "0|错误：原工序编号" + theSubReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
-                }
-
-                //if (CommonRepository.IsOpSeqComplete(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq))
-                //    return "错误：该工序已完成";
-
-                string NextSetpInfo = GetNextSetpInfo(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, dt.Rows[0]["Company"].ToString());
-                if (NextSetpInfo.Substring(0, 1).Trim() == "0")
-                    return "0|错误：获取下工序去向失败，" + NextSetpInfo;
-
-
-                object PreOpSeq = CommonRepository.GetPreOpSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq);
-                if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
-                    return "错误： 报工数超出该阶层的可生产数量";
-                if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
-                    return "错误： 当前报工数超出上一道工序的报工数";
-
-
-                //自动回退检测
-                string[] arr = NextSetpInfo.Split('~');
-                if (theSubReport.NextOpCode != arr[1])
-                {
-                    ReturnStatus((bool)theSubReport.IsSubProcess, (int)theSubReport.ID, (int)theSubReport.Status, 11, "工序去向已更改，子流程自动回退", 402);
-                    return "错误： 工序去向已更改，流程已自动回退至上一节点";
-                }
-
-
-                //若去向仓库
-                if (theSubReport.AtRole == 8)
-                {
-                    res = ErpAPI.Common.D0506_01(null, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (decimal)theSubReport.DMRQualifiedQty, theSubReport.JobNum, theSubReport.NextOpCode, AcceptInfo.BinNum, theSubReport.Company, theSubReport.Plant);
-                    if (res != "1|处理成功")
+                    string res = CommonRepository.CheckJobHeadState(theSubReport.JobNum);
+                    if (res != "正常")
                         return "错误：" + res;
+
+                    sql = "select isdelete from bpm where ID = " + theSubReport.RelatedID + "";
+                    bool mainIsDeleted = (bool)(SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null));
+                    if (mainIsDeleted)
+                    {
+                        SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
+                        return "0|错误：所属的主流程已被删除，该子流程已被自动删除";
+                    }
+
+                    DataTable dt = GetJobSeqInfo(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq); //erp抓取该工序的最新信息
+                    if (dt == null)
+                    {
+                        SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
+                        return "0|错误：当前工序不存在，该报工流程已被自动删除";
+                    }
+
+                    if (dt.Rows[0]["OpCode"].ToString() != theSubReport.OpCode)
+                    {
+                        SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
+                        return "0|错误：原工序编号" + theSubReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
+                    }
+
+                    //if (CommonRepository.IsOpSeqComplete(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq))
+                    //    return "错误：该工序已完成";
+
+                    string NextSetpInfo = GetNextSetpInfo(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, dt.Rows[0]["Company"].ToString());
+                    if (NextSetpInfo.Substring(0, 1).Trim() == "0")
+                        return "0|错误：获取下工序去向失败，" + NextSetpInfo;
+
+
+                    object PreOpSeq = CommonRepository.GetPreOpSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq);
+                    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
+                        return "错误： 报工数超出该阶层的可生产数量";
+                    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
+                        return "错误： 当前报工数超出上一道工序的报工数";
+
+
+                    //自动回退检测
+                    string[] arr = NextSetpInfo.Split('~');
+                    if (theSubReport.NextOpCode != arr[1])
+                    {
+                        ReturnStatus((bool)theSubReport.IsSubProcess, (int)theSubReport.ID, (int)theSubReport.Status, 11, "工序去向已更改，子流程自动回退", 402);
+                        return "错误： 工序去向已更改，流程已自动回退至上一节点";
+                    }
+
+
+                    //若去向仓库
+                    if (theSubReport.AtRole == 8)
+                    {
+                        res = ErpAPI.Common.D0506_01(null, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (decimal)theSubReport.DMRQualifiedQty, theSubReport.JobNum, theSubReport.NextOpCode, AcceptInfo.BinNum, theSubReport.Company, theSubReport.Plant);
+                        if (res != "1|处理成功")
+                            return "错误：" + res;
+                    }
+
+                    //再回写主表
+                    sql = " update bpmsub set " +
+                           "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "|" + HttpContext.Current.Session["UserName"].ToString() + "', " +
+                           "NextDate = '" + OpDate + "'," +
+                           "Status = 99," +
+                           "PreStatus = " + (theSubReport.Status) + "," +
+                           "IsComplete = 1," +
+                           "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
+                           "where id = " + (theSubReport.ID) + "";
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+
+                    sql = sql.Replace("'", "");
+                    AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "让步提交|" + sql);
                 }
 
-                //再回写主表
-                sql = " update bpmsub set " +
-                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "|" + HttpContext.Current.Session["UserName"].ToString() + "', " +
-                       "NextDate = '" + OpDate + "'," +
-                       "Status = 99," +
-                       "PreStatus = " + (theSubReport.Status) + "," +
-                       "IsComplete = 1," +
-                       "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
-                       "where id = " + (theSubReport.ID) + "";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                if ((theSubReport.DMRRepairQty) != null)
+                {
+                    string res = CommonRepository.CheckJobHeadState(theSubReport.JobNum);
+                    if (res != "正常")
+                        return "错误：" + res;
+
+                    sql = " update bpmsub set " +
+                           "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "|" + HttpContext.Current.Session["UserName"].ToString() + "', " +
+                           "NextDate = '" + OpDate + "'," +
+                           "Status = 99," +
+                           "PreStatus = " + (theSubReport.Status) + "," +
+                           "IsComplete = 1," +
+                           "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
+                           "where id = " + (theSubReport.ID) + "";
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-                sql = sql.Replace("'", "");
-                AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "让步提交|" + sql);
+                    sql = sql.Replace("'", "");
+                    AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "返修提交|" + sql);
+                }
+
+                return "处理成功";
             }
-
-            if ((theSubReport.DMRRepairQty) != null)
+            finally
             {
-                string res = CommonRepository.CheckJobHeadState(theSubReport.JobNum);
-                if (res != "正常")
-                    return "错误：" + res;
-
-                sql = " update bpmsub set " +
-                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "|" + HttpContext.Current.Session["UserName"].ToString() + "', " +
-                       "NextDate = '" + OpDate + "'," +
-                       "Status = 99," +
-                       "PreStatus = " + (theSubReport.Status) + "," +
-                       "IsComplete = 1," +
-                       "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
-                       "where id = " + (theSubReport.ID) + "";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-
-                sql = sql.Replace("'", "");
-                AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "返修提交|" + sql);
+                accept_IDs_sub.Remove((int)AcceptInfo.ID);
             }
-
-            return "处理成功";
         }
 
 
         private static string AccepterCommitOfMain(OpReport AcceptInfo)//apinum 401
         {
-            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
-            string sql = @"select * from BPM where Id = " + AcceptInfo.ID + "";
-
-            OpReport theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
-
-            if (theReport.IsDelete == true)
-                return "错误：该批次的流程已删除";
-
-            if (theReport.IsComplete == true)
-                return "错误：该批次的流程已结束";
-
-            if (theReport.Status != 4)
-                return "错误：流程未在当前节点上";
-
-            string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
-            if (res != "正常")
-                return "错误：" + res;
-
-            DataTable dt = GetJobSeqInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq); //erp抓取该工序的最新信息
-
-            if (dt == null)
+            lock (lock_accept_main)
             {
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
-                return "0|错误：当前工序不存在，该报工流程已被自动删除";
+                if (accept_IDs_main.Contains((int)AcceptInfo.ID))
+                    return "错误：其他账号正在提交该待办事项";
+                accept_IDs_main.Add((int)AcceptInfo.ID);
             }
 
-            if (dt.Rows[0]["OpCode"].ToString() != theReport.OpCode)
+            try
             {
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
-                return "0|错误：原工序编号" + theReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
-            }
+                string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            //if (CommonRepository.IsOpSeqComplete(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq))
-            //    return "错误：该工序已完成";
+                string sql = @"select * from BPM where Id = " + AcceptInfo.ID + "";
 
-            string NextSetpInfo = GetNextSetpInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, dt.Rows[0]["Company"].ToString());
-            if (NextSetpInfo.Substring(0, 1).Trim() == "0")
-                return "0|错误：获取下工序去向失败，" + NextSetpInfo;
+                OpReport theReport = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
+                if (theReport.IsDelete == true)
+                    return "错误：该批次的流程已删除";
 
+                if (theReport.IsComplete == true)
+                    return "错误：该批次的流程已结束";
 
-            object PreOpSeq = CommonRepository.GetPreOpSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq);
-            if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq) < GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
-                return "错误： 报工数超出该阶层的可生产数量";
-            if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
-                return "错误： 当前报工数超出上一道工序的报工数";
+                if (theReport.Status != 4)
+                    return "错误：流程未在当前节点上";
 
-
-            //自动回退检测
-            string[] arr = NextSetpInfo.Split('~');
-            if (theReport.NextOpCode != arr[1])
-            {
-                ReturnStatus((bool)theReport.IsSubProcess, (int)theReport.ID, (int)theReport.Status, 11, "工序去向已更改，主流程自动回退", 401);
-                return "错误： 工序去向已更改，流程已自动回退至上一节点";
-            }
-
-
-            //若去向仓库
-            if (theReport.AtRole == 8)
-            {
-                res = ErpAPI.Common.D0506_01(null, theReport.JobNum, (int)theReport.AssemblySeq, (decimal)theReport.QualifiedQty, theReport.JobNum, theReport.NextOpCode, AcceptInfo.BinNum, theReport.Company, theReport.Plant);
-                if (res != "1|处理成功")
+                string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
+                if (res != "正常")
                     return "错误：" + res;
+
+                DataTable dt = GetJobSeqInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq); //erp抓取该工序的最新信息
+
+                if (dt == null)
+                {
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
+                    return "0|错误：当前工序不存在，该报工流程已被自动删除";
+                }
+
+                if (dt.Rows[0]["OpCode"].ToString() != theReport.OpCode)
+                {
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
+                    return "0|错误：原工序编号" + theReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
+                }
+
+                //if (CommonRepository.IsOpSeqComplete(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq))
+                //    return "错误：该工序已完成";
+
+                string NextSetpInfo = GetNextSetpInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, dt.Rows[0]["Company"].ToString());
+                if (NextSetpInfo.Substring(0, 1).Trim() == "0")
+                    return "0|错误：获取下工序去向失败，" + NextSetpInfo;
+
+
+
+                object PreOpSeq = CommonRepository.GetPreOpSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq);
+                if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq) < GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
+                    return "错误： 报工数超出该阶层的可生产数量";
+                if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
+                    return "错误： 当前报工数超出上一道工序的报工数";
+
+
+                //自动回退检测
+                string[] arr = NextSetpInfo.Split('~');
+                if (theReport.NextOpCode != arr[1])
+                {
+                    ReturnStatus((bool)theReport.IsSubProcess, (int)theReport.ID, (int)theReport.Status, 11, "工序去向已更改，主流程自动回退", 401);
+                    return "错误： 工序去向已更改，流程已自动回退至上一节点";
+                }
+
+
+                //若去向仓库
+                if (theReport.AtRole == 8)
+                {
+                    res = ErpAPI.Common.D0506_01(null, theReport.JobNum, (int)theReport.AssemblySeq, (decimal)theReport.QualifiedQty, theReport.JobNum, theReport.NextOpCode, AcceptInfo.BinNum, theReport.Company, theReport.Plant);
+                    if (res != "1|处理成功")
+                        return "错误：" + res;
+                }
+
+                //再回写主表
+                sql = " update bpm set " +
+                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
+                       "NextDate = '" + OpDate + "'," +
+                       "Status = 99," +
+                       "PreStatus = " + (theReport.Status) + "," +
+                       "IsComplete = 1," +
+                       "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
+                       "where id = " + (theReport.ID) + "";
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+
+                sql = sql.Replace("'", "");
+                AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, sql);
+
+                return "处理成功";
             }
-
-            //再回写主表
-            sql = " update bpm set " +
-                   "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
-                   "NextDate = '" + OpDate + "'," +
-                   "Status = 99," +
-                   "PreStatus = " + (theReport.Status) + "," +
-                   "IsComplete = 1," +
-                   "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
-                   "where id = " + (theReport.ID) + "";
-            SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-
-            sql = sql.Replace("'", "");
-            AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, sql);
-
-            return "处理成功";
+            finally
+            {
+                accept_IDs_main.Remove((int)AcceptInfo.ID);
+            }
         }
 
 
         public static string AccepterCommit(OpReport AcceptInfo) //apinum 400
-        {
+        {      
             string res;
             if (!(bool)AcceptInfo.IsSubProcess)
                 res = AccepterCommitOfMain(AcceptInfo);

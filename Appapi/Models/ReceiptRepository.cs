@@ -890,10 +890,11 @@ namespace Appapi.Models
                 sql = @"update Receipt set                      
                         ReceiveQty1 = {0},                      
                         Remark = '{1}',
-                        SecondUserGroup = '{2}',                        
+                        SecondUserGroup = '{2}',    
                         Status = {3},
                         AtRole = {4},
-                        PreStatus = {5}
+                        PreStatus = {5},
+                       HeatNum = {6}
                         where BatchNo = '" + batInfo.BatchNo + "'";
                 sql = string.Format(sql,
                     batInfo.ReceiveQty1,
@@ -901,7 +902,8 @@ namespace Appapi.Models
                     batInfo.SecondUserGroup,
                     2,
                     2, 
-                    (int)theBatch.Rows[0]["status"]);
+                    (int)theBatch.Rows[0]["status"],
+                    batInfo.HeatNum);
                 #endregion
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
