@@ -602,7 +602,7 @@ namespace Appapi.Models
 
         public static string CheckerCommit(OpReport CheckInfo)
         {
-            static int 
+            //static int 
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             #region
