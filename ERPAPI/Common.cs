@@ -650,7 +650,7 @@ namespace ErpAPI
                 adapter1.ChangeJobHeadPartNum(dsJ);
                 dsJ.Tables["JobHead"].Rows[0]["PlantMaintPlant"] = plant;
                 dsJ.Tables["JobHead"].Rows[0]["Plant"] = plant;
-                dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "Main Site";
+                dsJ.Tables["JobHead"].Rows[0]["PlantName"] = plant == "MfgSys" ? "Main Site" : "引擎零部件工厂";
 
                 adapter1.Update(dsJ);
                 //物料

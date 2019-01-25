@@ -845,7 +845,7 @@ namespace Appapi.Models
                     2,
                     1,
                     2,
-                    batInfo.PoNum,
+                    batInfo.PoNum,                                                                                                                       
                     batInfo.PoLine,
                     batInfo.PORelNum,
                     batInfo.BatchNo,
@@ -893,7 +893,8 @@ namespace Appapi.Models
                         SecondUserGroup = '{2}',                        
                         Status = {3},
                         AtRole = {4},
-                        PreStatus = {5}
+                        PreStatus = {5},
+                        HeatNum = '{6}'
                         where BatchNo = '" + batInfo.BatchNo + "'";
                 sql = string.Format(sql,
                     batInfo.ReceiveQty1,
@@ -901,7 +902,8 @@ namespace Appapi.Models
                     batInfo.SecondUserGroup,
                     2,
                     2, 
-                    (int)theBatch.Rows[0]["status"]);
+                    (int)theBatch.Rows[0]["status"],
+                    batInfo.HeatNum);
                 #endregion
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -1356,7 +1358,7 @@ namespace Appapi.Models
                                         {
                                             if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
                                             {
-                                                res = ErpAPI.MtlIssue.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"], DateTime.Parse(OpDate),theBatch.Company);
+                                                res = ErpAPI.MtlIssue.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"], DateTime.Parse(OpDate),theBatch.Company,theBatch.Plant);
                                                 issue_res += mtls.Rows[j]["partnum"].ToString() + "：";
                                                 issue_res += (res == "true") ? (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty + ", " : res + ", ";
                                             }

@@ -20,7 +20,7 @@ namespace ErpAPI
 {
     public static class MtlIssue
     {
-        private static string IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId)
+        private static string IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId, string plantId)
         {
             try
             {
@@ -29,6 +29,7 @@ namespace ErpAPI
                 {
                     return "0|Get EpicorSession failed";
                 }
+                EpicorSession.PlantID = plantId;
                 EpicorSession.CompanyID = companyId;
                 IssueReturnImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<IssueReturnImpl>(EpicorSession, ImplBase<Erp.Contracts.IssueReturnSvcContract>.UriPath);
                 IssueReturnDataSet ds = new IssueReturnDataSet();
@@ -93,14 +94,14 @@ namespace ErpAPI
         }
 
 
-        public static string Issue(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string companyId)
+        public static string Issue(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string companyId, string plantId)
         {
             string res = CheckIssue(partNum, tranQty);
 
             if (res.Substring(0, 1).Trim() == "1")
             {
                 string [] arr = res.Substring(2).Split('~');
-                string ss = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, arr[2], "WIP", arr[1], "WIP", arr[1], arr[0], "工单发料", companyId);
+                string ss = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, arr[2], "WIP", arr[1], "WIP", arr[1], arr[0], "工单发料", companyId,plantId);
                 if (ss.Substring(0, 1).Trim() == "1")
                      res = "true";
                 else
