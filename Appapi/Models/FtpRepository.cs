@@ -17,13 +17,13 @@ namespace Appapi.Models
 
 
         /// 获取根目录下明细(包含文件和文件夹)
-        private static string[] GetFilesDetailList(string folderPath)
+        private static string[] GetFilesDetailList(string Path)
         {
             try
             {
                 StringBuilder result = new StringBuilder();
                 FtpWebRequest ftp;
-                ftp = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + folderPath));
+                ftp = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + Path));
                 ftp.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
                 ftp.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                 WebResponse response = ftp.GetResponse();
@@ -51,10 +51,10 @@ namespace Appapi.Models
         }
 
 
-        /// 获取根目录下所有的文件夹列表(仅文件夹)
-        private static string[] GetDirectoryList(string folderPath)
+        /// 获取指定路径下所有的文件夹列表(仅文件夹)
+        private static string[] GetDirectoryList(string Path)
         {
-            string[] drectory = GetFilesDetailList(folderPath);
+            string[] drectory = GetFilesDetailList(Path);
 
             if (drectory == null)
                 return null;
@@ -80,10 +80,10 @@ namespace Appapi.Models
         }
 
 
-        /// 判断根目录下指定的文件夹是否存在
-        public static bool IsFolderExist(string folderPath, string folderName)
+        /// 判断指定路径下指定的文件夹是否存在
+        public static bool IsFolderExist(string Path, string folderName)
         {
-            string[] dirList = GetDirectoryList(folderPath);
+            string[] dirList = GetDirectoryList(Path);
             if (dirList != null)
             {
                 foreach (string str in dirList)
@@ -97,12 +97,12 @@ namespace Appapi.Models
         }
 
 
-        public static bool IsFileExist(string folderPath, string RemoteFileName)
+        public static bool IsFileExist(string FolderURL, string FileName)
         {
-            string[] fileList = GetFileList(folderPath, "*.*");
+            string[] fileList = GetFileList(FolderURL, "*.*");
             foreach (string str in fileList)
             {
-                if (str.Trim() == RemoteFileName.Trim())
+                if (str.Trim() == FileName.Trim())
                 {
                     return true;
                 }
@@ -111,9 +111,9 @@ namespace Appapi.Models
         }
 
 
-        public static bool UploadFile(byte[] fileContent, string folderPath, string filename)
+        public static bool UploadFile(byte[] fileContent, string Path, string filename)
         {
-            string uri = ftpServer + folderPath + filename;
+            string uri = ftpServer + Path + filename;
             FtpWebRequest reqFTP;
 
             reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
@@ -138,12 +138,12 @@ namespace Appapi.Models
         }
 
 
-        public static bool MakeFolder(string folderPath, string folderName)
+        public static bool MakeFolder(string Path, string folderName)
         {
             FtpWebRequest reqFTP;
             try
             {
-                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + folderPath + folderName));
+                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + Path + folderName));
                 reqFTP.Method = WebRequestMethods.Ftp.MakeDirectory;
                 reqFTP.UseBinary = true;
                 reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
@@ -162,13 +162,13 @@ namespace Appapi.Models
         }
 
 
-        private static string[] GetFileList(string folderPath, string mask)
+        private static string[] GetFileList(string FolderURL, string mask)
         {
             string[] downloadFiles = null;
             StringBuilder result = new StringBuilder();
             FtpWebRequest reqFTP;
 
-            reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(folderPath));
+            reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(FolderURL));
             reqFTP.UseBinary = true;
             reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
             reqFTP.Method = WebRequestMethods.Ftp.ListDirectory;
@@ -214,15 +214,14 @@ namespace Appapi.Models
 
 
         /// 删除文件
-        public static bool DeleteFile(string filePath, string fileName)
+        public static bool DeleteFile(string FolderURL, string fileName)
         {
-            filePath = "ftp://" + filePath;
             try
             {
-                if(!IsFileExist(filePath, fileName)) return true;
+                if(!IsFileExist(FolderURL, fileName)) return true;
 
 
-                string uri = filePath + fileName;
+                string uri = FolderURL + fileName;
                 FtpWebRequest reqFTP;
                 reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
 

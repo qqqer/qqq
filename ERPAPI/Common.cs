@@ -615,7 +615,8 @@ namespace ErpAPI
         string plant,
         string PartNum,
         decimal DMRRepairQty,//返修         
-        string DMRJobNum)
+        string DMRJobNum,
+         string IUM)
         {
             Session EpicorSession = Common.GetEpicorSession();
             if (EpicorSession == null)
@@ -640,31 +641,38 @@ namespace ErpAPI
                 JobEntryImpl adapter1 = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<JobEntryImpl>(EpicorSession, ImplBase<Erp.Contracts.JobEntrySvcContract>.UriPath);
                 //EpicorSessionManager.EpicorSession.CompanyID = Company;
                 // EpicorSessionManager.EpicorSession.PlantID = plant;
+
+                //工单是否存在
+                object IsExist = QueryERP("select count(*) from erp.JobHead jh where jh.JobNum = '" + DMRJobNum + "'");
+
                 //开返修工单
-                adapter1.ValidateJobNum(DMRJobNum);
-                JobEntryDataSet dsJ = adapter1.GetDatasetForTree(DMRJobNum, 0, 0, false, "MFG,PRJ,SRV");
-                adapter1.GetNewJobHead(dsJ);
-                dsJ.Tables["JobHead"].Rows[0]["JobNum"] = DMRJobNum;
-                dsJ.Tables["JobHead"].Rows[0]["PartNum"] = PartNum;
-                dsJ.Tables["JobHead"].Rows[0]["JobType"] = "MFG";
-                adapter1.ChangeJobHeadPartNum(dsJ);
-                dsJ.Tables["JobHead"].Rows[0]["PlantMaintPlant"] = plant;
-                dsJ.Tables["JobHead"].Rows[0]["Plant"] = plant;
-                dsJ.Tables["JobHead"].Rows[0]["PlantName"] = plant == "MfgSys" ? "Main Site" : "引擎零部件工厂";
+                if (Convert.ToInt32(IsExist) == 0)
+                {
+                    adapter1.ValidateJobNum(DMRJobNum);
+                    JobEntryDataSet dsJ = adapter1.GetDatasetForTree(DMRJobNum, 0, 0, false, "MFG,PRJ,SRV");
+                    adapter1.GetNewJobHead(dsJ);
+                    dsJ.Tables["JobHead"].Rows[0]["JobNum"] = DMRJobNum;
+                    dsJ.Tables["JobHead"].Rows[0]["PartNum"] = PartNum;
+                    dsJ.Tables["JobHead"].Rows[0]["JobType"] = "MFG";
+                    adapter1.ChangeJobHeadPartNum(dsJ);
+                    dsJ.Tables["JobHead"].Rows[0]["PlantMaintPlant"] = plant;
+                    dsJ.Tables["JobHead"].Rows[0]["Plant"] = plant;
+                    dsJ.Tables["JobHead"].Rows[0]["PlantName"] = plant == "MfgSys" ? "Main Site" : "引擎零部件工厂";
 
-                adapter1.Update(dsJ);
-                //物料
-                JobEntryDataSet dsM = adapter1.GetDatasetForTree(DMRJobNum, 0, 0, false, "MFG,PRJ,SRV");
-                adapter1.GetNewJobMtl(dsM, DMRJobNum, 0);
-                dsM.Tables["JobMtl"].Rows[0]["PartNum"] = PartNum;
-                adapter1.ChangeJobMtlPartNum(dsM, true, ref PartNum, ss, "", "", out vMsgText, out vSubAvail, out vMsgType, out multipleMatch, out opPartChgCompleted, out opMtlIssuedAction);
+                    adapter1.Update(dsJ);
+                    //物料
+                    JobEntryDataSet dsM = adapter1.GetDatasetForTree(DMRJobNum, 0, 0, false, "MFG,PRJ,SRV");
+                    adapter1.GetNewJobMtl(dsM, DMRJobNum, 0);
+                    dsM.Tables["JobMtl"].Rows[0]["PartNum"] = PartNum;
+                    adapter1.ChangeJobMtlPartNum(dsM, true, ref PartNum, ss, "", "", out vMsgText, out vSubAvail, out vMsgType, out multipleMatch, out opPartChgCompleted, out opMtlIssuedAction);
 
-                adapter1.Update(dsM);
-                //工单是否发放
-                dsJ.Tables["JobHead"].Rows[0]["JobEngineered"] = true;
-                dsJ.Tables["JobHead"].Rows[0]["JobReleased"] = true;
-                dsJ.Tables["JobHead"].Rows[0]["ReqDueDate"] = time;
-                adapter1.Update(dsJ);
+                    adapter1.Update(dsM);
+                    //工单是否发放
+                    dsJ.Tables["JobHead"].Rows[0]["JobEngineered"] = true;
+                    dsJ.Tables["JobHead"].Rows[0]["JobReleased"] = true;
+                    dsJ.Tables["JobHead"].Rows[0]["ReqDueDate"] = time;
+                    adapter1.Update(dsJ);
+                }
 
                 //SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, "update jobhead set UDReqQty_c = "+DMRRepairQty+" where jobnum = '"+ DMRJobNum +"'", null);
                 ExecuteSql("update jobhead set UDReqQty_c = " + DMRRepairQty + " where jobnum = '" + DMRJobNum + "'");
@@ -687,11 +695,11 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["DispQuantity"] = DMRRepairQty;
                 ds.Tables["DMRActn"].Rows[i]["TranQty"] = DMRRepairQty;
                 ds.Tables["DMRActn"].Rows[i]["Quantity"] = 0;
-                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = "PCS";
-                ds.Tables["DMRActn"].Rows[i]["TranUOM"] = "PCS";
+                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = IUM;
+                ds.Tables["DMRActn"].Rows[i]["TranUOM"] =IUM;
                 adapter.DefaultIssueComplete(ds);
 
-                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
+                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = plant == "MfgSys" ? "WIP" : "RRWIP";
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
                 adapter.ChangeWarehouse(ds);
                 ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D03"; //返修D03，  让步接收？
@@ -717,7 +725,8 @@ namespace ErpAPI
         string plant,
         decimal DMRUnQualifiedQty,
         string DMRUnQualifiedReason,
-        int DMRID)
+        int DMRID,
+        string IUM)
         {
 
             Session EpicorSession = Common.GetEpicorSession();
@@ -744,7 +753,7 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["Quantity"] = 0;
                 ds.Tables["DMRActn"].Rows[i]["TranQty"] = 0;
                 //ds.Tables["DMRActn"].Rows[0]["TotRemainQty"] = tqty;
-                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = "PCS";
+                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = IUM;
                 ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = DMRUnQualifiedReason;
 
                 //保存

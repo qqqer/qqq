@@ -468,9 +468,12 @@ namespace Appapi.Models
                 sql = @"select dmrid from MtlReport where id = " + DMRInfo.ID + "";
                 object dmrid = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+                sql = @"select IUM from erp.JobMtl where JobNum ='"+theReport.JobNum+"'  and   AssemblySeq = "+theReport.AssemblySeq+ " and  MtlSeq= " + theReport.MtlSeq + "";
+                object IUM = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
                 if (!Convert.IsDBNull(dmrid) && DMRInfo.DMRRepairQty > 0)
                 {
-                    res = ErpAPI.Common.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum);
+                    res = ErpAPI.Common.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum,IUM.ToString());
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 
@@ -486,9 +489,13 @@ namespace Appapi.Models
                 sql = @"select dmrid from MtlReport where id = " + DMRInfo.ID + "";
                 object dmrid = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+                sql = @"select IUM from erp.JobMtl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq= " + theReport.MtlSeq + "";
+                object IUM = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+
                 if (!Convert.IsDBNull(dmrid) && DMRInfo.DMRUnQualifiedQty > 0)
                 {
-                    res = ErpAPI.Common.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)dmrid);
+                    res = ErpAPI.Common.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)dmrid,IUM.ToString());
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 
@@ -730,13 +737,21 @@ namespace Appapi.Models
 
                 if (theSubReport.DMRRepairQty != null)
                 {
-                    sql = @"select top 1  OpCode  from erp.JobOper  where JobNum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc";
-                    string nextOpCode = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                    sql = @"select  SubContract  from erp.JobOper where jobnum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc ";
+                    bool IsSubContract = Convert.ToBoolean(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
-                    sql = "select NextUser from BPMOpCode where OpCode = '" + nextOpCode + "'";
-                    string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    if (IsSubContract)
+                        sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0  and  RoleID & " + 16 + " != 0 and RoleID != 2147483647";
+                    else
+                    {
+                        sql = @"select top 1  OpCode  from erp.JobOper  where JobNum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc";
+                        string nextOpCode = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-                    sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0 and  CHARINDEX(userid, '" + NextUser + "') > 0 and  RoleID & " + 128 + " != 0 and RoleID != 2147483647";
+                        sql = "select NextUser from BPMOpCode where OpCode = '" + nextOpCode + "'";
+                        string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                        sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0 and  CHARINDEX(userid, '" + NextUser + "') > 0 and  RoleID & " + 128 + " != 0 and RoleID != 2147483647";
+                    }
                 }
                 dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
