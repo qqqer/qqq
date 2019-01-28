@@ -23,7 +23,7 @@ namespace Appapi.Models
             {
                 StringBuilder result = new StringBuilder();
                 FtpWebRequest ftp;
-                ftp = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + Path));
+                ftp = (FtpWebRequest)WebRequest.Create(new Uri(ftpServer + Path));
                 ftp.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
                 ftp.Method = WebRequestMethods.Ftp.ListDirectoryDetails;
                 WebResponse response = ftp.GetResponse();
@@ -116,7 +116,7 @@ namespace Appapi.Models
             string uri = ftpServer + Path + filename;
             FtpWebRequest reqFTP;
 
-            reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
+            reqFTP = (FtpWebRequest)WebRequest.Create(new Uri(uri));
             reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
             reqFTP.KeepAlive = false;
             reqFTP.Method = WebRequestMethods.Ftp.UploadFile;
@@ -143,7 +143,7 @@ namespace Appapi.Models
             FtpWebRequest reqFTP;
             try
             {
-                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(ftpServer + Path + folderName));
+                reqFTP = (FtpWebRequest)WebRequest.Create(new Uri(ftpServer + Path + folderName));
                 reqFTP.Method = WebRequestMethods.Ftp.MakeDirectory;
                 reqFTP.UseBinary = true;
                 reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
@@ -168,7 +168,7 @@ namespace Appapi.Models
             StringBuilder result = new StringBuilder();
             FtpWebRequest reqFTP;
 
-            reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(FolderURL));
+            reqFTP = (FtpWebRequest)WebRequest.Create(new Uri(FolderURL));
             reqFTP.UseBinary = true;
             reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
             reqFTP.Method = WebRequestMethods.Ftp.ListDirectory;
@@ -223,7 +223,7 @@ namespace Appapi.Models
 
                 string uri = FolderURL + fileName;
                 FtpWebRequest reqFTP;
-                reqFTP = (FtpWebRequest)FtpWebRequest.Create(new Uri(uri));
+                reqFTP = (FtpWebRequest)WebRequest.Create(new Uri(uri));
 
                 reqFTP.Credentials = new NetworkCredential(ftpUserName, ftpPassword);
                 reqFTP.KeepAlive = false;
