@@ -617,8 +617,8 @@ namespace ErpAPI
         string plant,
         string PartNum,
         decimal DMRRepairQty,//返修         
-        string DMRJobNum
-        )
+        string DMRJobNum,
+         string IUM)
         {
             Session EpicorSession = Common.GetEpicorSession();
             if (EpicorSession == null)
@@ -648,9 +648,9 @@ namespace ErpAPI
 
                 //工单是否存在
                 object IsExist = QueryERP("select count(*) from erp.JobHead jh where jh.JobNum = '" + DMRJobNum + "'");
-                
+
                 //开返修工单
-                if ((int)IsExist > 0)
+                if (Convert.ToInt32(IsExist) == 0)
                 {
                     adapter1.ValidateJobNum(DMRJobNum);
                     JobEntryDataSet dsJ = adapter1.GetDatasetForTree(DMRJobNum, 0, 0, false, "MFG,PRJ,SRV");
@@ -661,7 +661,8 @@ namespace ErpAPI
                     adapter1.ChangeJobHeadPartNum(dsJ);
                     dsJ.Tables["JobHead"].Rows[0]["PlantMaintPlant"] = plant;
                     dsJ.Tables["JobHead"].Rows[0]["Plant"] = plant;
-                    dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "Main Site";
+
+                    dsJ.Tables["JobHead"].Rows[0]["PlantName"] = plant == "MfgSys" ? "Main Site" : "引擎零部件工厂";
 
                     adapter1.Update(dsJ);
                     //物料
@@ -677,7 +678,7 @@ namespace ErpAPI
                     dsJ.Tables["JobHead"].Rows[0]["ReqDueDate"] = time;
                     adapter1.Update(dsJ);
                 }
-                
+
                 ExecuteSql("update jobhead set UDReqQty_c = " + DMRRepairQty + " where jobnum = '" + DMRJobNum + "'");
 
                 //工序接收返修
@@ -698,11 +699,11 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["DispQuantity"] = DMRRepairQty;
                 ds.Tables["DMRActn"].Rows[i]["TranQty"] = DMRRepairQty;
                 ds.Tables["DMRActn"].Rows[i]["Quantity"] = 0;
-                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = "PCS";
-                ds.Tables["DMRActn"].Rows[i]["TranUOM"] = "PCS";
+                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = IUM;
+                ds.Tables["DMRActn"].Rows[i]["TranUOM"] =IUM;
                 adapter.DefaultIssueComplete(ds);
 
-                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
+                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = plant == "MfgSys" ? "WIP" : "RRWIP";
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
                 adapter.ChangeWarehouse(ds);
 
@@ -800,7 +801,8 @@ namespace ErpAPI
         string plant,
         decimal DMRUnQualifiedQty,
         string DMRUnQualifiedReason,
-        int DMRID)
+        int DMRID,
+        string IUM)
         {
 
             Session EpicorSession = Common.GetEpicorSession();
@@ -829,7 +831,7 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["Quantity"] = 0;
                 ds.Tables["DMRActn"].Rows[i]["TranQty"] = 0;
                 //ds.Tables["DMRActn"].Rows[0]["TotRemainQty"] = tqty;
-                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = "PCS";
+                ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = IUM;
                 ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = DMRUnQualifiedReason;
 
                 //保存

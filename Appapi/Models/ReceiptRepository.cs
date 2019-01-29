@@ -845,7 +845,7 @@ namespace Appapi.Models
                     2,
                     1,
                     2,
-                    batInfo.PoNum,
+                    batInfo.PoNum,                                                                                                                       
                     batInfo.PoLine,
                     batInfo.PORelNum,
                     batInfo.BatchNo,
@@ -894,7 +894,7 @@ namespace Appapi.Models
                         Status = {3},
                         AtRole = {4},
                         PreStatus = {5},
-                       HeatNum = {6}
+                        HeatNum = '{6}'
                         where BatchNo = '" + batInfo.BatchNo + "'";
                 sql = string.Format(sql,
                     batInfo.ReceiveQty1,
@@ -1358,7 +1358,7 @@ namespace Appapi.Models
                                         {
                                             if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
                                             {
-                                                res = ErpAPI.MtlIssue.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"], DateTime.Parse(OpDate),theBatch.Company);
+                                                res = ErpAPI.MtlIssue.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"], DateTime.Parse(OpDate),theBatch.Company,theBatch.Plant);
                                                 issue_res += mtls.Rows[j]["partnum"].ToString() + "：";
                                                 issue_res += (res == "true") ? (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty + ", " : res + ", ";
                                             }
@@ -1580,7 +1580,7 @@ namespace Appapi.Models
                 {
                     for (int i = 0; i < dt.Rows.Count; i++)
                     {
-                        if (FTPRepository.DeleteFile(((string)dt.Rows[i]["FilePath"]).Replace('\\', '/'), (string)dt.Rows[i]["FileName"]) == true)
+                        if (FTPRepository.DeleteFile("ftp://" + (((string)dt.Rows[i]["FilePath"]).Replace('\\', '/')), (string)dt.Rows[i]["FileName"]) == true)
                         {
                             AddOpLog(ID, (string)theBatch.Rows[0]["batchno"], apinum, "delete", OpDate, "回退自动删除|" + (string)dt.Rows[i]["FilePath"] + (string)dt.Rows[i]["FileName"]);
                             continue;
@@ -1986,7 +1986,7 @@ namespace Appapi.Models
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
 
-            if (FTPRepository.DeleteFile(filePath, filename) == true)
+            if (FTPRepository.DeleteFile("ftp://" + filePath, filename) == true)
             {
                 string sql = "delete from IQCFile where id = " + id + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);

@@ -457,7 +457,7 @@ namespace Appapi.Models
                 {
                     if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
                     {
-                        res = ErpAPI.MtlIssue.Issue(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["qtyper"] * (decimal)ReportInfo.FirstQty, DateTime.Parse(OpDate), "001");
+                        res = ErpAPI.MtlIssue.Issue(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["qtyper"] * (decimal)ReportInfo.FirstQty, DateTime.Parse(OpDate), "001", dt.Rows[0]["Plant"].ToString());
                         issue_res += mtls.Rows[j]["partnum"].ToString() + "：";
                         issue_res += (res == "true") ? (decimal)mtls.Rows[j]["qtyper"] * (decimal)ReportInfo.FirstQty + ", " : res + ", ";
 
@@ -822,11 +822,15 @@ namespace Appapi.Models
 
             if (DMRInfo.DMRRepairQty > 0)
             {
-                res = ErpAPI.Common.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)theReport.DMRRepairQty + (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum);
+                sql = @"select IUM  from erp.JobAsmbl where JobNum = '" + theReport.JobNum + "' and AssemblySeq = " + theReport.AssemblySeq + "";
+                object IUM = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+                res = ErpAPI.Common.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)theReport.DMRRepairQty + (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, IUM.ToString());
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
 
                 InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup);
+
 
                 sql = " update bpm set DMRRepairQty = DMRRepairQty + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -836,7 +840,10 @@ namespace Appapi.Models
            
             if (DMRInfo.DMRUnQualifiedQty > 0)
             {
-                res = ErpAPI.Common.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID);
+                sql = @"select IUM  from erp.JobAsmbl where JobNum = '" + theReport.JobNum + "' and AssemblySeq = " + theReport.AssemblySeq + "";
+                object IUM = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+                res = ErpAPI.Common.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交报废数量";
 
@@ -1531,9 +1538,17 @@ namespace Appapi.Models
 
             if (theSubReport.DMRRepairQty != null)
             {
-                nextRole = 128;
-                sql = @"select top 1  OpCode  from erp.JobOper  where JobNum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc";
-                nextOpCode = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                sql = @"select  SubContract  from erp.JobOper where jobnum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc ";
+                bool IsSubContract = Convert.ToBoolean(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+
+                if (IsSubContract)
+                    nextRole = 16;
+                else
+                {
+                    nextRole = 128;
+                    sql = @"select top 1  OpCode  from erp.JobOper  where JobNum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc";
+                    nextOpCode = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                }
             }
 
 
