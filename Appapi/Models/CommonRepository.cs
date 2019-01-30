@@ -95,7 +95,7 @@ namespace Appapi.Models
         {
             string  sql = "select username from userfile where userid = '" + userid + "'";
 
-            string UserName = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            string UserName = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             return UserName;
         }
@@ -116,7 +116,7 @@ namespace Appapi.Models
             }
 
             string sql = "select loginid from [dbo].[HrmResource] where loginid = '" + userid + "' and password = '" + sb.ToString() + "' ";
-            object loginid = SQLRepository.ExecuteScalarToObject(SQLRepository.OA_strConn, CommandType.Text, sql, null);
+            object loginid = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null);
 
 
             if (loginid != null)//OA账号表中验证成功
@@ -125,7 +125,7 @@ namespace Appapi.Models
                 sql = "select * from userfile where userid = '" + userid + "' and  password = '" + password + "'  and disabled != 1";
 
 
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
             if (dt != null)
             {
                 HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
@@ -149,7 +149,7 @@ namespace Appapi.Models
         public static bool CheckVersion(string version)//ApiNum: 19   检测版本号
         {
             string sql = "select Version from SerialNumber";
-            object Version = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object Version = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             if (Version.ToString().Trim() == version.Trim())
                 return true;
@@ -164,7 +164,7 @@ namespace Appapi.Models
             string sql = @"select partnum, mtlseq, qtyper,RequiredQty  from erp.JobMtl where jobnum ='{0}' and AssemblySeq = {1} and RelatedOperation = {2} and company = '{3}' and IssuedComplete = 0";
             sql = string.Format(sql, jobnum, AssemblySeq, jobseq, company);
 
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             return dt;
         }
@@ -174,7 +174,7 @@ namespace Appapi.Models
         public static string CheckJobHeadState(string jobnum)
         {
             string sql = @"select jh.jobClosed,jh.jobComplete, jh.JobEngineered, jh.JobReleased from erp.JobHead jh where jh.JobNum = '" + jobnum + "'";
-            DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             if (dt == null)
                 return "工单不存在";
@@ -195,7 +195,7 @@ namespace Appapi.Models
         {
             string sql = @"select QtyCompleted from erp.JobOper where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + "  and OprSeq = " + JobSeq + " ";
 
-            decimal QtyCompleted = Convert.ToDecimal(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+            decimal QtyCompleted = Convert.ToDecimal(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
             return QtyCompleted;
         }
@@ -210,7 +210,7 @@ namespace Appapi.Models
             else
                 sql = @"select SurplusQty_c from JobAsmbl ja where ja.JobNum = '" + JobNum + "' and ja.AssemblySeq = " + AssemblySeq + "";
 
-            decimal RequiredQty = Convert.ToDecimal(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+            decimal RequiredQty = Convert.ToDecimal(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
             return RequiredQty;
         }
@@ -256,7 +256,7 @@ namespace Appapi.Models
             string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
                   where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " order by jo.OprSeq desc";
 
-            object PreOpSeq = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            object PreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
             return PreOpSeq;
         }
@@ -267,7 +267,7 @@ namespace Appapi.Models
         {
             string sql = @"select  OpComplete  from erp.JobOper where jobnum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and  OprSeq = " + JobSeq + "";
 
-            return Convert.ToBoolean(SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+            return Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
         }
 
     }

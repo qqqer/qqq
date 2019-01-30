@@ -18,13 +18,13 @@ using System.Web;
 
 namespace ErpAPI
 {
-    public static class MtlIssue
+    public static class MtlIssueRepository
     {
         private static string IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId, string plantId)
         {
             try
             {
-                Session EpicorSession = Common.GetEpicorSession();
+                Session EpicorSession = CommonRepository.GetEpicorSession();
                 if (EpicorSession == null)
                 {
                     return "0|Get EpicorSession failed";
@@ -119,11 +119,11 @@ namespace ErpAPI
                     inner join Erp.Warehse as Warehse on PartBin.Company = Warehse.Company and PartBin.WarehouseCode = Warehse.WarehouseCode
                     inner join Erp.Part as Part       on  PartBin.Company = Part.Company and PartBin.PartNum = Part.PartNum
                     where Warehse.WarehouseCode = 'wip' and  PartBin.PartNum = '" + partNum + "' and  not (TrackLots = 1 and LotNum = '')";
-            DataTable dt = Common.GetDataByERP(sql);
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             if (dt == null || dt.Rows.Count == 0) return "0|wip仓中没有该物料 或 追踪的批次号为空";
 
-            for (int i = 0; i < dt.Rows.Count; i++) //遍历wip仓中，该物料的所有批次
+            for (int i = 0; dt != null && i < dt.Rows.Count; i++) //遍历wip仓中，该物料的所有批次
             {
                 if (tranQty > Convert.ToDecimal(dt.Rows[i]["OnhandQty"]))
                     continue;
