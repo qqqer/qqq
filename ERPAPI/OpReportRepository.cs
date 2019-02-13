@@ -78,7 +78,7 @@ namespace ErpAPI
                 Session EpicorSession = CommonRepository.GetEpicorSession();
                 if (EpicorSession == null)
                 {
-                    return "0|erp用户数不够，请稍候再试.接口号：D0505";
+                    return "0|erp用户数不够，请稍候再试.接口：TimeAndCost";
                 }
                 EpicorSession.CompanyID = companyId;
                 EpicorSession.PlantID = plantId;
@@ -91,7 +91,7 @@ namespace ErpAPI
                 decimal outTime;
 
 
-                #region 下挂时间明细
+                #region 下挂时间明细 TAC timeandcost
                 string sql = @"select * from TACSeq where GroupID = '" + Character05 + "'";
                 DataTable dt2 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
                 int LaborHedSeq;

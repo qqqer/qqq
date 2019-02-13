@@ -35,10 +35,10 @@ namespace Appapi.Models
                              "'jobnum':'{9}'," +
                              "'assemblyseq':'{10}'," +
                              "'jobseq':'{11}'," +
-                             "'commenttext':'{12}'," +
-                             "'ordertype':'{13}', " +
-                             "'HeatNum':'{14}'";
-            rcvdtlStr = string.Format(rcvdtlStr,array[0],array[1],array[2],array[3], array[4],array[5],array[6],array[7],array[8],array[9],array[10],array[11],array[12],array[13],array[14]);
+                            // "'commenttext':'{12}'," +
+                             "'ordertype':'{12}', " +
+                             "'HeatNum':'{13}'";
+            rcvdtlStr = string.Format(rcvdtlStr,array[0],array[1],array[2],array[3], array[4],array[5],array[6],array[7],array[8],array[9],array[10],array[11],array[12],array[13]);
             rcvdtlStr = "{" + rcvdtlStr + "}";
 
             return rcvdtlStr;
@@ -676,7 +676,7 @@ namespace Appapi.Models
                         RB.TranType,
                         RB.PartType,
                         RB.OpDesc,
-                        RB.CommentText,
+                        "\u1234CommentText",   //   \u1234  指示参数化
                         RB.PartClassDesc,
                         RB.NeedReceiptQty,
                         RB.NotReceiptQty,
@@ -707,7 +707,10 @@ namespace Appapi.Models
                     sql = string.Format(sql, values);
                     #endregion
 
-                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", RB.CommentText) };
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
+
+                    //Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
                 #endregion
 
@@ -835,7 +838,7 @@ namespace Appapi.Models
                     RB.TranType,
                     RB.PartType,
                     RB.OpDesc,
-                    RB.CommentText,
+                    "\u1234CommentText",
                     RB.PartClassDesc,
                     RB.NeedReceiptQty,
                     RB.NotReceiptQty,
@@ -865,7 +868,9 @@ namespace Appapi.Models
                 });
                 sql = string.Format(sql, values);
                 #endregion
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", RB.CommentText) };
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
 
 
                 sql = sql.Replace("'", "");
@@ -1177,7 +1182,7 @@ namespace Appapi.Models
                                 CommonRepository.GetValueAsString(theBatch.JobNum),
                                 CommonRepository.GetValueAsString(theBatch.AssemblySeq),
                                 CommonRepository.GetValueAsString(theBatch.JobSeq),
-                                CommonRepository.GetValueAsString(theBatch.CommentText),
+                                //CommonRepository.GetValueAsString(theBatch.CommentText),
                                 CommonRepository.GetValueAsString(theBatch.TranType),
                                 CommonRepository.GetValueAsString(theBatch.HeatNum)});
                         rcvdtlStr = "[" + rcvdtlStr + "]";
@@ -1259,7 +1264,7 @@ namespace Appapi.Models
                                 CommonRepository.GetValueAsString(theBatch.JobNum),
                                 CommonRepository.GetValueAsString(theBatch.AssemblySeq),
                                 CommonRepository.GetValueAsString(dt.Rows[i]["jobseq"]),
-                                CommonRepository.GetValueAsString(theBatch.CommentText),
+                                //CommonRepository.GetValueAsString(theBatch.CommentText),
                                 CommonRepository.GetValueAsString(theBatch.TranType),
                                 CommonRepository.GetValueAsString(theBatch.HeatNum)}) + (i == dt.Rows.Count - 1 ? "]" : ",");
                             }
@@ -1308,7 +1313,7 @@ namespace Appapi.Models
                                         "" + (int)dt.Rows[i]["jobseq"] + "," +
                                         "'" + (string)dt.Rows[i]["OpCode"] + "'," +
                                         "'" + (string)dt.Rows[i]["OpDesc"] + "'," +
-                                        "'" + theBatch.CommentText + "'," +
+                                        "@CommentText," +
                                         "" + 99 + "," +
                                         "'" + theBatch.PartClassDesc + "'," +
                                         "" + RB.NeedReceiptQty + "," +
@@ -1365,8 +1370,9 @@ namespace Appapi.Models
                                     }
 
                                     //执行sql
-                                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
+                                    //Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                                    SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", theBatch.CommentText) };
+                                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
 
                                     sql = sql.Replace("'", "");
                                     AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, sql.Contains("update") ? "update" : "insert", OpDate, sql + "    " + issue_res);
@@ -1389,9 +1395,6 @@ namespace Appapi.Models
 
                             return "处理成功";
                         }
-                        //临时取消完成数判断，财务上线+
-                        //else
-                        //    return "错误： 收货数超出上一道非该供应商工序的完成数量";
                     }
 
                     else
