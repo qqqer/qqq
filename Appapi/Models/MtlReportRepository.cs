@@ -463,13 +463,8 @@ namespace Appapi.Models
                     AddOpLog(DMRInfo.ID, 201, OpDate, "让步接收子流程生成");
                 }
 
-<<<<<<< HEAD
-                sql = " update MtlReport set ErpCounter = 1, DMRID = " + dmrid + " where id = " + DMRInfo.ID + "";
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-=======
                 sql = " update MtlReport set ErpCounter = 1, DMRID = " + DMRID + " where id = " + DMRInfo.ID + "";
                 SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
->>>>>>> zsq
             }
 
             if (theReport.ErpCounter < 2)//返修
