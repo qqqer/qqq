@@ -549,7 +549,7 @@ namespace ErpAPI
             string plant,
             out int dmrid)
         {
-            dmrid = -1;
+            dmrid = 0;
             Session EpicorSession = Common.GetEpicorSession();
             if (EpicorSession == null)
             {
