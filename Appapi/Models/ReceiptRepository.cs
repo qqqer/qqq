@@ -1614,7 +1614,7 @@ namespace Appapi.Models
 
         public static DataTable GetWarehouse(string partnum)
         {
-            string sql = @"select WarehouseCode from erp.PartBin  where PartNum = '"+partnum+"'";
+            string sql = @"select erp.Warehse.WarehouseCode,  Description  from erp.PartBin left join erp.Warehse on erp.PartBin.WarehouseCode = erp.Warehse.WarehouseCode  where PartNum = '" + partnum+"'";
             return SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
         }
 
@@ -2124,7 +2124,11 @@ namespace Appapi.Models
 
             tranJson = "[{" + tranJson + "}]";
 
-            string res = ErpAPI.Receipt.tranStk(tranJson, System.Convert.ToString(para.Company));
+
+            string Warehouse = Convert.ToString(para.Warehouse);
+
+
+            string res = ErpAPI.Receipt.tranStk(tranJson, System.Convert.ToString(para.Company), Warehouse.Contains("RR") ? "RRSite" : "MfgSys");
 
             if (res.Substring(0, 1) == "1")
             {
