@@ -403,7 +403,7 @@ namespace ErpAPI
 
 
         //TranStk库存转仓接口
-        public static string tranStk(string jsonStr, string companyId)
+        public static string tranStk(string jsonStr, string companyId, string plantId)
         {
             int rcnt = 0, i = 0, j = 0;
             string partnum;
@@ -508,6 +508,7 @@ namespace ErpAPI
                     return "-1|erp用户数不够，请稍候再试.ERR:tranStk";
                 }
                 EpicorSession.CompanyID = companyId;
+                EpicorSession.PlantID = plantId;
                 //WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionidc", "");
                 InvTransferImpl invAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<InvTransferImpl>(EpicorSession, ImplBase<Erp.Contracts.InvTransferSvcContract>.UriPath);
                 InvTransferDataSet invDS;
