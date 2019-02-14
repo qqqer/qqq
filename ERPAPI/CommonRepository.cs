@@ -520,8 +520,9 @@ namespace ErpAPI
             string plant,
             out int dmrid)
         {
-            dmrid = -1;
+            dmrid = 0;
             Session EpicorSession = CommonRepository.GetEpicorSession();
+
             if (EpicorSession == null)
             {
                 return "0|GetEpicorSession失败，请稍候再试|StartInspProcessing";
