@@ -20,7 +20,7 @@ namespace ErpAPI
 {
     public static class OpReport
     {
-        public static string D0505(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId,string plantId, decimal labh, out string Character05, out int tranid)
+        public static string TimeAndCost(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId,string plantId, decimal labh, out string Character05, out int tranid)
         { //JobNum as string ,jobQty as decimal,partNum as string
             Character05 = "";
             tranid = -1;
@@ -78,7 +78,7 @@ namespace ErpAPI
                 Session EpicorSession = Common.GetEpicorSession();
                 if (EpicorSession == null)
                 {
-                    return "0|erp用户数不够，请稍候再试.接口号：D0505";
+                    return "0|erp用户数不够，请稍候再试.接口号：TimeAndCost";
                 }
                 EpicorSession.CompanyID = companyId;
                 EpicorSession.PlantID = plantId;
