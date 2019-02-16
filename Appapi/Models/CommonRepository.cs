@@ -140,10 +140,12 @@ namespace Appapi.Models
         }
 
 
+
         public static void SignOut()
         {
             HttpContext.Current.Session.Abandon();
         }
+
 
 
         public static bool CheckVersion(string version)//ApiNum: 19   检测版本号
