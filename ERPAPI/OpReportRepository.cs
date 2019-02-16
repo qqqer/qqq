@@ -21,6 +21,7 @@ namespace ErpAPI
     public static class OpReportRepository
     {
         public static string TimeAndCost(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId,string plantId, out string Character05, out int tranid)
+
         { //JobNum as string ,jobQty as decimal,partNum as string
             Character05 = "";
             tranid = -1;

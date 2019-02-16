@@ -969,6 +969,10 @@ namespace Appapi.Models
 
                 if (!IsExistOprSeq) return "错误：返修工单工序为空";
 
+                //sql = @"select top 1  OpCode, OpDesc, OprSeq  from erp.JobOper  where JobNum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc";
+                //DataTable dt3 = SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+
+
                 sql = " update bpmsub set " +
                         "TransformUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
                         "TransformDate = '" + OpDate + "'," +
@@ -976,6 +980,9 @@ namespace Appapi.Models
                         "NextUserGroup = '" + TransmitInfo.NextUserGroup + "'," +
                         "PreStatus = " + 3 + "," +
                         "AtRole = " + 128 + " " +
+                        //"NextJobSeq = " + (int)dt3.Rows[0]["OprSeq"] + ", " +
+                        //"NextOpCode = " + dt3.Rows[0]["OpCode"].ToString() + ", " +
+                        //"NextOpDesc = " + dt3.Rows[0]["OpDesc"].ToString() + " " +
                         "where id = " + (theSubReport.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
