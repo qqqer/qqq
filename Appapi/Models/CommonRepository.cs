@@ -179,13 +179,13 @@ namespace Appapi.Models
             if (dt == null)
                 return "工单不存在";
             else if ((bool)dt.Rows[0]["jobClosed"] == true)
-                return "关联的工单已关闭";
+                return "该工单已关闭";
             else if ((bool)dt.Rows[0]["jobComplete"] == true)
-                return "关联的工单已完成";
+                return "该工单已完成";
             else if ((bool)dt.Rows[0]["JobEngineered"] == false)
-                return "关联的工单未设计";
+                return "该工单未设计";
             else if ((bool)dt.Rows[0]["JobReleased"] == false)
-                return "关联的工单未发放";
+                return "该工单未发放";
 
             return "正常";
         }

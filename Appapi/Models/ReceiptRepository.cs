@@ -19,6 +19,7 @@ namespace Appapi.Models
 {
     public static class ReceiptRepository
     {
+        private static readonly object PrintSeriesNumLock = new object();
 
         #region  重用函数（非接口）
 
@@ -371,15 +372,13 @@ namespace Appapi.Models
             else if ((string)dt.Rows[0]["TranType"] != "PUR-UKN" && (string)dt.Rows[0]["TranType"] != "PUR-STK") //是外协或工单物料， 需要判断与之关联的工单状态
             {
                 if ((bool)dt.Rows[0]["jobClosed"] == true)
-                    return "关联的工单已关闭";
+                    return "该工单已关闭";
                 else if ((bool)dt.Rows[0]["jobComplete"] == true)
-                    return "关联的工单已完成";
+                    return "该工单已完成";
                 else if ((bool)dt.Rows[0]["JobEngineered"] == false)
-                    return "关联的工单未设计";
+                    return "该工单未设计";
                 else if ((bool)dt.Rows[0]["JobReleased"] == false)
-                    return "关联的工单未发放";
-                //else if ((bool)dt.Rows[0]["JobHeld"] == true)
-                //  return "关联的工单已冻结";
+                    return "该工单未发放";
             }
 
             return "其他错误，请联系管理员";
@@ -563,29 +562,33 @@ namespace Appapi.Models
                         return "错误： 收货数超出上一道非该供应商工序的完成数量";
                 }
 
-                #region 计算批次号
                 string sql = "select * from SerialNumber where name = 'BAT'";
-                DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
-
-                string OriDay = ((DateTime)dt.Rows[0]["time"]).ToString("yyyy-MM-dd");//截取从数据库获得的时间的年月日部分
-                string today = DateTime.Now.ToString("yyyy-MM-dd");//截取当前时间的年月日部分
-
-
-                if (OriDay == today) // 如果从数据库获得的日期 是今天 
+                #region 计算批次号
+                lock (PrintSeriesNumLock)
                 {
-                    batInfo.BatchNo = "P" + DateTime.Now.ToString("yyyyMMdd") + ((int)dt.Rows[0]["Curr"]).ToString("d4");
-                    dt.Rows[0]["Curr"] = (int)dt.Rows[0]["Curr"] + 1; //计数器递增1
-                }
-                else // 不是今天 
-                {
-                    batInfo.BatchNo = "P" + DateTime.Now.ToString("yyyyMMdd") + "0001";
-                    dt.Rows[0]["Curr"] = 2; //计数器重置为1
-                }
+                    DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
 
-                sql = "UPDATE SerialNumber SET time = getdate(), curr = " + Convert.ToInt32(dt.Rows[0]["Curr"]) + " where name = 'BAT'";
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    string OriDay = ((DateTime)dt.Rows[0]["time"]).ToString("yyyy-MM-dd");//截取从数据库获得的时间的年月日部分
+                    string today = DateTime.Now.ToString("yyyy-MM-dd");//截取当前时间的年月日部分
+
+
+                    if (OriDay == today) // 如果从数据库获得的日期 是今天 
+                    {
+                        batInfo.BatchNo = "P" + DateTime.Now.ToString("yyyyMMdd") + ((int)dt.Rows[0]["Curr"]).ToString("d4");
+                        dt.Rows[0]["Curr"] = (int)dt.Rows[0]["Curr"] + 1; //计数器递增1
+                    }
+                    else // 不是今天 
+                    {
+                        batInfo.BatchNo = "P" + DateTime.Now.ToString("yyyyMMdd") + "0001";
+                        dt.Rows[0]["Curr"] = 2; //计数器重置为1
+                    }
+
+
+                    sql = "UPDATE SerialNumber SET time = getdate(), curr = " + Convert.ToInt32(dt.Rows[0]["Curr"]) + " where name = 'BAT'";
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                }
                 #endregion
 
 
@@ -722,6 +725,7 @@ namespace Appapi.Models
             {
                 throw;
             }
+
         }
 
 
@@ -1236,7 +1240,7 @@ namespace Appapi.Models
                                         {
                                             res = ErpAPI.MtlIssue.CheckIssue(mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"]);
                                             if (res.Substring(0, 1).Trim() == "0")
-                                                return "工单：" + theBatch.JobNum + "，阶层：" + theBatch.AssemblySeq.ToString() + "，工序：" + dt.Rows[i]["jobseq"].ToString() + "， 物料编码：" + mtls.Rows[j]["partnum"].ToString() + "  " + res;
+                                                return "工单：" + theBatch.JobNum + "，阶层：" + theBatch.AssemblySeq.ToString() + "，工序：" + dt.Rows[i]["jobseq"].ToString() + "， 物料编码：" + mtls.Rows[j]["partnum"].ToString() + "  " + res.Substring(2);
                                         }
                                     }
                                 }
@@ -1350,7 +1354,7 @@ namespace Appapi.Models
 
 
                                     //为当前工序下的化学品发料
-                                    string issue_res = "";  //若issue_res不为空， 则表明虽通过了之前的发料验证，但实际发料时不够发导致失败
+                                    string issue_res = "";  //若issue_res不为空， 则表明虽通过了之前的发料验证，但实际发料时不够发导致失败。    存在解决该问题的算法O(mlgm + m*n)   m：需要发几次物料A    n：物料A所有库存批次
                                     DataTable mtls = CommonRepository.GetMtlsOfOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], theBatch.Company);
                                     if (mtls != null)
                                     {
