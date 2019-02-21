@@ -948,6 +948,9 @@ namespace Appapi.Models
             else if (IQCInfo.ReceiveQty2 == null || IQCInfo.ReceiveQty2 <= 0)
                 return "错误：数量需大于0";
 
+            else if (Convert.ToDecimal(IQCInfo.FailedQty) > 0  &&  Convert.ToDecimal(IQCInfo.OurFailedQty) > Convert.ToDecimal(IQCInfo.FailedQty))
+                return "错误：我方不合格数需小于等于不合格数";
+
             else if (IQCInfo.ReceiveQty2 > RB.NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(IQCInfo.ReceiveQty2 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
 

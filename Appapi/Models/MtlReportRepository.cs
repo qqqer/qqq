@@ -288,7 +288,7 @@ namespace Appapi.Models
             if (!IsExistMtl(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq, ReportInfo.PartNum))
                 return "错误：物料不存在";
 
-            if (0 >= ReportInfo.UnQualifiedQty)
+            if (0 >= Convert.ToDecimal(ReportInfo.UnQualifiedQty))
                 return "错误：数量需大于0";
 
             if (ReportInfo.PartNum.Substring(0, 1).Trim().ToLower() == "c")
