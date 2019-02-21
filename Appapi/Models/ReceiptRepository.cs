@@ -566,7 +566,7 @@ namespace Appapi.Models
                 #region 计算批次号
                 lock (PrintSeriesNumLock)
                 {
-                    DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+                    DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
 
                     string OriDay = ((DateTime)dt.Rows[0]["time"]).ToString("yyyy-MM-dd");//截取从数据库获得的时间的年月日部分
@@ -950,6 +950,9 @@ namespace Appapi.Models
 
             else if (IQCInfo.ReceiveQty2 == null || IQCInfo.ReceiveQty2 <= 0)
                 return "错误：数量需大于0";
+
+            else if (Convert.ToDecimal(IQCInfo.FailedQty) > 0  &&  Convert.ToDecimal(IQCInfo.OurFailedQty) > Convert.ToDecimal(IQCInfo.FailedQty))
+                return "错误：我方不合格数需小于等于不合格数";
 
             else if (IQCInfo.ReceiveQty2 > RB.NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(IQCInfo.ReceiveQty2 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
@@ -1620,7 +1623,7 @@ namespace Appapi.Models
         public static DataTable GetWarehouse(string partnum)
         {
             string sql = @"select erp.Warehse.WarehouseCode,  Description  from erp.PartBin left join erp.Warehse on erp.PartBin.WarehouseCode = erp.Warehse.WarehouseCode  where PartNum = '" + partnum+"'";
-            return SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+            return Common.SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
         }
 
 
