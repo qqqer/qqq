@@ -344,7 +344,7 @@ namespace Appapi.Models
                     dt.Rows[0]["Plant"].ToString(),
                     dt.Rows[0]["Company"].ToString(),
                     0,
-                    1,
+                    ReportInfo.UnQualifiedQty,
                     0,
                     0
                 });
@@ -369,7 +369,7 @@ namespace Appapi.Models
 
             OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
-            if (theReport.CheckCounter == 2)
+            if (theReport.CheckCounter == 0)
                 return "错误：该不良品流程已处理";
 
             DMRInfo.DMRQualifiedQty = Convert.ToDecimal(DMRInfo.DMRQualifiedQty);
@@ -388,8 +388,8 @@ namespace Appapi.Models
             if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty == 0)
                 return "错误：数量不能都为0";
 
-            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty != theReport.UnQualifiedQty)
-                return "错误：让步数 + 返修数 + 废弃数 不等于原待检数";
+            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.CheckCounter)
+                return "错误：让步数 + 返修数 + 废弃数 大于剩余待检数：" + theReport.CheckCounter;
 
             if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum == "")
                 return "错误：返修工单号不能为空";
@@ -638,7 +638,7 @@ namespace Appapi.Models
         {
             if (((int)HttpContext.Current.Session["RoleId"] & 1024) != 0)
             {
-                string sql = @"select * from MtlReport where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 and isdelete != 1 order by CreateDate desc";
+                string sql = @"select * from MtlReport where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter > 0 and isdelete != 1 order by CreateDate desc";
                 sql = string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
 
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);

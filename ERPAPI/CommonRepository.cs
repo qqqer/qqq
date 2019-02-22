@@ -589,7 +589,7 @@ namespace ErpAPI
         string PartNum,
         decimal DMRRepairQty,//返修         
         string DMRJobNum,
-         string IUM)
+        string IUM)
         {
             Session EpicorSession = CommonRepository.GetEpicorSession();
             if (EpicorSession == null)
@@ -706,9 +706,10 @@ namespace ErpAPI
         string plant,
         string PartNum,
         int AssemblySeq,
-        int jobSeq,
-        decimal DMRRepairQty,//返修数         
-        string DMRJobNum
+        int Seq, //type=报工，代表工序号， type=物料，代表物料序号，
+        decimal DMRQualifiedQty,    
+        string DMRJobNum,
+        string type
         )
         {
             Session EpicorSession = CommonRepository.GetEpicorSession();
@@ -728,10 +729,17 @@ namespace ErpAPI
                 JobEntryImpl adapter1 = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<JobEntryImpl>(EpicorSession, ImplBase<Erp.Contracts.JobEntrySvcContract>.UriPath);
                 
 
-                //工序接收返修
+        
                 DMRProcessingDataSet ds = adapter.GetByID(DMRID);
                 int i = ds.Tables["DMRActn"].Rows.Count;
-                adapter.GetNewDMRActnAcceptMTL(ds, DMRID); // adapter.GetNewDMRActnAcceptOPR(ds, DMRID);
+
+
+                if(type == "报工")
+                    adapter.GetNewDMRActnAcceptOPR(ds, DMRID);
+                else//物料
+                    adapter.GetNewDMRActnAcceptMTL(ds, DMRID); 
+
+
                 ds.Tables["DMRActn"].Rows[i]["DMRNum"] = DMRID;
                 ds.Tables["DMRActn"].Rows[i]["Company"] = Company;
 
@@ -741,10 +749,10 @@ namespace ErpAPI
                 adapter.ChangeJobAsmSeq(ds, AssemblySeq);
                 ds.Tables["DMRActn"].Rows[i]["AssemblySeq"] = AssemblySeq;
 
-                adapter.ChangeJobMtlSeq(ds, jobSeq);
+                adapter.ChangeJobMtlSeq(ds, Seq);
 
-                ds.Tables["DMRActn"].Rows[i]["DispQuantity"] = DMRRepairQty;
-                ds.Tables["DMRActn"].Rows[i]["TranQty"] = DMRRepairQty;
+                ds.Tables["DMRActn"].Rows[i]["DispQuantity"] = DMRQualifiedQty;
+                ds.Tables["DMRActn"].Rows[i]["TranQty"] = DMRQualifiedQty;
                 ds.Tables["DMRActn"].Rows[i]["Quantity"] = 0;
                 ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = "PCS";
                 ds.Tables["DMRActn"].Rows[i]["TranUOM"] = "PCS";
