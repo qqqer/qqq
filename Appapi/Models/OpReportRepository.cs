@@ -316,7 +316,7 @@ namespace Appapi.Models
                     if ((int)dt.Rows[i]["Status"] < 3) //未写时间费用
                         bpm_qty += (decimal)dt.Rows[i]["FirstQty"];
 
-                    else if ((int)dt.Rows[i]["Status"] > 2 && (int)dt.Rows[i]["CheckCounter"] < 2)//已写时间费用，不良品还未介入
+                    else if ((int)dt.Rows[i]["Status"] > 2 && (int)dt.Rows[i]["CheckCounter"] > 0)//已写时间费用，不良品还未介入
                     {
                         bpm_qty += (decimal)dt.Rows[i]["UnQualifiedQty"];
                     }
@@ -766,7 +766,7 @@ namespace Appapi.Models
             if (theReport.IsDelete == true)
                 return "错误：所属的主流程已删除";
             if (theReport.CheckCounter == 0)
-                return "错误：该不良品流程已处理";
+                return "错误：该报工流程下的所有不良品已处理完毕";
 
 
             DMRInfo.DMRQualifiedQty = Convert.ToDecimal(DMRInfo.DMRQualifiedQty);
@@ -789,7 +789,7 @@ namespace Appapi.Models
                 return "错误：数量不能都为0";
 
             if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.UnQualifiedQty - determinedQty)
-                return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数量" + (theReport.UnQualifiedQty - determinedQty);
+                return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数量：" + (theReport.UnQualifiedQty - determinedQty);
 
             if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum == "")
                 return "错误：返修工单号不能为空";
@@ -814,7 +814,7 @@ namespace Appapi.Models
             string res;
             if (DMRInfo.DMRQualifiedQty > 0)
             {
-                res = ErpAPI.CommonRepository.ConcessionDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)DMRInfo.DMRQualifiedQty, theReport.JobNum);
+                res = ErpAPI.CommonRepository.ConcessionDM                                      RProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)DMRInfo.DMRQualifiedQty, theReport.JobNum);
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量"; 
 
@@ -893,6 +893,8 @@ namespace Appapi.Models
                 if (mainIsDeleted)
                 {
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
+                    AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 302, OpDate, "当前工序不存在，该报工子流程已被自动删除|" + sql);
+
                     return "0|错误：所属的主流程已被删除，该子流程已被自动删除";
                 }
 
@@ -900,6 +902,8 @@ namespace Appapi.Models
                 if (dt == null)
                 {
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
+                    AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 302, OpDate, "当前工序不存在，该报工子流程已被自动删除|" + sql);
+
                     return "0|错误：当前工序不存在，该报工流程已被自动删除";
                 }
 
@@ -1029,6 +1033,8 @@ namespace Appapi.Models
             if (dt == null)
             {
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
+                AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 301, OpDate, "当前工序不存在，该报工主流程已被自动删除|" + sql);
+
                 return "0|错误：当前工序不存在，该报工流程已被自动删除";
             }
 
@@ -1118,6 +1124,8 @@ namespace Appapi.Models
                     if (mainIsDeleted)
                     {
                         Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
+                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "当前工序不存在，该报工子流程已被自动删除|" + sql);
+
                         return "0|错误：所属的主流程已被删除，该子流程已被自动删除";
                     }
 
@@ -1125,6 +1133,8 @@ namespace Appapi.Models
                     if (dt == null)
                     {
                         Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, "UPDATE bpmsub SET isdelete = 1  where ID = " + theSubReport.ID + "", null);
+                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "当前工序不存在，该报工子流程已被自动删除|" + sql);
+
                         return "0|错误：当前工序不存在，该报工流程已被自动删除";
                     }
 
@@ -1247,6 +1257,7 @@ namespace Appapi.Models
                 if (dt == null)
                 {
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, "UPDATE BPm SET isdelete = 1  where ID = " + theReport.ID + "", null);
+                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "当前工序不存在，该报工主流程已被自动删除|" + sql);
                     return "0|错误：当前工序不存在，该报工流程已被自动删除";
                 }
 
@@ -1329,7 +1340,7 @@ namespace Appapi.Models
         {
             if (((int)HttpContext.Current.Session["RoleId"] & 1024) != 0)
             {
-                string sql = @"select * from BPM where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter = 1 and isdelete != 1 order by CreateDate desc";
+                string sql = @"select * from BPM where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter > 0 and isdelete != 1 order by CreateDate desc";
                 sql = string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
 
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
@@ -1737,7 +1748,7 @@ namespace Appapi.Models
 
         public static string ReturnStatus(bool IsSubProcess, int ID, int oristatus, int ReasonID, string remark, int apinum)
         {
-            string OpDetail = "", OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            string  OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             string table = IsSubProcess ? "bpmsub" : "bpm", processtype = IsSubProcess ? "主流程" : "子流程";
             string sql = "select * from " + table + " where ID = " + ID + " ";

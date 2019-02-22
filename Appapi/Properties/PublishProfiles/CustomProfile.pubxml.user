@@ -6,7 +6,7 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
-    <_PublishTargetUrl>D:\webapi</_PublishTargetUrl>
+    <_PublishTargetUrl>D:\webapi_test</_PublishTargetUrl>
   </PropertyGroup>
   <ItemGroup>
     <File Include="ApplicationInsights.config">
@@ -82,19 +82,25 @@
       <publishTime>09/19/2018 13:30:42</publishTime>
     </File>
     <File Include="bin/Appapi.dll">
-      <publishTime>02/18/2019 13:03:16</publishTime>
+      <publishTime>02/21/2019 13:46:55</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
-      <publishTime>02/18/2019 13:03:16</publishTime>
+      <publishTime>02/21/2019 13:46:55</publishTime>
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.dll">
-      <publishTime>02/18/2019 13:03:15</publishTime>
+      <publishTime>02/21/2019 13:31:03</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.pdb">
-      <publishTime>02/18/2019 13:03:15</publishTime>
+      <publishTime>02/21/2019 13:31:03</publishTime>
+    </File>
+    <File Include="bin/Common.dll">
+      <publishTime>02/21/2019 13:31:02</publishTime>
+    </File>
+    <File Include="bin/Common.pdb">
+      <publishTime>02/21/2019 13:31:02</publishTime>
     </File>
     <File Include="bin/CommonClass.dll">
       <publishTime>10/18/2018 11:44:41</publishTime>
@@ -583,7 +589,7 @@
       <publishTime>09/19/2018 13:30:41</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>02/18/2019 13:03:16</publishTime>
+      <publishTime>02/21/2019 13:31:04</publishTime>
     </File>
   </ItemGroup>
 </Project>

@@ -455,7 +455,6 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res;
 
-                //string dmrid = DMRInfo.DMRQualifiedQty == theReport.UnQualifiedQty ? "null" : DMRID.ToString();
 
                 if (DMRInfo.DMRQualifiedQty > 0)
                 {
