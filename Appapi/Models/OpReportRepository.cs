@@ -327,11 +327,11 @@ namespace Appapi.Models
 
         private static decimal AcceptQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
         {
-            string sql = @"select sum(QualifiedQty) from bpm where NextUser = " + userid + " and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+            string sql = @"select sum(QualifiedQty) from bpm where NextUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
             object BPMAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = " + userid + " and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty != null  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = '" + userid + "' and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty != null  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
             object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
