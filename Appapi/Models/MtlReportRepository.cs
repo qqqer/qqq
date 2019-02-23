@@ -421,7 +421,7 @@ namespace Appapi.Models
             lock (lock_dmr)
             {
                 if (dmr_IDs.Contains((int)DMRInfo.ID))
-                    return "错误：其他账号正在发起对该不良品的初次处理";
+                    return "错误：其他账号正在提交中，请勿重复提交";
                 dmr_IDs.Add((int)DMRInfo.ID);
             }
 
@@ -443,10 +443,6 @@ namespace Appapi.Models
                         "where id = " + DMRInfo.ID + ""; Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                    sql = sql.Replace("'", "");
-                    AddOpLog(DMRInfo.ID, 201, OpDate, "erp不合格品|" + sql);
-
                 }
 
                 if (theReport.ErpCounter < 2) //检验处理界面
@@ -460,9 +456,7 @@ namespace Appapi.Models
                     theReport.DMRID = DMRID;
 
                     sql = " update MtlReport set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
-                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                    sql = sql.Replace("'", "");
-                    AddOpLog(DMRInfo.ID, 201, OpDate, "erp检验与处理|" + sql);
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);                 
                 }
             }
             catch (Exception ex)

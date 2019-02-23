@@ -332,7 +332,7 @@ namespace Appapi.Models
 
 
 
-        private static decimal AcceptQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        private static decimal GetAcceptQtyOfPreOpSeqOfUser(string jobnum, int asmSeq, int oprseq, string userid)
         {
             string sql = @"select sum(QualifiedQty) from bpm where NextUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
@@ -350,7 +350,7 @@ namespace Appapi.Models
         }
 
 
-        private static decimal ReportQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        private static decimal GetReportQtyOfCurrOpSeqOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
         {
             string sql = @"select sum(FirstQty) from bpm where CreateUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
@@ -397,9 +397,8 @@ namespace Appapi.Models
             if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
                 return "0|错误：该账号没有该工序操作权限";
 
-
             object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
-            if (PreOpSeq != null && AcceptQtyOfUser(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), HttpContext.Current.Session["UserId"].ToString()) == 0)
+            if (PreOpSeq != null && GetAcceptQtyOfPreOpSeqOfUser(arr[0], int.Parse(arr[1]), (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString()) == 0)
                 return "错误：上工序接收数量为0，无法开始当前工序";
 
 
@@ -480,11 +479,15 @@ namespace Appapi.Models
                 return "错误：当前工序的累计报工数超出上一道工序的已报工数";
 
 
-            decimal ReportQtyOfCurrSeq = ReportQtyOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
-            decimal AcceptQtyOfPreOpSeq = AcceptQtyOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
-            if (PreOpSeq != null && AcceptQtyOfPreOpSeq < ReportQtyOfCurrSeq + ReportInfo.FirstQty)
-                return "错误：该账号下的当前工序累计报工数：" +  (ReportQtyOfCurrSeq + ReportInfo.FirstQty)  +  " 大于 上工序的接收数：" + AcceptQtyOfPreOpSeq;
 
+            if (PreOpSeq != null)
+            {
+                decimal ReportQtyOfCurrSeq = GetReportQtyOfCurrOpSeqOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, HttpContext.Current.Session["UserId"].ToString());
+                decimal AcceptQtyOfPreOpSeq = GetAcceptQtyOfPreOpSeqOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
+
+                if (AcceptQtyOfPreOpSeq < ReportQtyOfCurrSeq + ReportInfo.FirstQty)
+                    return "错误：该账号下的当前工序累计报工数：" + (ReportQtyOfCurrSeq + ReportInfo.FirstQty) + " 大于 上工序的接收数：" + AcceptQtyOfPreOpSeq;
+            }
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
             if (NextSetpInfo.Substring(0, 1).Trim() == "0")
@@ -760,9 +763,6 @@ namespace Appapi.Models
                             "where id = " + CheckInfo.ID + "";
 
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                    sql = sql.Replace("'", "");
-                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "erp时间费用|" + sql);
                 }
 
                 if (theReport.ErpCounter < 2)//检验处理
@@ -776,9 +776,6 @@ namespace Appapi.Models
                     }
                     sql = " update bpm set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + CheckInfo.ID + "";
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                    sql = sql.Replace("'", "");
-                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "erp检验与处理|" + sql);
                 }
 
 
