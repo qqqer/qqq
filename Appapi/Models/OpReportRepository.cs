@@ -741,11 +741,11 @@ namespace Appapi.Models
                 sql = "update bpm set " +
                     "CheckUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
                     "CheckDate = '" + OpDate + "'," +
-                    "TransformUserGroup = '" + CheckInfo.TransformUserGroup + "'," +
-                    "Status = " + (CheckInfo.QualifiedQty > 0 ? theReport.Status + 1 : 99) + "," +
+                    "TransformUserGroup = '" + (theReport.QualifiedQty > 0 ? CheckInfo.TransformUserGroup : "") + "'," +
+                    "Status = " + (theReport.QualifiedQty > 0 ? theReport.Status + 1 : 99) + "," +
                     "PreStatus = " + theReport.Status + "," +
                     "AtRole = 512, " +
-                    "IsComplete = " + (CheckInfo.QualifiedQty > 0 ? 0 : 1) + " " +
+                    "IsComplete = " + (theReport.QualifiedQty > 0 ? 0 : 1) + " " +
                     "where id = " + (theReport.ID) + "";
 
 

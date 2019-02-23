@@ -661,7 +661,7 @@ namespace ErpAPI
                 //工序接收返修
                 DMRProcessingDataSet ds = adapter.GetByID(DMRID);
                 int i = ds.Tables["DMRActn"].Rows.Count;
-                adapter.GetNewDMRActnAcceptMTL(ds, DMRID); // adapter.GetNewDMRActnAcceptOPR(ds, DMRID);
+                adapter.GetNewDMRActnAcceptMTL(ds, DMRID); // 物料、工序返修，物料让步
                 ds.Tables["DMRActn"].Rows[i]["DMRNum"] = DMRID;
                 ds.Tables["DMRActn"].Rows[i]["Company"] = Company;
 
@@ -735,9 +735,9 @@ namespace ErpAPI
 
 
                 if(type == "报工")
-                    adapter.GetNewDMRActnAcceptOPR(ds, DMRID);
+                    adapter.GetNewDMRActnAcceptOPR(ds, DMRID); //报工让步
                 else//物料
-                    adapter.GetNewDMRActnAcceptMTL(ds, DMRID); 
+                    adapter.GetNewDMRActnAcceptMTL(ds, DMRID); // 物料、工序返修，物料让步
 
 
                 ds.Tables["DMRActn"].Rows[i]["DMRNum"] = DMRID;

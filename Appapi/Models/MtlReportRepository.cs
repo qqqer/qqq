@@ -421,14 +421,11 @@ namespace Appapi.Models
                     return "错误：" + res;
 
                 theReport.TranID = TranID; //及时更新该值
-                theReport.UnQualifiedQty = DMRInfo.UnQualifiedQty; //及时更新该值
 
 
                 sql = "update MtlReport set ErpCounter = 1 ," +
                     "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
-                    "UnQualifiedReason = '" + CommonRepository.GetValueAsString(DMRInfo.UnQualifiedReason) + "'," +
-                    "CheckCounter = " +  DMRInfo.UnQualifiedQty + ", " +
-                    "UnQualifiedQty = " + DMRInfo.UnQualifiedQty + " " +
+                    "CheckCounter = " + DMRInfo.UnQualifiedQty + " " +
                     "where id = " + DMRInfo.ID + ""; Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -446,73 +443,58 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res;
 
+                theReport.DMRID = DMRID;
+
                 sql = " update MtlReport set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
 
-
-
-
-
-            if (theReport.ErpCounter < 1)//让步
+            if (DMRInfo.DMRQualifiedQty > 0)//让步
             {
-                res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)(DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty), DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, "物料", theReport.Plant, out DMRID);
+                res = ErpAPI.CommonRepository.ConcessionDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, (decimal)DMRInfo.DMRQualifiedQty, theReport.JobNum, "物料");
                 if (res.Substring(0, 1).Trim() != "1")
-                    return "错误：" + res;
+                    return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量";
 
+                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID);
 
-                if (DMRInfo.DMRQualifiedQty > 0)
-                {
-                    InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, DMRID);
-                    AddOpLog(DMRInfo.ID, 201, OpDate, "让步接收子流程生成");
-                }
-
-                sql = " update MtlReport set ErpCounter = 1, DMRID = " + DMRID + " where id = " + DMRInfo.ID + "";
+                sql = " update MtlReport set DMRQualifiedQty = DMRQualifiedQty + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                AddOpLog(DMRInfo.ID, 201, OpDate, "让步接收子流程生成");
             }
 
-            if (theReport.ErpCounter < 2)//返修
+            if (DMRInfo.DMRRepairQty > 0)//返修
             {
-                sql = @"select dmrid from MtlReport where id = " + DMRInfo.ID + "";
-                object dmrid = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
                 sql = @"select IUM from erp.JobMtl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " and  MtlSeq= " + theReport.MtlSeq + "";
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-                if ((int)dmrid != 0 && DMRInfo.DMRRepairQty > 0)
-                {
-                    res = ErpAPI.CommonRepository.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, IUM.ToString());
-                    if (res.Substring(0, 1).Trim() != "1")
-                        return "错误：" + res;
+                res = ErpAPI.CommonRepository.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, IUM.ToString());
+                if (res.Substring(0, 1).Trim() != "1")
+                    return "错误：" + res + ". 请重新提交返修数量、报废数量";
 
-                    InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)dmrid, DMRInfo.TransformUserGroup);
-                    AddOpLog(DMRInfo.ID, 201, OpDate, "返修子流程生成");
-                }
-                sql = " update MtlReport set ErpCounter = 2 where id = " + (DMRInfo.ID) + "";
+                InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup);
+
+                sql = " update MtlReport set DMRRepairQty = DMRRepairQty + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                AddOpLog(DMRInfo.ID, 201, OpDate, "返修子流程生成");
             }
 
-            if (theReport.ErpCounter < 3)//报废
+            if (DMRInfo.DMRUnQualifiedQty > 0)//报废
             {
-                sql = @"select dmrid from MtlReport where id = " + DMRInfo.ID + "";
-                object dmrid = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
                 sql = @"select IUM from erp.JobMtl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq= " + theReport.MtlSeq + "";
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
-                if ((int)dmrid != 0 && DMRInfo.DMRUnQualifiedQty > 0)
-                {
-                    res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)dmrid, IUM.ToString());
-                    if (res.Substring(0, 1).Trim() != "1")
-                        return "错误：" + res;
+                res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
+                if (res.Substring(0, 1).Trim() != "1")
+                    return "错误：" + res + ". 请重新提交报废数量";
 
-                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)dmrid, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup);
-                    AddOpLog(DMRInfo.ID, 201, OpDate, "报废子流程生成");
-                }
-                sql = " update MtlReport set ErpCounter = 3, checkcounter = 2 where id = " + (DMRInfo.ID) + ""; //checkcounter = 2， 完成不良品处理
+                InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup);
+                sql = " update MtlReport set DMRUnQualifiedQty = DMRUnQualifiedQty + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                AddOpLog(DMRInfo.ID, 201, OpDate, "报废子流程生成");
             }
 
             return "处理成功";
