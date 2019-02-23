@@ -447,6 +447,8 @@ namespace Appapi.Models
 
                 sql = " update MtlReport set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                sql = sql.Replace("'", "");
+                AddOpLog(DMRInfo.ID, 201, OpDate, "erp检验与处理|" + sql);
             }
 
 
@@ -492,6 +494,7 @@ namespace Appapi.Models
                     return "错误：" + res + ". 请重新提交报废数量";
 
                 InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup);
+
                 sql = " update MtlReport set DMRUnQualifiedQty = DMRUnQualifiedQty + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 AddOpLog(DMRInfo.ID, 201, OpDate, "报废子流程生成");
