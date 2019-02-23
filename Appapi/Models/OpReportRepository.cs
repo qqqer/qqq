@@ -308,6 +308,7 @@ namespace Appapi.Models
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
             decimal bpm_qty = 0;
+            decimal erp_qty = 0;
 
             if (dt != null)
             {
@@ -316,19 +317,15 @@ namespace Appapi.Models
                     if ((int)dt.Rows[i]["Status"] < 3) //未写时间费用
                         bpm_qty += (decimal)dt.Rows[i]["FirstQty"];
 
-                    else if ((int)dt.Rows[i]["Status"] > 2 && (int)dt.Rows[i]["CheckCounter"] > 0)//已写时间费用，不良品还未介入
+                    else//已写时间费用
                     {
-                        bpm_qty += (decimal)dt.Rows[i]["UnQualifiedQty"];
-                    }
-                    else //不良品处理已结束
-                    {
-                        decimal DMRRepairQty = dt.Rows[i]["DMRRepairQty"] is DBNull || dt.Rows[i]["DMRRepairQty"] == null ? 0 : (decimal)dt.Rows[i]["DMRRepairQty"];
-                        bpm_qty += DMRRepairQty; //返修数算作原工单的报工数
+                        bpm_qty += (decimal)dt.Rows[i]["CheckCounter"]; //未处理的不良品数量 可能为0
+                        erp_qty += (decimal)dt.Rows[i]["DMRRepairQty"];//返修数量算作该批次的已报工数量
                     }
                 }
             }
 
-            decimal erp_qty = CommonRepository.GetOpSeqCompleteQty(jobnum, asmSeq, oprseq);
+            erp_qty += CommonRepository.GetOpSeqCompleteQty(jobnum, asmSeq, oprseq);
 
             return bpm_qty + erp_qty;
         }
@@ -697,7 +694,7 @@ namespace Appapi.Models
                 int TranID = -1;
                 if (theReport.ErpCounter < 1)//时间费用
                 {
-                    res = ErpAPI.OpReportRepository.TimeAndCost("", theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)CheckInfo.QualifiedQty, (decimal)CheckInfo.UnQualifiedQty, CheckInfo.UnQualifiedReason, "", theReport.StartDate, theReport.EndDate, theReport.Company, theReport.Plant,out Character05, out TranID);
+                    res = ErpAPI.OpReportRepository.TimeAndCost("", theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)CheckInfo.QualifiedQty, (decimal)CheckInfo.UnQualifiedQty, CheckInfo.UnQualifiedReason, "", theReport.StartDate, theReport.EndDate, theReport.Company, theReport.Plant, out Character05, out TranID);
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 
@@ -713,12 +710,12 @@ namespace Appapi.Models
                             "Character05 = '" + Character05 + "'," +
                             "CheckCounter = " + (CheckInfo.UnQualifiedQty > 0 ? CheckInfo.UnQualifiedQty : 0) + ", " +
                             "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + " " +
-                            "where id = " + CheckInfo.ID + ""; 
+                            "where id = " + CheckInfo.ID + "";
 
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                     sql = sql.Replace("'", "");
-                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "erp时间费用|"+ sql);
+                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "erp时间费用|" + sql);
                 }
 
                 if (theReport.ErpCounter < 2)//检验处理
@@ -755,7 +752,12 @@ namespace Appapi.Models
 
                 return "处理成功";
             }
-            finally {
+            catch (Exception ex)
+            {
+                return  "错误：" + ex.Message;
+            }
+            finally
+            {
                 check_IDs.Remove((int)CheckInfo.ID);
             }
         }
@@ -1221,6 +1223,10 @@ namespace Appapi.Models
 
                 return "处理成功";
             }
+            catch (Exception ex)
+            {
+                return "错误：" + ex.Message;
+            }
             finally
             {
                 accept_IDs_sub.Remove((int)AcceptInfo.ID);
@@ -1322,6 +1328,10 @@ namespace Appapi.Models
                 AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, sql);
 
                 return "处理成功";
+            }
+            catch (Exception ex)
+            {
+                return "错误：" + ex.Message;
             }
             finally
             {

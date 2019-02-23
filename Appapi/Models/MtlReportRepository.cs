@@ -3,12 +3,17 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Threading;
 using System.Web;
 
 namespace Appapi.Models
 {
     public class MtlReportRepository
     {
+        private static readonly object lock_dmr = new object();
+        private static List<int> dmr_IDs = new List<int>();
+
+
         private static string CheckBinNum(string company, string binnum, string WarehouseCode)
         {
             string sql = "select count(*) from erp.WhseBin where Company = '{0}' and  WarehouseCode = '{1}' and BinNum = '{2}'";
@@ -413,42 +418,60 @@ namespace Appapi.Models
                 return "错误：库位与仓库不匹配";
 
             string res;
-            if (theReport.ErpCounter < 1)//不合格品界面
+            lock (lock_dmr)
             {
-                int TranID = -1;
-                res = ErpAPI.CommonRepository.Startnonconf(theReport.JobNum, (int)theReport.AssemblySeq, theReport.Company, (int)theReport.MtlSeq, (decimal)theReport.UnQualifiedQty, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, theReport.UnQualifiedReason, theReport.Plant, theReport.LotNum, out TranID);
-                if (res.Substring(0, 1).Trim() != "1")
-                    return "错误：" + res;
-
-                theReport.TranID = TranID; //及时更新该值
-
-
-                sql = "update MtlReport set ErpCounter = 1 ," +
-                    "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
-                    "CheckCounter = " + DMRInfo.UnQualifiedQty + " " +
-                    "where id = " + DMRInfo.ID + ""; Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                sql = sql.Replace("'", "");
-                AddOpLog(DMRInfo.ID, 201, OpDate, "erp不合格品|" + sql);
-
+                if (dmr_IDs.Contains((int)DMRInfo.ID))
+                    return "错误：其他账号正在发起对该不良品的初次处理";
+                dmr_IDs.Add((int)DMRInfo.ID);
             }
 
-            if (theReport.ErpCounter < 2) //检验处理界面
+            try
             {
-                int DMRID = 0;
+                if (theReport.ErpCounter < 1)//不合格品界面
+                {
+                    int TranID = -1;
+                    res = ErpAPI.CommonRepository.Startnonconf(theReport.JobNum, (int)theReport.AssemblySeq, theReport.Company, (int)theReport.MtlSeq, (decimal)theReport.UnQualifiedQty, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, theReport.UnQualifiedReason, theReport.Plant, theReport.LotNum, out TranID);
+                    if (res.Substring(0, 1).Trim() != "1")
+                        return "错误：" + res;
 
-                res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "物料", theReport.Plant, out DMRID); //产品其它不良 D22  D
-                if (res.Substring(0, 1).Trim() != "1")
-                    return "错误：" + res;
+                    theReport.TranID = TranID; //及时更新该值
 
-                theReport.DMRID = DMRID;
 
-                sql = " update MtlReport set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                sql = sql.Replace("'", "");
-                AddOpLog(DMRInfo.ID, 201, OpDate, "erp检验与处理|" + sql);
+                    sql = "update MtlReport set ErpCounter = 1 ," +
+                        "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
+                        "CheckCounter = " + DMRInfo.UnQualifiedQty + " " +
+                        "where id = " + DMRInfo.ID + ""; Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    sql = sql.Replace("'", "");
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "erp不合格品|" + sql);
+
+                }
+
+                if (theReport.ErpCounter < 2) //检验处理界面
+                {
+                    int DMRID = 0;
+
+                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "物料", theReport.Plant, out DMRID); //产品其它不良 D22  D
+                    if (res.Substring(0, 1).Trim() != "1")
+                        return "错误：" + res;
+
+                    theReport.DMRID = DMRID;
+
+                    sql = " update MtlReport set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    sql = sql.Replace("'", "");
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "erp检验与处理|" + sql);
+                }
+            }
+            catch (Exception ex)
+            {
+                return "错误：" + ex.Message;
+            }
+            finally
+            {
+                dmr_IDs.Remove((int)DMRInfo.ID);
             }
 
 
