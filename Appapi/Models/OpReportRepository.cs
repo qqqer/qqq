@@ -331,6 +331,38 @@ namespace Appapi.Models
         }
 
 
+
+        private static decimal AcceptQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        {
+            string sql = @"select sum(QualifiedQty) from bpm where NextUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+
+            object BPMAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = '" + userid + "' and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty != null  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+
+            object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) ? 0 : BPMAcceptQty;
+            BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) ? 0 : BPMSubAcceptQty;
+
+
+            return (decimal)BPMAcceptQty + (decimal)BPMSubAcceptQty;
+        }
+
+
+        private static decimal ReportQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        {
+            string sql = @"select sum(FirstQty) from bpm where CreateUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+
+            object SumOfReportQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            SumOfReportQty = Convert.IsDBNull(SumOfReportQty) ? 0 : SumOfReportQty;
+
+            return (decimal)SumOfReportQty;
+        }
+
+
+
         public static string Start(string values) //retun 工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq NextOpCode NextOpDesc startdate CompleteQty
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -364,6 +396,11 @@ namespace Appapi.Models
             string CreateUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + arr[3] + "' ", null);
             if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
                 return "0|错误：该账号没有该工序操作权限";
+
+
+            object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
+            if (PreOpSeq != null && AcceptQtyOfUser(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), HttpContext.Current.Session["UserId"].ToString()) == 0)
+                return "错误：上工序接收数量为0，无法开始当前工序";
 
 
             //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
@@ -437,9 +474,17 @@ namespace Appapi.Models
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
             if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq) < ReportInfo.FirstQty + GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0))
-                return "错误： 报工数超出该阶层的可生产数量";
+                return "错误：报工数超出该阶层的可生产数量";
+
             if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq) < ReportInfo.FirstQty + GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0))
-                return "错误： 当前报工数超出上一道工序的报工数";
+                return "错误：当前工序的累计报工数超出上一道工序的已报工数";
+
+
+            decimal ReportQtyOfCurrSeq = ReportQtyOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
+            decimal AcceptQtyOfPreOpSeq = AcceptQtyOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
+            if (PreOpSeq != null && AcceptQtyOfPreOpSeq < ReportQtyOfCurrSeq + ReportInfo.FirstQty)
+                return "错误：该账号下的当前工序累计报工数：" +  (ReportQtyOfCurrSeq + ReportInfo.FirstQty)  +  " 大于 上工序的接收数：" + AcceptQtyOfPreOpSeq;
+
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
             if (NextSetpInfo.Substring(0, 1).Trim() == "0")
@@ -507,7 +552,7 @@ namespace Appapi.Models
                 if ((res = client.Print(@"C:\D0201.btw", printer, (int)ReportInfo.PrintQty, jsonStr)) == "1|处理成功")
                 {
                     IsPrint = true;
-                    client.Close();                 
+                    client.Close();
                 }
                 else
                 {
@@ -615,7 +660,7 @@ namespace Appapi.Models
 
         public static string CheckerCommit(OpReport CheckInfo)
         {
-            lock(lock_check)
+            lock (lock_check)
             {
                 if (check_IDs.Contains((int)CheckInfo.ID))
                     return "错误：其他账号正在提交该待办事项";
@@ -697,6 +742,8 @@ namespace Appapi.Models
                     res = ErpAPI.OpReportRepository.TimeAndCost("", theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)CheckInfo.QualifiedQty, (decimal)CheckInfo.UnQualifiedQty, CheckInfo.UnQualifiedReason, "", theReport.StartDate, theReport.EndDate, theReport.Company, theReport.Plant, out Character05, out TranID);
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
+                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "时间费用写入成功");
+
 
                     theReport.TranID = TranID; //及时更新该值
                     theReport.QualifiedQty = CheckInfo.QualifiedQty; //及时更新该值
@@ -754,7 +801,7 @@ namespace Appapi.Models
             }
             catch (Exception ex)
             {
-                return  "错误：" + ex.Message;
+                return "错误：" + ex.Message;
             }
             finally
             {
@@ -824,14 +871,14 @@ namespace Appapi.Models
             {
                 res = ErpAPI.CommonRepository.ConcessionDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)DMRInfo.DMRQualifiedQty, theReport.JobNum, "报工");
                 if (res.Substring(0, 1).Trim() != "1")
-                    return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量"; 
+                    return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量";
 
                 InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID);
 
                 sql = " update bpm set DMRQualifiedQty = DMRQualifiedQty + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "让步接收子流程生成|" + theReport.DMRQualifiedQty + " + " + DMRInfo.DMRQualifiedQty);            
+                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "让步接收子流程生成|" + theReport.DMRQualifiedQty + " + " + DMRInfo.DMRQualifiedQty);
             }
 
             if (DMRInfo.DMRRepairQty > 0)
@@ -849,9 +896,9 @@ namespace Appapi.Models
                 sql = " update bpm set DMRRepairQty = DMRRepairQty + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "返修子流程生成|" + theReport.DMRRepairQty + " + " + DMRInfo.DMRRepairQty);                
+                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "返修子流程生成|" + theReport.DMRRepairQty + " + " + DMRInfo.DMRRepairQty);
             }
-           
+
             if (DMRInfo.DMRUnQualifiedQty > 0)
             {
                 sql = @"select IUM  from erp.JobAsmbl where JobNum = '" + theReport.JobNum + "' and AssemblySeq = " + theReport.AssemblySeq + "";
@@ -866,7 +913,7 @@ namespace Appapi.Models
                 sql = " update bpm set DMRUnQualifiedQty = DMRUnQualifiedQty + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);               
+                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
             }
 
             return "处理成功";
@@ -1164,7 +1211,7 @@ namespace Appapi.Models
                     if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
                         return "错误： 报工数超出该阶层的可生产数量";
                     if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
-                        return "错误： 当前报工数超出上一道工序的报工数";
+                        return "错误：当前工序的累计报工数超出上一道工序的已报工数";
 
 
                     //自动回退检测
@@ -1341,7 +1388,7 @@ namespace Appapi.Models
 
 
         public static string AccepterCommit(OpReport AcceptInfo) //apinum 400
-        {      
+        {
             string res;
             if (!(bool)AcceptInfo.IsSubProcess)
                 res = AccepterCommitOfMain(AcceptInfo);
@@ -1764,7 +1811,7 @@ namespace Appapi.Models
 
         public static string ReturnStatus(bool IsSubProcess, int ID, int oristatus, int ReasonID, string remark, int apinum)
         {
-            string  OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             string table = IsSubProcess ? "bpmsub" : "bpm", processtype = IsSubProcess ? "主流程" : "子流程";
             string sql = "select * from " + table + " where ID = " + ID + " ";
