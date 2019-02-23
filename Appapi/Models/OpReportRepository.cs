@@ -324,6 +324,25 @@ namespace Appapi.Models
         }
 
 
+
+        private static decimal AcceptQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        {
+            string sql = @"select sum(QualifiedQty) from bpm where NextUser = " + userid + " and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+
+            object BPMAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = " + userid + " and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty != null  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+
+            object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) ? 0 : BPMAcceptQty;
+            BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) ? 0 : BPMSubAcceptQty;
+
+
+            return (decimal)BPMAcceptQty + (decimal)BPMSubAcceptQty;
+        }
+
+
         public static string Start(string values) //retun 工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq NextOpCode NextOpDesc startdate CompleteQty
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -357,6 +376,11 @@ namespace Appapi.Models
             string CreateUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + arr[3] + "' ", null);
             if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
                 return "0|错误：该账号没有该工序操作权限";
+
+
+            object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
+            if (PreOpSeq != null && AcceptQtyOfUser(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), HttpContext.Current.Session["UserId"].ToString()) == 0)
+                return "错误：上工序接收数量为0，无法开始当前工序";
 
 
             //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
@@ -431,6 +455,7 @@ namespace Appapi.Models
             object PreOpSeq = CommonRepository.GetPreOpSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
             if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq) < ReportInfo.FirstQty + GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0))
                 return "错误： 报工数超出该阶层的可生产数量";
+
             if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq) < ReportInfo.FirstQty + GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0))
                 return "错误： 当前报工数超出上一道工序的报工数";
 
@@ -673,6 +698,8 @@ namespace Appapi.Models
             res = ErpAPI.OpReport.TimeAndCost("", theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)CheckInfo.QualifiedQty, (decimal)CheckInfo.UnQualifiedQty, CheckInfo.UnQualifiedReason, "", theReport.StartDate, theReport.EndDate, theReport.Company, theReport.Plant, (decimal)theReport.LaborHrs, out Character05, out TranID);
             if (res.Substring(0, 1).Trim() != "1")
                 return "错误：" + res;
+
+            AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "时间费用写入成功");
 
 
             sql = "update bpm set " +
