@@ -400,7 +400,7 @@ namespace Appapi.Models
                 DataTable dt2 = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
                 if (Convert.IsDBNull(dt2.Rows[0]["EndDate"]) && Convert.IsDBNull(dt2.Rows[0]["StartDate"]))//已结束
-                    sql = "update process set qty = null, JobNum = '" + arr[0] + "', AssemblySeq = " + int.Parse(arr[1]) + ", JobSeq = " + int.Parse(arr[2]) + ", OpCode = '" + arr[3] + "', OpDesc = '" + OpDesc + "', StartDate ='" + OpDate + "',EndDate = null  where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
+                    sql = "update process set qty = null, JobNum = '" + arr[0].ToUpperInvariant() + "', AssemblySeq = " + int.Parse(arr[1]) + ", JobSeq = " + int.Parse(arr[2]) + ", OpCode = '" + arr[3] + "', OpDesc = '" + OpDesc + "', StartDate ='" + OpDate + "',EndDate = null  where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
                 else
                     return "0|错误：该账号正在进行工序：" + dt2.Rows[0]["OpCode"].ToString();
             }
@@ -580,7 +580,7 @@ namespace Appapi.Models
                     ReportInfo.CheckUserGroup,
                     partinfo.Rows[0]["PartNum"].ToString(),
                     partinfo.Rows[0]["Description"].ToString(),
-                    ReportInfo.JobNum,
+                    ReportInfo.JobNum.ToUpperInvariant(),
                     ReportInfo.AssemblySeq,
                     ReportInfo.JobSeq,
                     ReportInfo.OpCode,
