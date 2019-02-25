@@ -352,9 +352,9 @@ namespace Appapi.Models
         }
 
 
-        private static decimal GetSumOfReportQty(string jobnum, int asmSeq, int oprseq, string userid) //该指定工序的累积报工数
+        private static decimal GetSumOfReportQty(string jobnum, int asmSeq, int oprseq) //该指定工序的累积报工数
         {
-            string sql = @"select sum(FirstQty) from bpm where CreateUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+            string sql = @"select sum(FirstQty) from bpm where CreateUser is not null and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
             object SumOfReportQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -495,11 +495,11 @@ namespace Appapi.Models
                 if (OpSeqCompleteQty < ReportInfo.FirstQty + TotalQtyOfJobSeq)
                     return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + " 超出上一道工序的已报工数：" + OpSeqCompleteQty;
 
-                decimal SumOfReportQtyOfCurrSeqOfUser = GetSumOfReportQtyOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, HttpContext.Current.Session["UserId"].ToString());
-                decimal SumOfAcceptQtyOfPreOpSeqOfUser = GetSumOfAcceptedQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
+                decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
+                decimal SumOfAcceptedQtyFromPreOprSeq = GetSumOfAcceptedQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
 
-                if (SumOfAcceptQtyOfPreOpSeqOfUser < SumOfReportQtyOfCurrSeqOfUser + ReportInfo.FirstQty)
-                    return "错误：该账号下，当前工序累计报工数：" + (SumOfReportQtyOfCurrSeqOfUser + " + " + ReportInfo.FirstQty) + " 大于 上工序的累计接收数：" + SumOfAcceptQtyOfPreOpSeqOfUser;
+                if (SumOfAcceptedQtyFromPreOprSeq < SumOfAcceptedQtyFromPreOprSeq + ReportInfo.FirstQty)
+                    return "错误：当前工序累计报工数：" + (SumOfReportQty + " + " + ReportInfo.FirstQty) + " 大于 该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq;
             }
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
