@@ -338,7 +338,7 @@ namespace Appapi.Models
 
             object BPMAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = '" + userid + "' and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty != null  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = '" + userid + "' and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
             object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -346,7 +346,7 @@ namespace Appapi.Models
             BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMAcceptQty == null ? 0 : BPMSubAcceptQty;
 
 
-            return (decimal)BPMAcceptQty + (decimal)BPMSubAcceptQty;
+            return Convert.ToDecimal(BPMAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
         }
 
 
@@ -1238,7 +1238,7 @@ namespace Appapi.Models
 
                     //再回写主表
                     sql = " update bpmsub set " +
-                           "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "|" + HttpContext.Current.Session["UserName"].ToString() + "', " +
+                           "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
                            "NextDate = '" + OpDate + "'," +
                            "Status = 99," +
                            "PreStatus = " + (theSubReport.Status) + "," +
@@ -1259,7 +1259,7 @@ namespace Appapi.Models
                         return "错误：" + res;
 
                     sql = " update bpmsub set " +
-                           "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "|" + HttpContext.Current.Session["UserName"].ToString() + "', " +
+                           "NextUser = '" + HttpContext.Current.Session["UserId"].ToString()  + "', " +
                            "NextDate = '" + OpDate + "'," +
                            "Status = 99," +
                            "PreStatus = " + (theSubReport.Status) + "," +
