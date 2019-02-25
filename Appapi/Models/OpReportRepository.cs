@@ -320,7 +320,7 @@ namespace Appapi.Models
                     else//已写时间费用
                     {
                         bpm_qty += (decimal)dt.Rows[i]["CheckCounter"]; //未处理的不良品数量 可能为0
-                        erp_qty += (decimal)dt.Rows[i]["DMRRepairQty"];//返修数量算作该批次的已报工数量
+                        erp_qty += (decimal)dt.Rows[i]["DMRRepairQty"];//返修数量算作erp中已报工数量
                     }
                 }
             }
@@ -332,7 +332,7 @@ namespace Appapi.Models
 
 
 
-        private static decimal GetAcceptQtyOfPreOpSeqOfUser(string jobnum, int asmSeq, int oprseq, string userid)
+        private static decimal GetSumAcceptQtyOfPreOpSeqOfUser(string jobnum, int asmSeq, int oprseq, string userid)
         {
             string sql = @"select sum(QualifiedQty) from bpm where NextUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
@@ -350,7 +350,7 @@ namespace Appapi.Models
         }
 
 
-        private static decimal GetReportQtyOfCurrOpSeqOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        private static decimal GetSumOfReportQtyOfCurrOpSeqOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
         {
             string sql = @"select sum(FirstQty) from bpm where CreateUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
@@ -398,8 +398,8 @@ namespace Appapi.Models
                 return "0|错误：该账号没有该工序操作权限";
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
-            if (PreOpSeq != null && GetAcceptQtyOfPreOpSeqOfUser(arr[0], int.Parse(arr[1]), (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString()) == 0)
-                return "错误：上工序接收数量为0，无法开始当前工序";
+            if (PreOpSeq != null && GetSumAcceptQtyOfPreOpSeqOfUser(arr[0], int.Parse(arr[1]), (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString()) == 0)
+                return "错误：该账号的上工序累计接收数量为0，无法开始当前工序";
 
 
             //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
@@ -472,21 +472,28 @@ namespace Appapi.Models
                 return "错误：下步接收人不能为空";
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
-            if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq) < ReportInfo.FirstQty + GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0))
-                return "错误：报工数超出该阶层的可生产数量";
+            if (PreOpSeq == null)
+            {
+                decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq);
+                decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0);
 
-            if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq) < ReportInfo.FirstQty + GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0))
-                return "错误：当前工序的累计报工数超出上一道工序的已报工数";
-
-
+                if (ReqQtyOfAssemblySeq < ReportInfo.FirstQty + TotalQtyOfJobSeq)
+                    return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + " 超出该阶层的可生产数：" + ReqQtyOfAssemblySeq;
+            }
 
             if (PreOpSeq != null)
             {
-                decimal ReportQtyOfCurrSeq = GetReportQtyOfCurrOpSeqOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, HttpContext.Current.Session["UserId"].ToString());
-                decimal AcceptQtyOfPreOpSeq = GetAcceptQtyOfPreOpSeqOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
+                decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
+                decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0);
 
-                if (AcceptQtyOfPreOpSeq < ReportQtyOfCurrSeq + ReportInfo.FirstQty)
-                    return "错误：该账号下的当前工序累计报工数：" + (ReportQtyOfCurrSeq + ReportInfo.FirstQty) + " 大于 上工序的接收数：" + AcceptQtyOfPreOpSeq;
+                if (OpSeqCompleteQty < ReportInfo.FirstQty + TotalQtyOfJobSeq)
+                    return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + " 超出上一道工序的已报工数：" + OpSeqCompleteQty;
+
+                decimal SumOfReportQtyOfCurrSeqOfUser = GetSumOfReportQtyOfCurrOpSeqOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, HttpContext.Current.Session["UserId"].ToString());
+                decimal SumOfAcceptQtyOfPreOpSeqOfUser = GetSumAcceptQtyOfPreOpSeqOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
+
+                if (SumOfAcceptQtyOfPreOpSeqOfUser < SumOfReportQtyOfCurrSeqOfUser + ReportInfo.FirstQty)
+                    return "错误：该账号下，当前工序累计报工数：" + (SumOfReportQtyOfCurrSeqOfUser + " + " + ReportInfo.FirstQty) + " 大于 上工序的累计接收数：" + SumOfAcceptQtyOfPreOpSeqOfUser;
             }
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
@@ -613,7 +620,7 @@ namespace Appapi.Models
                     ReportInfo.CheckUserGroup,
                     partinfo.Rows[0]["PartNum"].ToString(),
                     partinfo.Rows[0]["Description"].ToString(),
-                    ReportInfo.JobNum,
+                    ReportInfo.JobNum.ToUpperInvariant(),
                     ReportInfo.AssemblySeq,
                     ReportInfo.JobSeq,
                     ReportInfo.OpCode,
@@ -1204,11 +1211,11 @@ namespace Appapi.Models
                         return "0|错误：获取下工序去向失败，" + NextSetpInfo;
 
 
-                    object PreOpSeq = CommonRepository.GetPreOpSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq);
-                    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
-                        return "错误： 报工数超出该阶层的可生产数量";
-                    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
-                        return "错误：当前工序的累计报工数超出上一道工序的已报工数";
+                    //object PreOpSeq = CommonRepository.GetPreOpSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq);
+                    //if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
+                    //    return "错误： 报工数超出该阶层的可生产数量";
+                    //if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, (int)theSubReport.RelatedID))
+                    //    return "错误：当前工序的累计报工数超出上一道工序的已报工数";
 
 
                     //自动回退检测
@@ -1332,11 +1339,11 @@ namespace Appapi.Models
 
 
 
-                object PreOpSeq = CommonRepository.GetPreOpSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq);
-                if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq) < GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
-                    return "错误： 报工数超出该阶层的可生产数量";
-                if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
-                    return "错误： 当前报工数超出上一道工序的报工数";
+                //object PreOpSeq = CommonRepository.GetPreOpSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq);
+                //if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq) < GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
+                //    return "错误： 报工数超出该阶层的可生产数量";
+                //if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(theReport.JobNum, (int)theReport.AssemblySeq, (int)PreOpSeq) < GetTotalQtyOfJobSeq(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (int)theReport.ID))
+                //    return "错误： 当前报工数超出上一道工序的报工数";
 
 
                 //自动回退检测
