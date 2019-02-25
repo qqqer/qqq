@@ -339,7 +339,7 @@ namespace Appapi.Models
             BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMSubAcceptQty == null ?  0 : BPMSubAcceptQty;
 
 
-            return (decimal)BPMAcceptQty + (decimal)BPMSubAcceptQty;
+            return Convert.ToDecimal( BPMAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
         }
 
 
