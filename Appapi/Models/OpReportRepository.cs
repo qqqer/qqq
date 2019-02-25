@@ -389,7 +389,6 @@ namespace Appapi.Models
             object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
             if (PreOpSeq != null)
             {
-                //object PreOpCode = CommonRepository.GetPreOpCode(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
                 if (GetSumOfAcceptQtyFromPreOprSeq(arr[0], int.Parse(arr[1]), (int)PreOpSeq, arr[3]) == 0)
                     return "错误：该工序接收数量为0，无法开始当前工序";
             }
