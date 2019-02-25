@@ -325,18 +325,18 @@ namespace Appapi.Models
 
 
 
-        private static decimal AcceptQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        private static decimal GetSumOfAcceptQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
         {
             string sql = @"select sum(QualifiedQty) from bpm where NextUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
             object BPMAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = '" + userid + "' and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty != null  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = '" + userid + "' and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
             object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) ? 0 : BPMAcceptQty;
-            BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) ? 0 : BPMSubAcceptQty;
+            BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) || BPMAcceptQty == null ? 0 : BPMAcceptQty;
+            BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMSubAcceptQty == null ?  0 : BPMSubAcceptQty;
 
 
             return (decimal)BPMAcceptQty + (decimal)BPMSubAcceptQty;
@@ -379,7 +379,7 @@ namespace Appapi.Models
 
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
-            if (PreOpSeq != null && AcceptQtyOfUser(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), HttpContext.Current.Session["UserId"].ToString()) == 0)
+            if (PreOpSeq != null && GetSumOfAcceptQtyOfUser(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), HttpContext.Current.Session["UserId"].ToString()) == 0)
                 return "错误：上工序接收数量为0，无法开始当前工序";
 
 
@@ -406,14 +406,14 @@ namespace Appapi.Models
             }
             else
             {
-                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0] + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "')";
+                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "')";
             }
 
             SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
             sql = sql.Replace("'", "");
-            AddOpLog(null, arr[0], int.Parse(arr[1]), int.Parse(arr[2]), 101, OpDate, sql);
+            AddOpLog(null, arr[0].ToUpperInvariant(), int.Parse(arr[1]), int.Parse(arr[2]), 101, OpDate, sql);
 
 
             string TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), 0).ToString();
@@ -1164,7 +1164,7 @@ namespace Appapi.Models
 
                 //再回写主表
                 sql = " update bpmsub set " +
-                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "|" + HttpContext.Current.Session["UserName"].ToString() + "', " +
+                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString()+"', " +
                        "NextDate = '" + OpDate + "'," +
                        "Status = 99," +
                        "PreStatus = " + (theSubReport.Status) + "," +
@@ -1185,7 +1185,7 @@ namespace Appapi.Models
                     return "错误：" + res;
 
                 sql = " update bpmsub set " +
-                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "|" + HttpContext.Current.Session["UserName"].ToString() + "', " +
+                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
                        "NextDate = '" + OpDate + "'," +
                        "Status = 99," +
                        "PreStatus = " + (theSubReport.Status) + "," +
