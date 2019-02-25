@@ -358,7 +358,7 @@ namespace Appapi.Models
 
             SumOfReportQty = Convert.IsDBNull(SumOfReportQty) || SumOfReportQty == null ? 0 : SumOfReportQty;
 
-            return (decimal)SumOfReportQty;
+            return Convert.ToDecimal(SumOfReportQty);
         }
 
 
