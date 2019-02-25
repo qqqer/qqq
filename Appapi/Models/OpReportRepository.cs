@@ -332,7 +332,7 @@ namespace Appapi.Models
 
 
 
-        private static decimal GetSumAcceptQtyOfPreOpSeqOfUser(string jobnum, int asmSeq, int oprseq, string userid)
+        private static decimal GetSumOfAcceptQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid)//该账户对该指定工序的累积接收数
         {
             string sql = @"select sum(QualifiedQty) from bpm where NextUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
@@ -342,21 +342,21 @@ namespace Appapi.Models
 
             object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) ? 0 : BPMAcceptQty;
-            BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) ? 0 : BPMSubAcceptQty;
+            BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) || BPMAcceptQty == null ? 0 : BPMAcceptQty;
+            BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMAcceptQty == null ? 0 : BPMSubAcceptQty;
 
 
             return (decimal)BPMAcceptQty + (decimal)BPMSubAcceptQty;
         }
 
 
-        private static decimal GetSumOfReportQtyOfCurrOpSeqOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        private static decimal GetSumOfReportQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该账户对该指定工序的累积报工数
         {
             string sql = @"select sum(FirstQty) from bpm where CreateUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
             object SumOfReportQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            SumOfReportQty = Convert.IsDBNull(SumOfReportQty) ? 0 : SumOfReportQty;
+            SumOfReportQty = Convert.IsDBNull(SumOfReportQty) || SumOfReportQty == null ? 0 : SumOfReportQty;
 
             return (decimal)SumOfReportQty;
         }
@@ -397,8 +397,9 @@ namespace Appapi.Models
             if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
                 return "0|错误：该账号没有该工序操作权限";
 
+
             object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
-            if (PreOpSeq != null && GetSumAcceptQtyOfPreOpSeqOfUser(arr[0], int.Parse(arr[1]), (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString()) == 0)
+            if (PreOpSeq != null && GetSumOfAcceptQtyOfUser(arr[0], int.Parse(arr[1]), (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString()) == 0)
                 return "错误：该账号的上工序累计接收数量为0，无法开始当前工序";
 
 
@@ -425,14 +426,14 @@ namespace Appapi.Models
             }
             else
             {
-                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0] + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "')";
+                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "')";
             }
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
             sql = sql.Replace("'", "");
-            AddOpLog(null, arr[0], int.Parse(arr[1]), int.Parse(arr[2]), 101, OpDate, sql);
+            AddOpLog(null, arr[0].ToUpperInvariant(), int.Parse(arr[1]), int.Parse(arr[2]), 101, OpDate, sql);
 
 
             string TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), 0).ToString();
@@ -489,8 +490,8 @@ namespace Appapi.Models
                 if (OpSeqCompleteQty < ReportInfo.FirstQty + TotalQtyOfJobSeq)
                     return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + " 超出上一道工序的已报工数：" + OpSeqCompleteQty;
 
-                decimal SumOfReportQtyOfCurrSeqOfUser = GetSumOfReportQtyOfCurrOpSeqOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, HttpContext.Current.Session["UserId"].ToString());
-                decimal SumOfAcceptQtyOfPreOpSeqOfUser = GetSumAcceptQtyOfPreOpSeqOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
+                decimal SumOfReportQtyOfCurrSeqOfUser = GetSumOfReportQtyOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, HttpContext.Current.Session["UserId"].ToString());
+                decimal SumOfAcceptQtyOfPreOpSeqOfUser = GetSumOfAcceptQtyOfUser(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq, HttpContext.Current.Session["UserId"].ToString());
 
                 if (SumOfAcceptQtyOfPreOpSeqOfUser < SumOfReportQtyOfCurrSeqOfUser + ReportInfo.FirstQty)
                     return "错误：该账号下，当前工序累计报工数：" + (SumOfReportQtyOfCurrSeqOfUser + " + " + ReportInfo.FirstQty) + " 大于 上工序的累计接收数：" + SumOfAcceptQtyOfPreOpSeqOfUser;

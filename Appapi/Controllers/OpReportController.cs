@@ -12,6 +12,11 @@ namespace Appapi.Controllers
 {
     public class OpReportController : ApiController
     {
+        /// <summary>
+        /// 开始作业申请
+        /// </summary>
+        /// <param name="values">工单号~阶层号~工序序号~工序代码</param>
+        /// <returns>工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量</returns>
         //Get:  /api/OpReport/StartByQR
         [System.Web.Http.HttpGet]
         public string Start(string values) // ApiNum 101
@@ -27,6 +32,11 @@ namespace Appapi.Controllers
 
 
 
+        /// <summary>
+        /// 作业完成报工申请
+        /// </summary>
+        /// <param name="ReportInfo">json</param>
+        /// <returns>处理成功或错误提示</returns>
         //Post:  /api/OpReport/ReporterCommit
         [System.Web.Http.HttpPost]
         public string ReporterCommit(OpReport ReportInfo) // ApiNum 102
@@ -41,7 +51,11 @@ namespace Appapi.Controllers
         }
 
 
-
+        /// <summary>
+        /// 品检提交
+        /// </summary>
+        /// <param name="CheckInfo">json</param>
+        /// <returns>处理成功或错误提示</returns>
         //Post:  /api/OpReport/CheckerCommit
         [System.Web.Http.HttpPost]
         public string CheckerCommit(OpReport CheckInfo) // ApiNum 201
@@ -56,6 +70,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 主流程或子流程的转序提交
+        /// </summary>
+        /// <param name="TransmitInfo">json</param>
+        /// <returns>处理成功或错误提示</returns>
         //Post:  /api/OpReport/TransferCommit
         [System.Web.Http.HttpPost]
         public string TransferCommit(OpReport TransmitInfo) // ApiNum 301 or 302
@@ -71,7 +90,11 @@ namespace Appapi.Controllers
         }
 
 
-
+        /// <summary>
+        /// 主流程或子流程的接收提交
+        /// </summary>
+        /// <param name="AcceptInfo">json</param>
+        /// <returns>处理成功或错误提示</returns>
         //Post:  /api/OpReport/AccepterCommit
         [System.Web.Http.HttpPost]
         public string AccepterCommit(OpReport AcceptInfo) // ApiNum 401 or 402
@@ -88,6 +111,11 @@ namespace Appapi.Controllers
 
 
 
+        /// <summary>
+        /// dmr提交
+        /// </summary>
+        /// <param name="DMRInfo">json</param>
+        /// <returns>处理成功或错误提示</returns>
         //Post:  /api/OpReport/DMRCommit
         [System.Web.Http.HttpPost]
         public string DMRCommit(OpReport DMRInfo) // ApiNum 601
@@ -102,6 +130,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>返回属于该请求用户的正在进行的作业信息：工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量
+        /// 若无正在进行的作业 则返回null</returns>
         //Get:  /api/OpReport/GetProcessOfUser     
         [System.Web.Http.HttpGet]
         public string GetProcessOfUser() // ApiNum 1      null:未进行工序    0|：错误   1|：解析
@@ -115,6 +148,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="JobNum"></param>
+        /// <returns>返回该工单所有阶层的AssemblySeq, PartNum, 物料Description</returns>
         //Get:  /api/OpReport/GetAssemblySeqByJobNum
         [System.Web.Http.HttpGet]
         public DataTable GetAssemblySeqByJobNum(string JobNum) // ApiNum 2     
@@ -123,6 +161,12 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="JobNum"></param>
+        /// <param name="AssemblySeq"></param>
+        /// <returns>返回参数锁定的所有工序信息：OprSeq,OpDesc,OpCode, QtyCompleted</returns>
         //Get:  /api/OpReport/GetJobSeq
         [System.Web.Http.HttpGet]
         public DataTable GetJobSeq(string JobNum, int AssemblySeq) // ApiNum 3    
@@ -131,6 +175,10 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>返回属于请求账号的所有物料不良代表事项（不包括dmr待办事项）</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetRemainsOfUser
         public IEnumerable<OpReport> GetRemainsOfUser()//ApiNum: 4   获取当前用户的待办事项
@@ -139,6 +187,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ID">若无负号代表bpm ID， 若有负号代表BPMSub Id</param>
+        /// <returns>返回该条记录的所有字段</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetRecordByID
         public DataTable GetRecordByID(int ID)//ApiNum: 5   从bpm表中获取ID指定的记录行
@@ -147,6 +200,13 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 主流程 一选二，二选三，三选四
+        /// </summary>
+        /// <param name="OpCode"></param>
+        /// <param name="ID"></param>
+        /// <param name="pa"></param>
+        /// <returns>返回下步可选办理人</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetNextUserGroup 
         public DataTable GetNextUserGroup(string OpCode, int ID, params string[] pa)//ApiNum: 6   
@@ -166,6 +226,11 @@ namespace Appapi.Controllers
 
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="type">erp.Reason表中的ReasonType</param>
+        /// <returns>ReasonCode, Description字段</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetReason
         public DataTable GetReason(string type)//ApiNum: 8   
@@ -174,6 +239,12 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// dmr选三
+        /// </summary>
+        /// <param name="OpCode"></param>
+        /// <param name="ID">bpm表 id</param>
+        /// <returns>返回下步可选办理人</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetDMRNextUserGroup
         public DataTable GetDMRNextUserGroup(string OpCode, int ID)//ApiNum: 9   
@@ -182,6 +253,10 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <returns>返回所有报工不良dmr待办事项</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetDMRRemainsOfUser
         public IEnumerable<OpReport> GetDMRRemainsOfUser()//ApiNum: 10   获取当前用户的待办事项
@@ -190,6 +265,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 子流程 三选四
+        /// </summary>
+        /// <param name="ID">bpmsub id</param>
+        /// <returns>返回下步可选办理人</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetNextUserGroupOfSub 
         public DataTable GetNextUserGroupOfSub(int ID)//ApiNum: 11  子流程选人 
@@ -197,6 +277,11 @@ namespace Appapi.Controllers
             return HttpContext.Current.Session.Count != 0 ? OpReportRepository.GetNextUserGroupOfSub(ID) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
 
+
+        /// <summary>
+        /// 强制清除该账号当前开始的工序
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         //Get:  /api/OpReport/ClearProcess
         public string ClearProcess() //ApiNum: 12 强制清空当前开始的工序
@@ -206,7 +291,15 @@ namespace Appapi.Controllers
         }
 
 
-        [HttpGet]
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="JobNum"></param>
+        /// <param name="AssemblySeq"></param>
+        /// <param name="JobSeq"></param>
+        /// <returns></returns>
+        [HttpGet]     
         //Get:  /api/OpReport/GetRecordsForPrint
         public IEnumerable<OpReport> GetRecordsForPrint(string JobNum, int? AssemblySeq, int? JobSeq) //ApiNum: 13 获取可选的打印记录集合
         {
