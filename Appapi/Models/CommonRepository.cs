@@ -262,6 +262,17 @@ namespace Appapi.Models
         }
 
 
+        public static object GetPreOpCode(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
+        {
+            string sql = @"select top 1 jo.OpCode from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " order by jo.OprSeq desc";
+
+            object PreOpCode = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return PreOpCode;
+        }
+
+
 
         public static bool IsOpSeqComplete(string JobNum, int AssemblySeq, int JobSeq)
         {

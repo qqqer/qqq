@@ -297,11 +297,11 @@ namespace Appapi.Models
 
             DataTable dt = SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
 
-            decimal bpm_qty =0;
+            decimal bpm_qty = 0;
 
             if (dt != null)
             {
-                for(int i =0; i < dt.Rows.Count; i++)
+                for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     if ((int)dt.Rows[i]["Status"] < 3) //未写时间费用
                         bpm_qty += (decimal)dt.Rows[i]["FirstQty"];
@@ -312,7 +312,7 @@ namespace Appapi.Models
                     }
                     else //不良品处理已结束
                     {
-                        decimal DMRRepairQty =  dt.Rows[i]["DMRRepairQty"] is DBNull || dt.Rows[i]["DMRRepairQty"] == null ? 0 : (decimal)dt.Rows[i]["DMRRepairQty"] ;
+                        decimal DMRRepairQty = dt.Rows[i]["DMRRepairQty"] is DBNull || dt.Rows[i]["DMRRepairQty"] == null ? 0 : (decimal)dt.Rows[i]["DMRRepairQty"];
                         bpm_qty += DMRRepairQty; //返修数算作原工单的报工数
                     }
                 }
@@ -325,21 +325,29 @@ namespace Appapi.Models
 
 
 
-        private static decimal GetSumOfAcceptQtyOfUser(string jobnum, int asmSeq, int oprseq, string userid) //该工序的 在跑+erp 数量, 不包括本次报工数量
+        private static decimal GetSumOfAcceptQtyFromPreOprSeq(string jobnum, int asmSeq, int PreOprSeq, string OpCode) //该工序的 在跑+erp 数量, 不包括本次报工数量
         {
-            string sql = @"select sum(QualifiedQty) from bpm where NextUser = '" + userid + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+            string sql = "select NextUser from BPMOpCode where OpCode = '" + OpCode + "'";
+            string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            object BPMAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            string[] arrUser = NextUser.Split(',');
+            decimal SumOfAcceptQty = 0;
 
-            sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = '" + userid + "' and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+            for (int i = 0; i < arrUser.Length; i++)
+            {
+                sql = @"select sum(QualifiedQty) from bpm where NextUser = '" + arrUser[i].Trim() + "' and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
+                object BPMAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) || BPMAcceptQty == null ? 0 : BPMAcceptQty;
 
-            object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) || BPMAcceptQty == null ? 0 : BPMAcceptQty;
-            BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMSubAcceptQty == null ?  0 : BPMSubAcceptQty;
+                sql = @"select sum(DMRQualifiedQty) from bpmsub where NextUser = '" + arrUser[i].Trim() + "' and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
+                object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMSubAcceptQty == null ? 0 : BPMSubAcceptQty;
 
+                SumOfAcceptQty += Convert.ToDecimal(BPMAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
+            }
 
-            return Convert.ToDecimal( BPMAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
+            return SumOfAcceptQty;
         }
 
 
@@ -379,9 +387,12 @@ namespace Appapi.Models
 
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
-            if (PreOpSeq != null && GetSumOfAcceptQtyOfUser(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), HttpContext.Current.Session["UserId"].ToString()) == 0)
-                return "错误：上工序接收数量为0，无法开始当前工序";
-
+            if (PreOpSeq != null)
+            {
+                //object PreOpCode = CommonRepository.GetPreOpCode(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
+                if (GetSumOfAcceptQtyFromPreOprSeq(arr[0], int.Parse(arr[1]), (int)PreOpSeq, arr[3]) == 0)
+                    return "错误：该工序接收数量为0，无法开始当前工序";
+            }
 
             //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
             //    return "错误：该工序已完成";
@@ -525,7 +536,7 @@ namespace Appapi.Models
                 if ((res = client.Print(@"C:\D0201.btw", printer, (int)ReportInfo.PrintQty, jsonStr)) == "1|处理成功")
                 {
                     IsPrint = true;
-                    client.Close();                 
+                    client.Close();
                 }
                 else
                 {
@@ -828,13 +839,13 @@ namespace Appapi.Models
                 object dmrid = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-                sql = @"select IUM  from erp.JobAsmbl where JobNum = '"+theReport.JobNum+"' and AssemblySeq = "+theReport.AssemblySeq+"";
+                sql = @"select IUM  from erp.JobAsmbl where JobNum = '" + theReport.JobNum + "' and AssemblySeq = " + theReport.AssemblySeq + "";
                 object IUM = SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
                 if (!Convert.IsDBNull(dmrid) && DMRInfo.DMRRepairQty > 0)
                 {
-                    res = ErpAPI.Common.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum,IUM.ToString());
+                    res = ErpAPI.Common.RepairDMRProcessing((int)dmrid, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, IUM.ToString());
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 
@@ -1164,7 +1175,7 @@ namespace Appapi.Models
 
                 //再回写主表
                 sql = " update bpmsub set " +
-                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString()+"', " +
+                       "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
                        "NextDate = '" + OpDate + "'," +
                        "Status = 99," +
                        "PreStatus = " + (theSubReport.Status) + "," +
