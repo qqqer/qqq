@@ -402,8 +402,8 @@ namespace Appapi.Models
                     return "错误：该工序接收数量为0，无法开始当前工序";
             }
 
-            if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
-                return "错误：该工序已完成";
+            //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
+            //    return "错误：该工序已完成";
 
 
             string NextSetpInfo = GetNextSetpInfo(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), dt.Rows[0]["Company"].ToString());
