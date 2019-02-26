@@ -484,7 +484,7 @@ namespace Appapi.Models
                 decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0);
 
                 if (ReqQtyOfAssemblySeq < ReportInfo.FirstQty + TotalQtyOfJobSeq)
-                    return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + " 超出该阶层的可生产数：" + ReqQtyOfAssemblySeq;
+                    return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + "，其阶层的可生产数为：" + ReqQtyOfAssemblySeq;
             }
 
             if (PreOpSeq != null)
