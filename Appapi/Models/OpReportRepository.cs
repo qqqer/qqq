@@ -332,21 +332,28 @@ namespace Appapi.Models
 
 
 
-
-        private static decimal GetSumOfAcceptedQtyFromPreOprSeq(string jobnum, int asmSeq, int PreOprSeq)
+        private static decimal GetSumOfAcceptQtyFromPreOprSeq(string jobnum, int asmSeq, int PreOprSeq) //该工序的 在跑+erp 数量, 不包括本次报工数量
         {
             decimal SumOfAcceptQty = 0;
+
 
             string sql = @"select sum(QualifiedQty) from bpm where IsComplete = 1 and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
             object BPMAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             BPMAcceptQty = Convert.IsDBNull(BPMAcceptQty) || BPMAcceptQty == null ? 0 : BPMAcceptQty;
 
 
-            sql = @"select sum(DMRQualifiedQty) from bpmsub where IsComplete = 1  and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
+
+            sql = @"select sum(ArrivedQty) from Receipt group by jobnum ,AssemblySeq,JobSeq,IsDelete ,IsComplete having IsComplete = 1 and IsDelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
+            object ReceiptAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            ReceiptAcceptQty = Convert.IsDBNull(ReceiptAcceptQty) || ReceiptAcceptQty == null ? 0 : ReceiptAcceptQty;
+
+
+            sql = @"select sum(DMRQualifiedQty) from bpmsub where IsComplete = 1 and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
             object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMSubAcceptQty == null ? 0 : BPMSubAcceptQty;
 
-            SumOfAcceptQty = Convert.ToDecimal(BPMAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
+            SumOfAcceptQty += Convert.ToDecimal(BPMAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty) + Convert.ToDecimal(ReceiptAcceptQty);
+
 
             return SumOfAcceptQty;
         }
@@ -404,7 +411,16 @@ namespace Appapi.Models
 
             if (PreOpSeq != null)
             {
-                if (GetSumOfAcceptedQtyFromPreOprSeq(arr[0], int.Parse(arr[1]), (int)PreOpSeq) == 0)
+                string ss = "select count(*) from bpm where isdelete != 1  and  jobnum = '" + arr[0] + "' and AssemblySeq = " + int.Parse(arr[1]) + " and  JobSeq = " + (int)PreOpSeq + "";
+                bool IsPreOprSeqExistInBPM = Convert.ToBoolean(SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, ss, null));
+
+                ss = @"select count(*) from Receipt where IsDelete != 1  and  jobnum = '" + arr[0] + "' and AssemblySeq = " + int.Parse(arr[1]) + " and  JobSeq = " + (int)PreOpSeq + "";
+                bool IsPreOprSeqExistInReceipt = Convert.ToBoolean(SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, ss, null));
+
+                
+                decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(arr[0], int.Parse(arr[1]), (int)PreOpSeq);
+                //若上工序不是在该系统中报的工 则放行，前半部分判断是为兼容过去系统的报工数据， 以后可以去掉该部分的判断。
+                if (!(OpSeqCompleteQty > 0 && !IsPreOprSeqExistInBPM && !IsPreOprSeqExistInReceipt) && GetSumOfAcceptQtyFromPreOprSeq(arr[0], int.Parse(arr[1]), (int)PreOpSeq) == 0 )
                     return "错误：该工序接收数量为0，无法开始当前工序";
             }
 
@@ -496,7 +512,7 @@ namespace Appapi.Models
                     return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + " 超出上一道工序的已报工数：" + OpSeqCompleteQty;
 
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
-                decimal SumOfAcceptedQtyFromPreOprSeq = GetSumOfAcceptedQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
+                decimal SumOfAcceptedQtyFromPreOprSeq = GetSumOfAcceptQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
 
                 if (SumOfAcceptedQtyFromPreOprSeq < SumOfAcceptedQtyFromPreOprSeq + ReportInfo.FirstQty)
                     return "错误：当前工序累计报工数：" + (SumOfReportQty + " + " + ReportInfo.FirstQty) + " 大于 该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq;
