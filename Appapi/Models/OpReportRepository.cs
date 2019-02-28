@@ -307,8 +307,8 @@ namespace Appapi.Models
 
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
-            decimal bpm_qty = 0;
-            decimal erp_qty = 0;
+            decimal bpm_qty = 0; //在跑
+            decimal erp_qty = 0; //epr
 
             if (dt != null)
             {
@@ -318,10 +318,7 @@ namespace Appapi.Models
                         bpm_qty += (decimal)dt.Rows[i]["FirstQty"];
 
                     else//已写时间费用
-                    {
-                        bpm_qty += (decimal)dt.Rows[i]["CheckCounter"]; //未处理的不良品数量 可能为0
-                        erp_qty += (decimal)dt.Rows[i]["DMRRepairQty"];//返修数量算作erp中已报工数量
-                    }
+                        bpm_qty += (decimal)dt.Rows[i]["CheckCounter"] + (decimal)dt.Rows[i]["DMRRepairQty"] + (decimal)dt.Rows[i]["DMRUnQualifiedQty"]; //除让步接收数已在erp中，该工单工序的返修和报废无法回写erp，只能算作在跑数量
                 }
             }
 
@@ -361,7 +358,7 @@ namespace Appapi.Models
 
         private static decimal GetSumOfReportQty(string jobnum, int asmSeq, int oprseq) //该指定工序的累积报工数
         {
-            string sql = @"select sum(FirstQty) from bpm where CreateUser is not null and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
+            string sql = @"select sum(FirstQty) from bpm where isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
 
             object SumOfReportQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -511,11 +508,11 @@ namespace Appapi.Models
                 if (OpSeqCompleteQty < ReportInfo.FirstQty + TotalQtyOfJobSeq)
                     return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + " 超出上一道工序的已报工数：" + OpSeqCompleteQty;
 
+
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
                 decimal SumOfAcceptedQtyFromPreOprSeq = GetSumOfAcceptQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
-
-                if (SumOfAcceptedQtyFromPreOprSeq < SumOfAcceptedQtyFromPreOprSeq + ReportInfo.FirstQty)
-                    return "错误：当前工序累计报工数：" + (SumOfReportQty + " + " + ReportInfo.FirstQty) + " 大于 该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq;
+                if (SumOfAcceptedQtyFromPreOprSeq < SumOfReportQty + ReportInfo.FirstQty)
+                    return "错误：当前工序的累计报工数：" + (SumOfReportQty + " + " + ReportInfo.FirstQty) + "，大于该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq;
             }
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
@@ -717,6 +714,9 @@ namespace Appapi.Models
                 if (theReport.Status != 2)
                     return "错误：流程未在当前节点上";
 
+                if (CheckInfo.QualifiedQty != 0 && CheckInfo.TransformUserGroup == "")
+                    return "错误：下步接收人不能为空";
+
                 string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
                 if (res != "正常")
                     return "0|错误：" + res;
@@ -849,6 +849,9 @@ namespace Appapi.Models
             if (theReport.CheckCounter == 0)
                 return "错误：该报工流程下的所有不良品已处理完毕";
 
+            if (DMRInfo.TransformUserGroup == "")
+                return "错误：下步接收人不能为空";
+
 
             DMRInfo.DMRQualifiedQty = Convert.ToDecimal(DMRInfo.DMRQualifiedQty);
             DMRInfo.DMRRepairQty = Convert.ToDecimal(DMRInfo.DMRRepairQty);
@@ -961,6 +964,9 @@ namespace Appapi.Models
 
             if (theSubReport.Status != 3)
                 return "错误：流程未在当前节点上";
+
+            if (!(theSubReport.DMRUnQualifiedQty != null) && TransmitInfo.NextUserGroup == "")
+                return "错误：下步接收人不能为空";
 
             //以下只会执行一个if
             if (theSubReport.DMRQualifiedQty != null)
@@ -1104,6 +1110,9 @@ namespace Appapi.Models
 
             if (theReport.Status != 3)
                 return "错误：流程未在当前节点上";
+
+            if (TransmitInfo.NextUserGroup == "")
+                return "错误：下步接收人不能为空";
 
             string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
             if (res != "正常")
