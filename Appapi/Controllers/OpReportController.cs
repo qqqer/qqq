@@ -167,7 +167,7 @@ namespace Appapi.Controllers
         /// </summary>
         /// <param name="JobNum"></param>
         /// <param name="AssemblySeq"></param>
-        /// <returns>返回参数锁定的所有工序信息：OprSeq,OpDesc,OpCode, QtyCompleted</returns>
+        /// <returns>返回erp.joboper中参数锁定的所有工序的OprSeq,OpDesc,OpCode, QtyCompleted字段值</returns>
         //Get:  /api/OpReport/GetJobSeq
         [System.Web.Http.HttpGet]
         public DataTable GetJobSeq(string JobNum, int AssemblySeq) // ApiNum 3    
