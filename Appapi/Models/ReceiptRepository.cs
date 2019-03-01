@@ -670,7 +670,7 @@ namespace Appapi.Models
                         RB.JobSeq,
                         RB.OpCode,
                         batInfo.PartNum,
-                        RB.PartDesc,
+                        "\u1234PartDesc",
                         RB.IUM,
                         batInfo.JobNum,
                         batInfo.Remark,
@@ -707,11 +707,13 @@ namespace Appapi.Models
                     });
                     sql = string.Format(sql, values);
                     #endregion
+                   
 
-                    SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", RB.CommentText) };
+                    SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", RB.CommentText), new SqlParameter("@PartDesc", RB.PartDesc) };
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
 
                     //Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
                 }
                 #endregion
 
@@ -833,7 +835,7 @@ namespace Appapi.Models
                     RB.JobSeq,
                     RB.OpCode,
                     batInfo.PartNum,
-                    RB.PartDesc,
+                    "\u1234PartDesc",
                     RB.IUM,
                     batInfo.JobNum,
                     batInfo.Remark,
@@ -871,7 +873,7 @@ namespace Appapi.Models
                 sql = string.Format(sql, values);
                 #endregion
 
-                SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", RB.CommentText) };
+                SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", RB.CommentText), new SqlParameter("@PartDesc", RB.PartDesc) };
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
 
 

@@ -84,6 +84,7 @@
     <File Include="bin/Appapi.dll">
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       <publishTime>02/25/2019 13:23:22</publishTime>
     </File>
     <File Include="bin/Appapi.pdb">
@@ -100,11 +101,18 @@
     <File Include="bin/Appapi.pdb">
       <publishTime>02/26/2019 13:26:06</publishTime>
 >>>>>>> zsq
+=======
+      <publishTime>03/01/2019 14:06:40</publishTime>
+    </File>
+    <File Include="bin/Appapi.pdb">
+      <publishTime>03/01/2019 14:06:40</publishTime>
+>>>>>>> master
     </File>
     <File Include="bin/ApplicationInsights.config">
       <publishTime>09/19/2018 13:30:40</publishTime>
     </File>
     <File Include="bin/ClassLibrary1.dll">
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
       <publishTime>02/25/2019 13:23:22</publishTime>
@@ -129,6 +137,12 @@
     <File Include="bin/ClassLibrary1.pdb">
       <publishTime>02/26/2019 13:26:05</publishTime>
 >>>>>>> zsq
+=======
+      <publishTime>03/01/2019 14:06:40</publishTime>
+    </File>
+    <File Include="bin/ClassLibrary1.pdb">
+      <publishTime>03/01/2019 14:06:40</publishTime>
+>>>>>>> master
     </File>
     <File Include="bin/CommonClass.dll">
       <publishTime>10/18/2018 11:44:41</publishTime>
@@ -619,6 +633,7 @@
     <File Include="Web.config">
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
       <publishTime>02/25/2019 13:14:49</publishTime>
 =======
       <publishTime>02/25/2019 13:45:04</publishTime>
@@ -626,6 +641,9 @@
 =======
       <publishTime>02/26/2019 13:25:25</publishTime>
 >>>>>>> zsq
+=======
+      <publishTime>03/01/2019 14:03:11</publishTime>
+>>>>>>> master
     </File>
   </ItemGroup>
 </Project>
