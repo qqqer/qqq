@@ -673,7 +673,7 @@ namespace Appapi.Models
                         RB.JobSeq,
                         RB.OpCode,
                         batInfo.PartNum,
-                        RB.PartDesc,
+                        "\u1234PartDesc",
                         RB.IUM,
                         batInfo.JobNum,
                         batInfo.Remark,
@@ -710,8 +710,10 @@ namespace Appapi.Models
                     });
                     sql = string.Format(sql, values);
                     #endregion
+                   
 
-                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@PartDesc", RB.PartDesc) };
+                    SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, ps);
                 }
                 #endregion
 
@@ -833,7 +835,7 @@ namespace Appapi.Models
                     RB.JobSeq,
                     RB.OpCode,
                     batInfo.PartNum,
-                    RB.PartDesc,
+                    "\u1234PartDesc",
                     RB.IUM,
                     batInfo.JobNum,
                     batInfo.Remark,
@@ -870,8 +872,8 @@ namespace Appapi.Models
                 });
                 sql = string.Format(sql, values);
                 #endregion
-                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
+                SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@PartDesc", RB.PartDesc) };
+                SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, ps);
 
                 sql = sql.Replace("'", "");
                 AddOpLog(GetReceiptID(batInfo), batInfo.BatchNo, 103, "insert", OpDate, sql);
