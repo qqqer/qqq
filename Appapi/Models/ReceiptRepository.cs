@@ -9,7 +9,6 @@ using System.Net; //ftp
 using System.Threading;
 using System.Security.Cryptography;
 using System.Text;
-using ZXing;
 using System.Drawing.Imaging;
 using System.Drawing;
 using System.Data.SqlClient;
@@ -2013,22 +2012,22 @@ namespace Appapi.Models
 
 
 
-        public static void GenerateQRCode(int width, int height, string value)
-        {
-            BarcodeWriter barCodeWriter = new BarcodeWriter();
-            barCodeWriter.Format = BarcodeFormat.QR_CODE; // 生成码的方式(这里设置的是二维码),有条形码\二维码\还有中间嵌入图片的二维码等
-            barCodeWriter.Options.Hints.Add(EncodeHintType.CHARACTER_SET, "UTF-8");
-            barCodeWriter.Options.Hints.Add(EncodeHintType.ERROR_CORRECTION, ZXing.QrCode.Internal.ErrorCorrectionLevel.H);
-            barCodeWriter.Options.Height = height;
-            barCodeWriter.Options.Width = width;
-            barCodeWriter.Options.Margin = 2; //设置的白边大小
-            ZXing.Common.BitMatrix bm = barCodeWriter.Encode("asdkjhasjdh342k3jhkj54345");  //要生成的二维码字符串
-            Bitmap result = barCodeWriter.Write(bm);
-            Bitmap Qcbmp = result.Clone(new Rectangle(Point.Empty, result.Size), PixelFormat.Format1bppIndexed);//位深度
+        //public static void GenerateQRCode(int width, int height, string value)
+        //{
+        //    BarcodeWriter barCodeWriter = new BarcodeWriter();
+        //    barCodeWriter.Format = BarcodeFormat.QR_CODE; // 生成码的方式(这里设置的是二维码),有条形码\二维码\还有中间嵌入图片的二维码等
+        //    barCodeWriter.Options.Hints.Add(EncodeHintType.CHARACTER_SET, "UTF-8");
+        //    barCodeWriter.Options.Hints.Add(EncodeHintType.ERROR_CORRECTION, ZXing.QrCode.Internal.ErrorCorrectionLevel.H);
+        //    barCodeWriter.Options.Height = height;
+        //    barCodeWriter.Options.Width = width;
+        //    barCodeWriter.Options.Margin = 2; //设置的白边大小
+        //    ZXing.Common.BitMatrix bm = barCodeWriter.Encode("asdkjhasjdh342k3jhkj54345");  //要生成的二维码字符串
+        //    Bitmap result = barCodeWriter.Write(bm);
+        //    Bitmap Qcbmp = result.Clone(new Rectangle(Point.Empty, result.Size), PixelFormat.Format1bppIndexed);//位深度
 
-            //pictureBox1.Image = Qcbmp;
-            //pictureBox1.Refresh();
-        }
+        //    //pictureBox1.Image = Qcbmp;
+        //    //pictureBox1.Refresh();
+        //}
 
 
 
