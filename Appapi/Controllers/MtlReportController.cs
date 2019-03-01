@@ -14,11 +14,11 @@ namespace Appapi.Controllers
     {
         //Get:  /api/MtlReport/GetMtlInfo
         /// <summary>
-        /// 
+        /// 获取物料序号,PartNum,物料描述,JobNum,AssemblySeq
         /// </summary>
         /// <param name="JobNum"></param>
         /// <param name="AssemblySeq"></param>
-        /// <returns>MtlSeq,PartNum,Description,JobNum,AssemblySeq</returns>
+        /// <returns>返回MtlSeq,PartNum,Description,JobNum,AssemblySeq</returns>
         [System.Web.Http.HttpGet]
         public DataTable GetMtlInfo(string JobNum, int AssemblySeq) // ApiNum 1     
         {
@@ -27,7 +27,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取参数锁定的物料的所有批次号
         /// </summary>
         /// <param name="PartNum"></param>
         /// <param name="MtlSeq"></param>
@@ -119,7 +119,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取属于请求账号的所有物料不良代表事项（不包括dmr待办事项）
         /// </summary>
         /// <returns>返回属于请求账号的所有物料不良代表事项（不包括dmr待办事项）</returns>
         [HttpGet]
@@ -131,7 +131,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取所有物料不良dmr待办事项
         /// </summary>
         /// <returns>返回所有物料不良dmr待办事项 </returns>
         [HttpGet]
@@ -143,7 +143,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取二选三或三选四的下步可选办理人
         /// </summary>
         /// <param name="ID">MtlReport ID 或 BPMSub Id</param>
         /// <param name="IsSubProcess">true：MtlReport ID， false：BPMSub Id </param>
@@ -157,7 +157,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取指定记录的所有字段
         /// </summary>
         /// <param name="ID">若无负号代表MtlReport ID， 若有负号代表BPMSub Id</param>
         /// <returns>返回该条记录的所有字段</returns>

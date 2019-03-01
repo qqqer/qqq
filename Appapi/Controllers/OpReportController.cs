@@ -8,6 +8,7 @@ using System.Net.Http;
 using System.Web;
 using System.Web.Http;
 
+
 namespace Appapi.Controllers
 {
     public class OpReportController : ApiController
@@ -131,7 +132,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取属于该请求用户的正在进行的作业信息
         /// </summary>
         /// <returns>返回属于该请求用户的正在进行的作业信息：工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量
         /// 若无正在进行的作业 则返回null</returns>
@@ -149,10 +150,10 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取该工单所有AssemblySeq, PartNum, 物料描述
         /// </summary>
         /// <param name="JobNum"></param>
-        /// <returns>返回该工单所有阶层的AssemblySeq, PartNum, 物料Description</returns>
+        /// <returns>返回该工单所有AssemblySeq, PartNum, 物料Description</returns>
         //Get:  /api/OpReport/GetAssemblySeqByJobNum
         [System.Web.Http.HttpGet]
         public DataTable GetAssemblySeqByJobNum(string JobNum) // ApiNum 2     
@@ -162,7 +163,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取参数锁定的工序的信息OprSeq,OpDesc,OpCode, erp.joboper.QtyCompleted
         /// </summary>
         /// <param name="JobNum"></param>
         /// <param name="AssemblySeq"></param>
@@ -176,7 +177,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取属于请求账号的所有物料不良代表事项（不包括dmr待办事项）
         /// </summary>
         /// <returns>返回属于请求账号的所有物料不良代表事项（不包括dmr待办事项）</returns>
         [HttpGet]
@@ -188,7 +189,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取参数指定的记录的所有字段
         /// </summary>
         /// <param name="ID">若无负号代表bpm ID， 若有负号代表BPMSub Id</param>
         /// <returns>返回该条记录的所有字段</returns>
@@ -201,11 +202,11 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 主流程 一选二，二选三，三选四
+        /// 主流程 二选三，三选四  重载版本
         /// </summary>
         /// <param name="OpCode"></param>
         /// <param name="ID"></param>
-        /// <param name="pa"></param>
+        /// <param name="pa">可选参数</param>
         /// <returns>返回下步可选办理人</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetNextUserGroup 
@@ -216,6 +217,13 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 主流程 一选二 需要工单号 重载版本
+        /// </summary>
+        /// <param name="OpCode"></param>
+        /// <param name="ID"></param>
+        /// <param name="JobNum">传工单号</param>
+        /// <returns></returns>
         [HttpGet]
         //Get:  /api/OpReport/GetNextUserGroup 
         public DataTable GetNextUserGroup(string OpCode, int ID, string JobNum)//ApiNum: 6  
@@ -227,7 +235,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 返回erp.Reason表中原因代码和原因描述
         /// </summary>
         /// <param name="type">erp.Reason表中的ReasonType</param>
         /// <returns>ReasonCode, Description字段</returns>
@@ -254,7 +262,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取所有报工不良dmr待办事项
         /// </summary>
         /// <returns>返回所有报工不良dmr待办事项</returns>
         [HttpGet]
@@ -293,12 +301,12 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 
+        /// 获取要打印的记录的所有字段，工单号必须，阶层号和工序号可选
         /// </summary>
         /// <param name="JobNum"></param>
         /// <param name="AssemblySeq"></param>
         /// <param name="JobSeq"></param>
-        /// <returns></returns>
+        /// <returns>返回每条记录的所有字段值</returns>
         [HttpGet]     
         //Get:  /api/OpReport/GetRecordsForPrint
         public IEnumerable<OpReport> GetRecordsForPrint(string JobNum, int? AssemblySeq, int? JobSeq) //ApiNum: 13 获取可选的打印记录集合
@@ -307,6 +315,12 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 复制主流程二维码
+        /// </summary>
+        /// <param name="id">bpm id</param>
+        /// <param name="printqty">打印数量</param>
+        /// <returns>处理成功或错误提示</returns>
         [HttpGet]
         //Get:  /api/OpReport/PrintQR
         public string PrintQR(int id, int printqty) //ApiNum: 14 打印复制二维码
@@ -315,6 +329,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 扫码获取主流程的信息，提取参数中的PrintID，找到在bpm表中匹配的记录
+        /// </summary>
+        /// <param name="values">公司ID%物料编码 % 描述 % 批次号 %《工单号 % 半成品号 % 标签识别码 % PrintID % 订单号 % 行号 % 交货数量 % 发货行%工序号%炉批号</param>
+        /// <returns>返回ScanResult对象， 若成功则ScanResult.error为null，ScanResult.batch不为null， 否则ScanResult.error != null，ScanResult.batch为null</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetRecordByQR
         public ScanResult GetRecordByQR(string values) //ApiNum: 15
@@ -323,6 +342,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 二节点强制删除当前报工流程
+        /// </summary>
+        /// <param name="ID">bpm id</param>
+        /// <returns>"删除成功"</returns>
         [HttpGet]
         //Get:  /api/OpReport/DeleteProcess
         public string DeleteProcess(int ID) //ApiNum: 16 二节点强制删除当前报工流程
@@ -332,6 +356,12 @@ namespace Appapi.Controllers
         }
 
 
+
+        /// <summary>
+        /// 获取包含该子串的所有工单号
+        /// </summary>
+        /// <param name="JobNum">工单号子串</param>
+        /// <returns>返回包含该子串的所有工单号</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetRelatedJobNum
         public DataTable GetRelatedJobNum(string JobNum) //ApiNum: 17 所有返修工单

@@ -379,3 +379,4 @@ E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.LotSelectUpdate.resources.dll
 E:\Git\APPapi\Appapi\bin\zh-CN\Epicor.ServiceModel.resources.dll
 E:\Git\APPapi\Appapi\bin\Common.dll
 E:\Git\APPapi\Appapi\bin\Common.pdb
+E:\Git\APPapi\Appapi\bin\Appapi.xml
