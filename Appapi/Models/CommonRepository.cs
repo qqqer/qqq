@@ -231,6 +231,14 @@ namespace Appapi.Models
                 {
                     values += "'" + array[i] + "'" + (i == array.Count - 1 ? "" : ",");
                 }
+                else if (array[i].GetType() == typeof(string) && ((string)array[i])[0] != '\u1234')//非参数化
+                {
+                    values += "'" + array[i] + "'" + (i == array.Count - 1 ? "" : ",");
+                }
+                else if (array[i].GetType() == typeof(string) && ((string)array[i])[0] == '\u1234')//参数化
+                {
+                    values += ((string)array[i]).Replace('\u1234', '@') + (i == array.Count - 1 ? "" : ",");
+                }
                 else if (array[i].GetType() == typeof(bool))
                 {
                     values += Convert.ToInt32(array[i]).ToString() + (i == array.Count - 1 ? "" : ",");
