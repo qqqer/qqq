@@ -252,6 +252,7 @@ E:\Git\APPapi\Appapi\bin\Erp.Contracts.BO.JobEntry.dll
 E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.JobEntry.resources.dll
 E:\Git\APPapi\Appapi\bin\zh-CN\Erp.Contracts.BO.LotSelectUpdate.resources.dll
 E:\Git\APPapi\Appapi\bin\zh-CN\Epicor.ServiceModel.resources.dll
+<<<<<<< HEAD
 E:\Git\APPapi\Appapi\bin\Common.dll
 E:\Git\APPapi\Appapi\bin\Common.pdb
 D:\qqq\Appapi\bin\ApplicationInsights.config
@@ -397,6 +398,8 @@ D:\qqq\Appapi\obj\Release\AppAPI.csproj.CoreCompileInputs.cache
 D:\qqq\Appapi\obj\Release\AppAPI.csproj.CopyComplete
 D:\qqq\Appapi\obj\Release\Appapi.dll
 D:\qqq\Appapi\obj\Release\Appapi.pdb
+=======
+>>>>>>> master
 D:\APP\Appapi\bin\ApplicationInsights.config
 D:\APP\Appapi\bin\Appapi.dll.config
 D:\APP\Appapi\bin\Appapi.dll
@@ -449,7 +452,10 @@ D:\APP\Appapi\bin\roslyn\VBCSCompiler.exe
 D:\APP\Appapi\bin\roslyn\VBCSCompiler.exe.config
 D:\APP\Appapi\bin\Antlr3.Runtime.dll
 D:\APP\Appapi\bin\ClassLibrary1.dll
+<<<<<<< HEAD
 D:\APP\Appapi\bin\Common.dll
+=======
+>>>>>>> master
 D:\APP\Appapi\bin\Microsoft.AI.Agent.Intercept.dll
 D:\APP\Appapi\bin\Microsoft.AI.DependencyCollector.dll
 D:\APP\Appapi\bin\Microsoft.AI.PerfCounterCollector.dll
@@ -474,6 +480,11 @@ D:\APP\Appapi\bin\System.Web.WebPages.Deployment.dll
 D:\APP\Appapi\bin\System.Web.WebPages.dll
 D:\APP\Appapi\bin\System.Web.WebPages.Razor.dll
 D:\APP\Appapi\bin\WebGrease.dll
+<<<<<<< HEAD
+=======
+D:\APP\Appapi\bin\zxing.dll
+D:\APP\Appapi\bin\zxing.presentation.dll
+>>>>>>> master
 D:\APP\Appapi\bin\Ice.Core.Session.dll
 D:\APP\Appapi\bin\Erp.Contracts.BO.ReceiptsFromMfg.dll
 D:\APP\Appapi\bin\Erp.Contracts.BO.NonConf.dll
@@ -497,7 +508,10 @@ D:\APP\Appapi\bin\Ice.Lib.AppSettingsHandler.dll
 D:\APP\Appapi\bin\Epicor.Ice.Version.dll
 D:\APP\Appapi\bin\Erp.Common.ContractInterfaces.dll
 D:\APP\Appapi\bin\Epicor.App.Version.dll
+<<<<<<< HEAD
 D:\APP\Appapi\bin\Common.pdb
+=======
+>>>>>>> master
 D:\APP\Appapi\bin\ClassLibrary1.pdb
 D:\APP\Appapi\bin\Newtonsoft.Json.xml
 D:\APP\Appapi\bin\System.Net.Http.Formatting.xml
@@ -511,6 +525,13 @@ D:\APP\Appapi\bin\System.Web.WebPages.xml
 D:\APP\Appapi\bin\System.Web.WebPages.Deployment.xml
 D:\APP\Appapi\bin\System.Web.WebPages.Razor.xml
 D:\APP\Appapi\bin\Antlr3.Runtime.pdb
+<<<<<<< HEAD
+=======
+D:\APP\Appapi\bin\zxing.pdb
+D:\APP\Appapi\bin\zxing.xml
+D:\APP\Appapi\bin\zxing.presentation.pdb
+D:\APP\Appapi\bin\zxing.presentation.xml
+>>>>>>> master
 D:\APP\Appapi\bin\System.Diagnostics.DiagnosticSource.xml
 D:\APP\Appapi\bin\Microsoft.AspNet.TelemetryCorrelation.xml
 D:\APP\Appapi\bin\Microsoft.AI.DependencyCollector.xml

@@ -233,7 +233,7 @@ namespace Appapi.Models
                 {
                     values += "'" + array[i] + "'" + (i == array.Count - 1 ? "" : ",");
                 }
-                else if (array[i].GetType() == typeof(string) && ((string)array[i])[0] == '\u1234')//参数化 
+                else if (array[i].GetType() == typeof(string) && ((string)array[i])[0] == '\u1234')//参数化 此处不会出现空串，因为空串在上一个if已经被处理掉了
                 {
                     values += ((string)array[i]).Replace('\u1234', '@') + (i == array.Count - 1 ? "" : ",");
                 }
