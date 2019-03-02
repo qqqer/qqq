@@ -211,7 +211,7 @@ namespace Appapi.Controllers
 
         #region 功能
         /// <summary>
-        /// 一选二，二选三，三选四  重载版本
+        /// 一选二，二选三，三选四
         /// </summary>
         /// <param name="nextStatus">下个节点号</param>
         /// <param name="company"></param>
