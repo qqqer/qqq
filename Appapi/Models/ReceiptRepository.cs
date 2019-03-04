@@ -552,11 +552,11 @@ namespace Appapi.Models
                     DataTable temp = GetAllOpSeqOfSeriesSUB(new Receipt { PoNum = batInfo.PoNum, PoLine = batInfo.PoLine, Company = batInfo.Company, PORelNum = batInfo.PORelNum, JobNum = RB.JobNum, AssemblySeq = RB.AssemblySeq, JobSeq = RB.JobSeq });
                     object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)temp.Rows[0]["jobseq"]);
 
-                    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
-                        return "错误： 收货数超出该阶层的可生产数量";
+                    //if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+                    //    return "错误： 收货数超出该阶层的可生产数量";
 
-                    if (CommonRepository.IsOpSeqComplete(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq))
-                        return "错误：该工序已收满";
+                    //if (CommonRepository.IsOpSeqComplete(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq))
+                    //    return "错误：该工序已收满";
 
                     if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
                         return "错误： 收货数超出上一道非该供应商工序的完成数量";
