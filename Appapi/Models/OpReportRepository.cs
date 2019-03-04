@@ -454,7 +454,7 @@ namespace Appapi.Models
             AddOpLog(null, arr[0].ToUpperInvariant(), int.Parse(arr[1]), int.Parse(arr[2]), 101, OpDate, sql);
 
 
-            string SumOfReportQty = GetSumOfReportQty(arr[0], int.Parse(arr[1]), int.Parse(arr[2])).ToString();
+            string SumOfReportQty = GetSumOfReportQty(arr[0], int.Parse(arr[1]), int.Parse(arr[2])).ToString("N2");
 
             arr[1] += "|" + (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, @" select PartNum from erp.JobAsmbl where JobNum = '" + arr[0] + "' and AssemblySeq = " + int.Parse(arr[1]) + "", null);
             return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + NextSetpInfo + "~" + OpDate + "~" + SumOfReportQty;
@@ -497,7 +497,7 @@ namespace Appapi.Models
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
 
                 if (ReqQtyOfAssemblySeq < ReportInfo.FirstQty + SumOfReportQty)
-                    return "错误：报工数超出其阶层的可生产数。当前工序的报工数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，其阶层的可生产数为：" + ReqQtyOfAssemblySeq.ToString("N2");
+                    return "错误：累计已转数超出该阶层的可生产数。该工序的累计已转数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，该阶层的可生产数为：" + ReqQtyOfAssemblySeq.ToString("N2");
             }
 
             if (PreOpSeq != null)
@@ -506,12 +506,12 @@ namespace Appapi.Models
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
 
                 if (OpSeqCompleteQty < ReportInfo.FirstQty + SumOfReportQty)
-                    return "错误：报工数超出上道工序的已报工数。当前工序的报工数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，上一道工序的已报工数：" + OpSeqCompleteQty.ToString("N2");
+                    return "错误：累计已转数超出上道工序的已报工数。该工序的累计已转数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，上道工序的已报工数：" + OpSeqCompleteQty.ToString("N2");
 
 
                 decimal SumOfAcceptedQtyFromPreOprSeq = GetSumOfAcceptQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
                 if (SumOfAcceptedQtyFromPreOprSeq < SumOfReportQty + ReportInfo.FirstQty)
-                    return "错误：报工数超出接收数。当前工序的报工数：" + (SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty) + ")，累计接收数：" + SumOfAcceptedQtyFromPreOprSeq.ToString("N2");
+                    return "错误：累计已转数超出累计接收数。该工序的累计已转数：" + (SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty) + ")，该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq.ToString("N2");
             }
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
