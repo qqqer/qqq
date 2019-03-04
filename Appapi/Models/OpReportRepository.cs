@@ -454,10 +454,10 @@ namespace Appapi.Models
             AddOpLog(null, arr[0].ToUpperInvariant(), int.Parse(arr[1]), int.Parse(arr[2]), 101, OpDate, sql);
 
 
-            string TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), 0).ToString();
+            string SumOfReportQty = GetSumOfReportQty(arr[0], int.Parse(arr[1]), int.Parse(arr[2])).ToString();
 
             arr[1] += "|" + (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, @" select PartNum from erp.JobAsmbl where JobNum = '" + arr[0] + "' and AssemblySeq = " + int.Parse(arr[1]) + "", null);
-            return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + NextSetpInfo + "~" + OpDate + "~" + TotalQtyOfJobSeq;
+            return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + NextSetpInfo + "~" + OpDate + "~" + SumOfReportQty;
         }
 
 
@@ -494,25 +494,24 @@ namespace Appapi.Models
             if (PreOpSeq == null)
             {
                 decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq);
-                decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0);
+                decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
 
-                if (ReqQtyOfAssemblySeq < ReportInfo.FirstQty + TotalQtyOfJobSeq)
-                    return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，其阶层的可生产数为：" + ReqQtyOfAssemblySeq.ToString("N2");
+                if (ReqQtyOfAssemblySeq < ReportInfo.FirstQty + SumOfReportQty)
+                    return "错误：报工数超出其阶层的可生产数。当前工序的报工数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，其阶层的可生产数为：" + ReqQtyOfAssemblySeq.ToString("N2");
             }
 
             if (PreOpSeq != null)
             {
                 decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
-                decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0);
-
-                if (OpSeqCompleteQty < ReportInfo.FirstQty + TotalQtyOfJobSeq)
-                    return "错误：超出上道工序的已报工数。当前工序的累计报工数：" + TotalQtyOfJobSeq.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，上一道工序的已报工数：" + OpSeqCompleteQty.ToString("N2");
-
-
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
+
+                if (OpSeqCompleteQty < ReportInfo.FirstQty + SumOfReportQty)
+                    return "错误：报工数超出上道工序的已报工数。当前工序的报工数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，上一道工序的已报工数：" + OpSeqCompleteQty.ToString("N2");
+
+
                 decimal SumOfAcceptedQtyFromPreOprSeq = GetSumOfAcceptQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
                 if (SumOfAcceptedQtyFromPreOprSeq < SumOfReportQty + ReportInfo.FirstQty)
-                    return "错误：当前工序的累计报工数：" + (SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty) + ")，该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq.ToString("N2");
+                    return "错误：报工数超出接收数。当前工序的报工数：" + (SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty) + ")，累计接收数：" + SumOfAcceptedQtyFromPreOprSeq.ToString("N2");
             }
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
@@ -1544,7 +1543,7 @@ namespace Appapi.Models
 
                 return "1|" + (string)dt.Rows[0]["JobNum"] + "~" + dt.Rows[0]["AssemblySeq"].ToString() + partnum + "~" + dt.Rows[0]["JobSeq"].ToString() + "~" +
                     (string)dt.Rows[0]["OpCode"] + "~" + (string)dt.Rows[0]["OpDesc"] + "~" + NextSetpInfo + "~" + ((DateTime)dt.Rows[0]["StartDate"]).ToString("yyyy-MM-dd HH:mm:ss.fff") + "~" +
-                    (dt.Rows[0]["Qty"].ToString() == "" ? "0" : dt.Rows[0]["Qty"].ToString()) + "~" + GetTotalQtyOfJobSeq(dt.Rows[0]["JobNum"].ToString(), (int)dt.Rows[0]["AssemblySeq"], (int)dt.Rows[0]["JobSeq"], 0).ToString(); ;
+                    (dt.Rows[0]["Qty"].ToString() == "" ? "0" : dt.Rows[0]["Qty"].ToString()) + "~" + GetSumOfReportQty(dt.Rows[0]["JobNum"].ToString(), (int)dt.Rows[0]["AssemblySeq"], (int)dt.Rows[0]["JobSeq"]).ToString("N2"); ;
             }
             return null;
         }

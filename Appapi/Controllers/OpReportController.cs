@@ -28,7 +28,7 @@ namespace Appapi.Controllers
 
             string res = OpReportRepository.Start(values);
 
-            return res.Substring(0, 1).Trim() == "1" ? res : res + "|101";
+            return res.Substring(0, 1).Trim() == "1" ? res : "101|" + res;
         }
 
 
@@ -48,7 +48,7 @@ namespace Appapi.Controllers
 
             string res = OpReportRepository.ReporterCommit(ReportInfo);
 
-            return res == "处理成功" ? res : res + "|102";
+            return res == "处理成功" ? res : "102|" + res;
         }
 
 
@@ -67,7 +67,7 @@ namespace Appapi.Controllers
 
             string res = OpReportRepository.CheckerCommit(CheckInfo);
 
-            return res == "处理成功" ? res : res + "|201";
+            return res == "处理成功" ? res : "201|" + res;
         }
 
 
@@ -85,9 +85,9 @@ namespace Appapi.Controllers
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
             string res = OpReportRepository.TransferCommit(TransmitInfo);
-            string apinum = (bool)TransmitInfo.IsSubProcess ? "|302" : "|301";
+            string apinum = (bool)TransmitInfo.IsSubProcess ? "302|" : "301|";
 
-            return res == "处理成功" ? res : res + apinum;
+            return res == "处理成功" ? res : apinum + res;
         }
 
 
@@ -106,8 +106,8 @@ namespace Appapi.Controllers
 
             string res = OpReportRepository.AccepterCommit(AcceptInfo);
 
-            string apinum = (bool)AcceptInfo.IsSubProcess ? "|402" : "|401";
-            return res == "处理成功" ? res : res + apinum;
+            string apinum = (bool)AcceptInfo.IsSubProcess ? "402|" : "401|";
+            return res == "处理成功" ? res : apinum + res;
         }
 
 
@@ -127,7 +127,7 @@ namespace Appapi.Controllers
 
             string res = OpReportRepository.DMRCommit(DMRInfo);
 
-            return res == "处理成功" ? res : res + "|601";
+            return res == "处理成功" ? res : "601|"+ res;
         }
 
 

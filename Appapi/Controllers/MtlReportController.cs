@@ -57,7 +57,7 @@ namespace Appapi.Controllers
 
             string res = MtlReportRepository.ReportCommit(CreateInfo);
 
-            return res == "处理成功" ? res : res + "|101";
+            return res == "处理成功" ? res : "101|" + res;
         }
 
 
@@ -76,7 +76,7 @@ namespace Appapi.Controllers
 
             string res = MtlReportRepository.DMRCommit(DMRInfo);
 
-            return res == "处理成功" ? res : res + "|201";
+            return res == "处理成功" ? res : "201|" + res;
         }
 
 
@@ -95,7 +95,7 @@ namespace Appapi.Controllers
 
             string res = MtlReportRepository.TransferCommit(TransferInfo);
 
-            return res == "处理成功" ? res : res + "|301";
+            return res == "处理成功" ? res : "301|" + res;
         }
 
 
@@ -114,7 +114,7 @@ namespace Appapi.Controllers
 
             string res = MtlReportRepository.AcceptCommit(AcceptInfo);
 
-            return res == "处理成功" ? res : res + "|401";
+            return res == "处理成功" ? res : "401|" + res;
         }
 
 
