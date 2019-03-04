@@ -332,7 +332,10 @@ namespace Appapi.Models
                   ,[ErpCounter]
                   ,[CheckCounter]
                   ,[IsDelete]
-                  ,[IsSubProcess]) values({0}) ";
+                  ,[IsSubProcess]
+                  ,[DMRQualifiedQty]
+                  ,[DMRRepairQty]
+                  ,[DMRUnQualifiedQty]) values({0}) ";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
                 {
                     HttpContext.Current.Session["UserId"].ToString(),
@@ -350,6 +353,9 @@ namespace Appapi.Models
                     dt.Rows[0]["Company"].ToString(),
                     0,
                     ReportInfo.UnQualifiedQty,
+                    0,
+                    0,
+                    0,
                     0,
                     0
                 });
@@ -393,7 +399,7 @@ namespace Appapi.Models
             if (DMRInfo.DMRUnQualifiedQty < 0)
                 return "错误：废弃数量不能为负";
 
-            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty == 0)
+            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRUnQualifiedQty + DMRInfo.DMRRepairQty == 0)
                 return "错误：数量不能都为0";
 
             if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.CheckCounter)
@@ -439,8 +445,8 @@ namespace Appapi.Models
 
                     sql = "update MtlReport set ErpCounter = 1 ," +
                         "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
-                        "CheckCounter = " + DMRInfo.UnQualifiedQty + " " +
-                        "where id = " + DMRInfo.ID + ""; Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        "CheckCounter = " + theReport.UnQualifiedQty + " " +
+                        "where id = " + DMRInfo.ID + ""; 
 
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
@@ -477,7 +483,7 @@ namespace Appapi.Models
 
                 InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID);
 
-                sql = " update MtlReport set DMRQualifiedQty = DMRQualifiedQty + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRQualifiedQty + ",DMRQualifiedQty = DMRQualifiedQty + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(DMRInfo.ID, 201, OpDate, "让步接收子流程生成");
@@ -494,7 +500,7 @@ namespace Appapi.Models
 
                 InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup);
 
-                sql = " update MtlReport set DMRRepairQty = DMRRepairQty + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
+                sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRRepairQty + ",DMRRepairQty = DMRRepairQty + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(DMRInfo.ID, 201, OpDate, "返修子流程生成");
@@ -512,8 +518,9 @@ namespace Appapi.Models
 
                 InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup);
 
-                sql = " update MtlReport set DMRUnQualifiedQty = DMRUnQualifiedQty + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = DMRUnQualifiedQty + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
                 AddOpLog(DMRInfo.ID, 201, OpDate, "报废子流程生成");
             }
 

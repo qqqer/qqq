@@ -497,7 +497,7 @@ namespace Appapi.Models
                 decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0);
 
                 if (ReqQtyOfAssemblySeq < ReportInfo.FirstQty + TotalQtyOfJobSeq)
-                    return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + "，其阶层的可生产数为：" + ReqQtyOfAssemblySeq;
+                    return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，其阶层的可生产数为：" + ReqQtyOfAssemblySeq.ToString("N2");
             }
 
             if (PreOpSeq != null)
@@ -506,13 +506,13 @@ namespace Appapi.Models
                 decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 0);
 
                 if (OpSeqCompleteQty < ReportInfo.FirstQty + TotalQtyOfJobSeq)
-                    return "错误：当前工序的累计报工数：" + TotalQtyOfJobSeq + " + " + ReportInfo.FirstQty + " 超出上一道工序的已报工数：" + OpSeqCompleteQty;
+                    return "错误：超出上道工序的已报工数。当前工序的累计报工数：" + TotalQtyOfJobSeq.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，上一道工序的已报工数：" + OpSeqCompleteQty.ToString("N2");
 
 
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
                 decimal SumOfAcceptedQtyFromPreOprSeq = GetSumOfAcceptQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
                 if (SumOfAcceptedQtyFromPreOprSeq < SumOfReportQty + ReportInfo.FirstQty)
-                    return "错误：当前工序的累计报工数：" + (SumOfReportQty + " + " + ReportInfo.FirstQty) + "，大于该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq;
+                    return "错误：当前工序的累计报工数：" + (SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty) + ")，该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq.ToString("N2");
             }
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
@@ -869,7 +869,7 @@ namespace Appapi.Models
             if (DMRInfo.DMRUnQualifiedQty < 0)
                 return "错误：废弃数量不能为负";
 
-            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty + DMRInfo.DMRQualifiedQty == 0)
+            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRUnQualifiedQty + DMRInfo.DMRRepairQty == 0)
                 return "错误：数量不能都为0";
 
             if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.UnQualifiedQty - determinedQty)
@@ -904,7 +904,7 @@ namespace Appapi.Models
 
                 InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID);
 
-                sql = " update bpm set DMRQualifiedQty = DMRQualifiedQty + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRQualifiedQty + ",DMRQualifiedQty = DMRQualifiedQty + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "让步接收子流程生成|" + theReport.DMRQualifiedQty + " + " + DMRInfo.DMRQualifiedQty);
@@ -922,7 +922,7 @@ namespace Appapi.Models
                 InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup);
 
 
-                sql = " update bpm set DMRRepairQty = DMRRepairQty + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
+                sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRRepairQty + ",DMRRepairQty = DMRRepairQty + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "返修子流程生成|" + theReport.DMRRepairQty + " + " + DMRInfo.DMRRepairQty);
@@ -939,7 +939,7 @@ namespace Appapi.Models
 
                 InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup);
 
-                sql = " update bpm set DMRUnQualifiedQty = DMRUnQualifiedQty + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = DMRUnQualifiedQty + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);

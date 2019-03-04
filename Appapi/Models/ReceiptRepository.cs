@@ -1297,7 +1297,7 @@ namespace Appapi.Models
                                         "" + (int)dt.Rows[i]["poline"] + "," +
                                         "" + (int)dt.Rows[i]["porelnum"] + "," +
                                         "'" + theBatch.PartNum + "'," +
-                                        "'" + theBatch.PartDesc + "'," +
+                                        "@PartDesc," +
                                         "'" + theBatch.IUM + "'," +
                                         "'" + theBatch.BatchNo + "'," +
                                         "'" + theBatch.HeatNum + "'," +
@@ -1378,7 +1378,7 @@ namespace Appapi.Models
 
                                     //执行sql
                                     //Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                                    SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", theBatch.CommentText) };
+                                    SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", theBatch.CommentText), new SqlParameter("@PartDesc", theBatch.PartDesc) };
                                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
 
                                     sql = sql.Replace("'", "");

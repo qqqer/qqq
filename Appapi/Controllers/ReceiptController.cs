@@ -20,7 +20,7 @@ namespace Appapi.Controllers
         /// <summary>
         /// web或手机登录
         /// </summary>
-        /// <param name="Account">账号</param>
+        /// <param name="Account">账号与密码键值对json</param>
         /// <returns>bool值</returns>
         //Post:  /api/Receipt/Login
         [System.Web.Http.HttpPost]
