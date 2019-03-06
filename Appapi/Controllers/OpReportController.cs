@@ -177,9 +177,9 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 获取属于请求账号的所有物料不良代表事项（不包括dmr待办事项）
+        /// 获取属于请求账号的所有代表事项（不包括dmr待办事项）
         /// </summary>
-        /// <returns>返回属于请求账号的所有物料不良代表事项（不包括dmr待办事项）</returns>
+        /// <returns>返回属于请求账号的所有代办事项（不包括dmr待办事项）</returns>
         [HttpGet]
         //Get:  /api/OpReport/GetRemainsOfUser
         public IEnumerable<OpReport> GetRemainsOfUser()//ApiNum: 4   获取当前用户的待办事项
@@ -262,7 +262,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 获取所有报工不良dmr待办事项
+        /// 为不良品小组账号获取所有报工不良dmr待办事项
         /// </summary>
         /// <returns>返回所有报工不良dmr待办事项</returns>
         [HttpGet]
