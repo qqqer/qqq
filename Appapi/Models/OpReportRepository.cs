@@ -1166,7 +1166,9 @@ namespace Appapi.Models
 
                 //自动回退检测
                 string[] arr = NextSetpInfo.Split('~');
-                if (theSubReport.NextOpCode != arr[1])
+                sql = "select NextUser from BPMOpCode where OpCode = '" + theSubReport.NextOpCode + "'";
+                string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null); //抓取最新接收人
+                if (theSubReport.NextOpCode != arr[1] || !NextUser.Contains(HttpContext.Current.Session["UserId"].ToString())) //判断当前账号是否在最新接收人里面
                 {
                     ReturnStatus((bool)theSubReport.IsSubProcess, (int)theSubReport.ID, (int)theSubReport.Status, 11, "工序去向已更改，子流程自动回退", 402);
                     return "错误： 工序去向已更改，流程已自动回退至上一节点";
@@ -1275,7 +1277,9 @@ namespace Appapi.Models
 
             //自动回退检测
             string[] arr = NextSetpInfo.Split('~');
-            if (theReport.NextOpCode != arr[1])
+            sql = "select NextUser from BPMOpCode where OpCode = '" + theReport.NextOpCode + "'";
+            string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            if (theReport.NextOpCode != arr[1] || !NextUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
             {
                 ReturnStatus((bool)theReport.IsSubProcess, (int)theReport.ID, (int)theReport.Status, 11, "工序去向已更改，主流程自动回退", 401);
                 return "错误： 工序去向已更改，流程已自动回退至上一节点";
@@ -1426,7 +1430,8 @@ namespace Appapi.Models
                 if (NextSetpInfo.Substring(0, 1).Trim() == "0")
                     return "0|错误：无法获取工序最终去向，" + NextSetpInfo;
 
-                string partnum = "|" + (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, @"select PartNum from erp.JobMtl where JobNum = '" + dt.Rows[0]["JobNum"].ToString() + "' and AssemblySeq = " + dt.Rows[0]["AssemblySeq"].ToString() + "", null);
+                sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '"+ dt.Rows[0]["JobNum"].ToString() + "' and AssemblySeq = "+ (int)dt.Rows[0]["AssemblySeq"] + " order by AssemblySeq asc";
+                string partnum = "|" + (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
                 return "1|" + (string)dt.Rows[0]["JobNum"] + "~" + dt.Rows[0]["AssemblySeq"].ToString() + partnum + "~" + dt.Rows[0]["JobSeq"].ToString() + "~" +
