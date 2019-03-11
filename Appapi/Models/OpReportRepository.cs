@@ -21,15 +21,15 @@ namespace Appapi.Models
             var t = CommonRepository.DataTableToList<OpReport>(SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql));
             OpReport OpInfo = t?.First(); //获取该批次记录
 
-            int nextStatsu = (OpInfo != null ? (int)OpInfo.Status : 1) + 1;
+            int nextStatus = (OpInfo != null ? (int)OpInfo.Status : 1) + 1;
 
-            if (nextStatsu == 2)
+            if (nextStatus == 2)
                 nextRole = 256;
 
-            else if (nextStatsu == 3)
+            else if (nextStatus == 3)
                 nextRole = 512;
 
-            else if (nextStatsu == 4)
+            else if (nextStatus == 4 || nextStatus == 5) //nextStatus == 5 第四节点获取下工序最新办理人
             {
                 int a, b;//凑个数，无意义
                 string c;//凑个数，无意义
@@ -1165,14 +1165,13 @@ namespace Appapi.Models
 
 
                 //自动回退检测
-                string[] arr = NextSetpInfo.Split('~');
-                sql = "select NextUser from BPMOpCode where OpCode = '" + theSubReport.NextOpCode + "'";
-                string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null); //抓取最新接收人
-                if (theSubReport.NextOpCode != arr[1] || !NextUser.Contains(HttpContext.Current.Session["UserId"].ToString())) //判断当前账号是否在最新接收人里面
+                DataTable NextUserGroup = GetNextUserGroupOfSub((int)theSubReport.ID); ////抓取最新接收人
+                if (!NextUserGroupContains(NextUserGroup, HttpContext.Current.Session["UserId"].ToString())) //判断当前账号是否在最新接收人里面
                 {
                     ReturnStatus((bool)theSubReport.IsSubProcess, (int)theSubReport.ID, (int)theSubReport.Status, 11, "工序去向已更改，子流程自动回退", 402);
                     return "错误： 工序去向已更改，流程已自动回退至上一节点";
                 }
+
 
 
                 //若去向仓库
@@ -1276,10 +1275,8 @@ namespace Appapi.Models
 
 
             //自动回退检测
-            string[] arr = NextSetpInfo.Split('~');
-            sql = "select NextUser from BPMOpCode where OpCode = '" + theReport.NextOpCode + "'";
-            string NextUser = (string)SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            if (theReport.NextOpCode != arr[1] || !NextUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
+            DataTable NextUserGroup = GetNextUserGroup("", (int)theReport.ID, "");  //最新接收人       
+            if (!NextUserGroupContains(NextUserGroup, HttpContext.Current.Session["UserId"].ToString())) //判断当前账号是否在最新接收人里面
             {
                 ReturnStatus((bool)theReport.IsSubProcess, (int)theReport.ID, (int)theReport.Status, 11, "工序去向已更改，主流程自动回退", 401);
                 return "错误： 工序去向已更改，流程已自动回退至上一节点";
@@ -1312,6 +1309,16 @@ namespace Appapi.Models
             return "处理成功";
         }
 
+        private static bool NextUserGroupContains(DataTable NextUserGroup,  string CurrUserID)
+        {
+            if (NextUserGroup == null) return false;
+            for(int i = 0; i < NextUserGroup.Rows.Count; i++)
+            {
+                if (NextUserGroup.Rows[i]["UserID"].ToString() == CurrUserID)
+                    return true;
+            }
+            return false;
+        }
 
         public static string AccepterCommit(OpReport AcceptInfo) //apinum 400
         {

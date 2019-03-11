@@ -131,7 +131,7 @@ namespace Appapi.Models
                 HttpContext.Current.Session.Add("Company", Convert.ToString(dt.Rows[0]["Company"]));
                 HttpContext.Current.Session.Add("UserName", Convert.ToString(dt.Rows[0]["UserName"]));
                 HttpContext.Current.Session.Add("Plant", Convert.ToString(dt.Rows[0]["Plant"]));
-                HttpContext.Current.Session.Add("UserId", userid.Contains("'--") ? userid.ToUpper().Substring(0,6) : userid.ToUpper());//去掉免密登录方式账号的后缀字符
+                HttpContext.Current.Session.Add("UserId", userid.Split('\'')[0].ToUpper());//去掉免密登录方式账号的后缀字符
                 HttpContext.Current.Session.Add("RoleId", Convert.ToInt32(dt.Rows[0]["RoleID"]));
                 return true;
             }
