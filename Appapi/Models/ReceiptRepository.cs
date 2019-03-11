@@ -550,8 +550,8 @@ namespace Appapi.Models
                     DataTable temp = GetAllOpSeqOfSeriesSUB(new Receipt { PoNum = batInfo.PoNum, PoLine = batInfo.PoLine, Company = batInfo.Company, PORelNum = batInfo.PORelNum, JobNum = RB.JobNum, AssemblySeq = RB.AssemblySeq, JobSeq = RB.JobSeq });
                     object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)temp.Rows[0]["jobseq"]);
 
-                    //if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
-                    //    return "错误： 收货数超出该阶层的可生产数量";
+                    if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+                        return "错误： 收货数超出该阶层的可生产数量";
 
                     //if (CommonRepository.IsOpSeqComplete(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq))
                     //    return "错误：该工序已收满";
@@ -962,7 +962,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已删除";
 
             else if (theBatch.PartNum != RB.PartNum || (!theBatch.PartDesc.Contains("?") && theBatch.PartDesc != RB.PartDesc))
-                return "错误：物料编码或物料描述不正确";
+                return "错误：物料信息已被更改，请联系采购部";
 
             else if (theBatch.IsComplete == true)
                 return "错误：该批次的流程已结束";
@@ -1081,7 +1081,7 @@ namespace Appapi.Models
                 return GetErrorInfo(theBatch);
 
             else if (theBatch.PartNum != RB.PartNum || (!theBatch.PartDesc.Contains("?") && theBatch.PartDesc != RB.PartDesc))
-                return "错误：物料编码或物料描述不正确";
+                return "错误：物料信息已被更改，请联系采购部";
 
             else if (TransferInfo.ReceiveQty2 > RB.NotReceiptQty)//若超收
                 return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(TransferInfo.ReceiveQty2 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
@@ -1144,7 +1144,7 @@ namespace Appapi.Models
                     return GetErrorInfo(theBatch);
 
                 else if (theBatch.PartNum != RB.PartNum || (!theBatch.PartDesc.Contains("?") && theBatch.PartDesc != RB.PartDesc))
-                    return "错误：物料编码或物料描述不正确";
+                    return "错误：物料信息已被更改，请联系采购部";
 
                 else if (theBatch.AtRole == 8 && (res = CheckBinNum(AcceptInfo)) != "ok") //去向仓库，则需检查库位
                     return res;
