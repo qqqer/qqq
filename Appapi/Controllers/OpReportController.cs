@@ -132,21 +132,39 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 获取属于该请求用户的正在进行的作业信息
-        /// </summary>
-        /// <returns>返回属于该请求用户的正在进行的作业信息：工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量
-        /// 若无正在进行的作业 则返回null</returns>
-        //Get:  /api/OpReport/GetProcessOfUser     
-        [System.Web.Http.HttpGet]
-        public string GetProcessOfUser() // ApiNum 1      null:未进行工序    0|：错误   1|：解析
+         /// 获取属于该请求用户的正在进行的作业信息
+         /// </summary>
+         /// <param name="processID">大于0获取APP.process表中指定记录，小于等0返回当前用户的正在进行的某一项工序信息</param>
+         /// <returns>返回属于该请求用户的正在进行的作业信息：工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量~ProcessID~IsParallel
+         /// 若无正在进行的作业 则返回null</returns>
+         //Get:  /api/OpReport/GetProcessOfUser     
+         [System.Web.Http.HttpGet]
+        public string GetProcessOfUser(int processID) // ApiNum 1      null:未进行工序    0|：错误   1|：解析
         {
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
-            string res = OpReportRepository.GetProcessOfUser();
+            string res = OpReportRepository.GetProcessOfUser(processID);
 
             return res == null || res.Substring(0, 1).Trim() == "1"  ? res : res + "|1";
         }
+
+
+        /// <summary>
+        /// 获取用户正在进行的所有可并发工序
+        /// </summary>
+        /// <returns>返回属于该请求用户的正在进行的作业信息：工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量~ProcessID~IsParallel
+        /// 若无正在进行的作业 则返回null</returns>
+        //Get:  /api/OpReport/GetMultipleProcessOfUser  
+        [System.Web.Http.HttpGet]
+        public DataTable GetMultipleProcessOfUser()
+        {
+            if (HttpContext.Current.Session.Count == 0)
+                throw new HttpResponseException(HttpStatusCode.Forbidden);
+
+            return OpReportRepository.GetMultipleProcessOfUser();
+        }
+
 
 
         /// <summary>
@@ -292,9 +310,9 @@ namespace Appapi.Controllers
         /// <returns></returns>
         [HttpGet]
         //Get:  /api/OpReport/ClearProcess
-        public string ClearProcess() //ApiNum: 12 强制清空当前开始的工序
+        public string ClearProcess(int ProcessId) //ApiNum: 12 强制清空当前开始的工序
         {
-            OpReportRepository.ClearProcess();
+            OpReportRepository.ClearProcess(ProcessId);
             return "取消成功";
         }
 
