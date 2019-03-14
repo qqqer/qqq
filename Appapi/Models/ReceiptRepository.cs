@@ -711,9 +711,6 @@ namespace Appapi.Models
 
                     SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", RB.CommentText), new SqlParameter("@PartDesc", RB.PartDesc) };
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
-
-                    //Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
                 }
                 #endregion
 
@@ -768,8 +765,8 @@ namespace Appapi.Models
                 object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql2, null);
                 int id = Convert.IsDBNull(o) || o == null ? 0 : (int)o;
 
-                //if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq,  id))
-                //    return "错误： 收货数超出该阶层的可生产数量";
+                if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, id))
+                    return "错误： 收货数超出该阶层的可生产数量";
                 //if (CommonRepository.IsOpSeqComplete(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq))
                 //    return "错误：该工序已收满";
                 if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, id))

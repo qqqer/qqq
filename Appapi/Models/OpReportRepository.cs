@@ -401,18 +401,26 @@ namespace Appapi.Models
                 return "0|错误：无法获取工序最终去向，" + NextSetpInfo;
 
 
-            string sql = @"select top 1 * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
+            string sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
             DataTable UserProcess = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
-            if (UserProcess != null &&  !Convert.ToBoolean(UserProcess.Rows[0]["IsParallel"])) //有工序在进行且该工序非并发
+            if (UserProcess != null &&  !Convert.ToBoolean(UserProcess.Rows[0]["IsParallel"])) //只有一道工序在进行且该工序非并发
             {
                     return "0|错误：该账号正在进行独立工序：" + UserProcess.Rows[0]["OpCode"].ToString();
             }
-            else ////无工序在进行，或 有工序在进行且都是并发 则插入作业申请
+            else ////无工序在进行，或 有工序在进行且都是并发
             {
                 sql = "select IsParalle from BPMOpCode where OpCode = '" + arr[3]+"'";
 
                 int IsParallel = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
-                if (IsParallel == 0) return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
+                if (IsParallel == 0)
+                    return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
+                
+                foreach(DataRow dr in UserProcess.Rows)
+                {
+                    if(dr["JobNum"].ToString() == arr[0] && dr["AssemblySeq"].ToString() == arr[1] && dr["JobSeq"].ToString() == arr[2])
+                        return  "0|错误：不能重复发起同一工单、阶层、工序的作业申请";
+                }
+
                 sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', "+ IsParallel + ")";
             }
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
