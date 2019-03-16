@@ -430,28 +430,29 @@ namespace Appapi.Models
 
             string sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
             DataTable UserProcess = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
-            if (UserProcess != null &&  !Convert.ToBoolean(UserProcess.Rows[0]["IsParallel"])) //只有一道工序在进行且该工序非并发
+            if (UserProcess != null && !Convert.ToBoolean(UserProcess.Rows[0]["IsParallel"])) //只有一道工序在进行且该工序非并发
             {
-                    return "0|错误：该账号正在进行独立工序：" + UserProcess.Rows[0]["OpCode"].ToString();
+                return "0|错误：该账号正在进行独立工序：" + UserProcess.Rows[0]["OpCode"].ToString();
             }
             else ////无工序在进行，或 有工序在进行且都是并发
             {
-                sql = "select IsParallel from BPMOpCode where OpCode = '" + arr[3]+"'";
+                sql = "select IsParallel from BPMOpCode where OpCode = '" + arr[3] + "'";
 
                 int IsParallel = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
-                if (IsParallel == 0)
-                    return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
-
                 if (UserProcess != null)
                 {
+                    if (IsParallel == 0)
+                        return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
+
+
                     foreach (DataRow dr in UserProcess.Rows)
                     {
-                        if (dr["JobNum"].ToString() == arr[0] && dr["AssemblySeq"].ToString() == arr[1] && dr["JobSeq"].ToString() == arr[2])
+                        if (dr["JobNum"].ToString().ToUpper() == arr[0].ToUpper() && dr["AssemblySeq"].ToString() == arr[1] && dr["JobSeq"].ToString() == arr[2])
                             return "0|错误：不能重复发起同一工单、阶层、工序的作业申请";
                     }
                 }
 
-                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', "+ IsParallel + ")";
+                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ")";
             }
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             sql = sql.Replace("'", "");
@@ -461,7 +462,7 @@ namespace Appapi.Models
             sql = @"select top 1 * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' order by startdate desc";
             UserProcess = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //获取刚才插入的作业申请记录 以取得processid 和 并发标记
             string SumOfReportQty = GetSumOfReportQty(arr[0], int.Parse(arr[1]), int.Parse(arr[2])).ToString("N2");
-            
+
 
             arr[1] += "|" + (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, @" select PartNum from erp.JobAsmbl where JobNum = '" + arr[0] + "' and AssemblySeq = " + int.Parse(arr[1]) + "", null); //阶层号后追加物料编码
             return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + NextSetpInfo + "~" + OpDate + "~" + SumOfReportQty + "~" + UserProcess.Rows[0]["ID"] + "~" + Convert.ToInt32(UserProcess.Rows[0]["IsParallel"]);
@@ -509,7 +510,7 @@ namespace Appapi.Models
 
             if (PreOpSeq != null)
             {
-                decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
+                //decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
 
                 //if (OpSeqCompleteQty < ReportInfo.FirstQty + SumOfReportQty)
@@ -1566,12 +1567,12 @@ namespace Appapi.Models
             string partnum = "|" + (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
-            return "1|" + (string)UserProcess.Rows[0]["JobNum"] + "~" + UserProcess.Rows[0]["AssemblySeq"].ToString() + partnum 
+            return "1|" + (string)UserProcess.Rows[0]["JobNum"] + "~" + UserProcess.Rows[0]["AssemblySeq"].ToString() + partnum
                 + "~" + UserProcess.Rows[0]["JobSeq"].ToString() + "~" +
-                (string)UserProcess.Rows[0]["OpCode"] + "~" + (string)UserProcess.Rows[0]["OpDesc"] + "~" + NextSetpInfo 
+                (string)UserProcess.Rows[0]["OpCode"] + "~" + (string)UserProcess.Rows[0]["OpDesc"] + "~" + NextSetpInfo
                 + "~" + ((DateTime)UserProcess.Rows[0]["StartDate"]).ToString("yyyy-MM-dd HH:mm:ss.fff")
-                + "~" +(UserProcess.Rows[0]["Qty"].ToString() == "" ? "0" : UserProcess.Rows[0]["Qty"].ToString()) 
-                + "~" + GetSumOfReportQty(UserProcess.Rows[0]["JobNum"].ToString(), (int)UserProcess.Rows[0]["AssemblySeq"], (int)UserProcess.Rows[0]["JobSeq"]).ToString("N2") 
+                + "~" + (UserProcess.Rows[0]["Qty"].ToString() == "" ? "0" : UserProcess.Rows[0]["Qty"].ToString())
+                + "~" + GetSumOfReportQty(UserProcess.Rows[0]["JobNum"].ToString(), (int)UserProcess.Rows[0]["AssemblySeq"], (int)UserProcess.Rows[0]["JobSeq"]).ToString("N2")
                 + "~" + UserProcess.Rows[0]["ID"] + "~" + Convert.ToInt32(UserProcess.Rows[0]["IsParallel"]); ;
         }
 
@@ -1756,7 +1757,7 @@ namespace Appapi.Models
 
 
             dt = NPI_Handler(theSubReport.JobNum.ToUpper(), dt);
-            
+
 
             return dt == null || dt.Rows.Count == 0 ? null : dt;
         }
@@ -1772,7 +1773,7 @@ namespace Appapi.Models
             sql = "select * from userfile where disabled = 0 and CHARINDEX('" + dt.Rows[0]["Plant"].ToString() + "', plant) > 0 and CHARINDEX(userid, '" + TransformUsers + "') > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
             dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
 
-      
+
             dt = NPI_Handler(jobnum.ToUpper(), dt);
 
             return dt == null || dt.Rows.Count == 0 ? null : dt;
@@ -1933,7 +1934,7 @@ namespace Appapi.Models
 
         public static IEnumerable<OpReport> GetRecordsForPrint(string JobNum, int? AssemblySeq, int? JobSeq)
         {
-            string sql = @"select * from BPM where isdelete != 1 and printid is not null and JobNum = '" + JobNum + "' and iscomplete = 0 ";
+            string sql = @"select * from BPM where isdelete != 1 and printid is not null and JobNum = '" + JobNum + "' and (iscomplete = 0 or DMRQualifiedQty > 0)";
 
             if (AssemblySeq != null)
                 sql += "and AssemblySeq = " + AssemblySeq + " ";
