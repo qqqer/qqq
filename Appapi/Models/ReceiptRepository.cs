@@ -35,10 +35,10 @@ namespace Appapi.Models
                              "'jobnum':'{9}'," +
                              "'assemblyseq':'{10}'," +
                              "'jobseq':'{11}'," +
-                            // "'commenttext':'{12}'," +
-                             "'ordertype':'{12}', " +
-                             "'HeatNum':'{13}'";
-            rcvdtlStr = string.Format(rcvdtlStr,array[0],array[1],array[2],array[3], array[4],array[5],array[6],array[7],array[8],array[9],array[10],array[11],array[12],array[13]);
+                             "'commenttext':'{12}'," +
+                             "'ordertype':'{13}', " +
+                             "'HeatNum':'{14}'";
+            rcvdtlStr = string.Format(rcvdtlStr,array[0],array[1],array[2],array[3], array[4],array[5],array[6],array[7],array[8],array[9],array[10],array[11],array[12],array[13], array[14]);
             rcvdtlStr = "{" + rcvdtlStr + "}";
 
             return rcvdtlStr;
@@ -1186,7 +1186,7 @@ namespace Appapi.Models
                                 CommonRepository.GetValueAsString(theBatch.JobNum),
                                 CommonRepository.GetValueAsString(theBatch.AssemblySeq),
                                 CommonRepository.GetValueAsString(theBatch.JobSeq),
-                                //CommonRepository.GetValueAsString(theBatch.CommentText),
+                                CommonRepository.GetValueAsString(theBatch.CommentText.Replace('\'','"')),
                                 CommonRepository.GetValueAsString(theBatch.TranType),
                                 CommonRepository.GetValueAsString(theBatch.HeatNum)});
                         rcvdtlStr = "[" + rcvdtlStr + "]";
@@ -1268,7 +1268,7 @@ namespace Appapi.Models
                                 CommonRepository.GetValueAsString(theBatch.JobNum),
                                 CommonRepository.GetValueAsString(theBatch.AssemblySeq),
                                 CommonRepository.GetValueAsString(dt.Rows[i]["jobseq"]),
-                                //CommonRepository.GetValueAsString(theBatch.CommentText),
+                                CommonRepository.GetValueAsString(theBatch.CommentText.Replace('\'','"')),
                                 CommonRepository.GetValueAsString(theBatch.TranType),
                                 CommonRepository.GetValueAsString(theBatch.HeatNum)}) + (i == dt.Rows.Count - 1 ? "]" : ",");
                             }

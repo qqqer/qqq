@@ -17,7 +17,7 @@ namespace Appapi.Controllers
         /// 开始作业申请
         /// </summary>
         /// <param name="values">工单号~阶层号~工序序号~工序代码</param>
-        /// <returns>工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量</returns>
+        /// <returns>工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量~ProcessID~IsParallel</returns>
         //Get:  /api/OpReport/StartByQR
         [System.Web.Http.HttpGet]
         public string Start(string values) // ApiNum 101
@@ -132,19 +132,19 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-         /// 获取属于该请求用户的正在进行的作业信息
-         /// </summary>
-         /// <param name="processID">大于0获取APP.process表中指定记录，小于等0返回当前用户的正在进行的某一项工序信息</param>
-         /// <returns>返回属于该请求用户的正在进行的作业信息：工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量~ProcessID~IsParallel
-         /// 若无正在进行的作业 则返回null</returns>
-         //Get:  /api/OpReport/GetProcessOfUser     
-         [System.Web.Http.HttpGet]
-        public string GetProcessOfUser(int processID) // ApiNum 1      null:未进行工序    0|：错误   1|：解析
+        /// 获取属于该请求用户的正在进行的作业信息
+        /// </summary>
+        /// <param name="ProcessId">大于0获取APP.process表中指定记录，小于等0返回当前用户的正在进行的某一项工序信息</param>
+        /// <returns>返回属于该请求用户的正在进行的作业信息：工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~Qty~累计已报数量~ProcessID~IsParallel
+        /// 若无正在进行的作业 则返回null</returns>
+        //Get:  /api/OpReport/GetProcessOfUser     
+        [System.Web.Http.HttpGet]
+        public string GetProcessOfUser(int ProcessId) // ApiNum 1      null:未进行工序    0|：错误   1|：解析
         {
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
-            string res = OpReportRepository.GetProcessOfUser(processID);
+            string res = OpReportRepository.GetProcessOfUser(ProcessId);
 
             return res == null || res.Substring(0, 1).Trim() == "1"  ? res : res + "|1";
         }
@@ -223,7 +223,7 @@ namespace Appapi.Controllers
         /// 主流程 二选三，三选四  重载版本
         /// </summary>
         /// <param name="OpCode"></param>
-        /// <param name="ID"></param>
+        /// <param name="ID">有效bpmid</param>
         /// <param name="pa">可选参数</param>
         /// <returns>返回下步可选办理人</returns>
         [HttpGet]
@@ -239,7 +239,7 @@ namespace Appapi.Controllers
         /// 主流程 一选二 需要工单号 重载版本
         /// </summary>
         /// <param name="OpCode"></param>
-        /// <param name="ID"></param>
+        /// <param name="ID">无效bpmid</param>
         /// <param name="JobNum">传工单号</param>
         /// <returns></returns>
         [HttpGet]

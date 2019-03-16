@@ -69,7 +69,7 @@ namespace Appapi.Models
         public int? MtlSeq { get; set; }
         public string LotNum { get; set; }
         public string Responsibility { get; set; }
-        public int? ProcessID { get; set; }
+        public int? ProcessId { get; set; }
 
 
         public int? ID { get; set; }
