@@ -28,7 +28,7 @@ namespace Appapi.Controllers
 
             string res = OpReportRepository.Start(values);
 
-            return res.Substring(0, 1).Trim() == "1" ? res : "101|" + res;
+            return res;
         }
 
 

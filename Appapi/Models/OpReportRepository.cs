@@ -436,16 +436,19 @@ namespace Appapi.Models
             }
             else ////无工序在进行，或 有工序在进行且都是并发
             {
-                sql = "select IsParalle from BPMOpCode where OpCode = '" + arr[3]+"'";
+                sql = "select IsParallel from BPMOpCode where OpCode = '" + arr[3]+"'";
 
                 int IsParallel = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
                 if (IsParallel == 0)
                     return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
-                
-                foreach(DataRow dr in UserProcess.Rows)
+
+                if (UserProcess != null)
                 {
-                    if(dr["JobNum"].ToString() == arr[0] && dr["AssemblySeq"].ToString() == arr[1] && dr["JobSeq"].ToString() == arr[2])
-                        return  "0|错误：不能重复发起同一工单、阶层、工序的作业申请";
+                    foreach (DataRow dr in UserProcess.Rows)
+                    {
+                        if (dr["JobNum"].ToString() == arr[0] && dr["AssemblySeq"].ToString() == arr[1] && dr["JobSeq"].ToString() == arr[2])
+                            return "0|错误：不能重复发起同一工单、阶层、工序的作业申请";
+                    }
                 }
 
                 sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', "+ IsParallel + ")";
@@ -501,7 +504,7 @@ namespace Appapi.Models
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
 
                 if (ReqQtyOfAssemblySeq < ReportInfo.FirstQty + SumOfReportQty)
-                    return "错误：累计已转数超出该阶层的可生产数。该工序的累计已转数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，该阶层的可生产数为：" + ReqQtyOfAssemblySeq.ToString("N2");
+                    return "错误：累计已转数将超出该阶层的可生产数。该工序的累计已转数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，该阶层的可生产数为：" + ReqQtyOfAssemblySeq.ToString("N2");
             }
 
             if (PreOpSeq != null)
@@ -509,13 +512,13 @@ namespace Appapi.Models
                 decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
                 decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq);
 
-                if (OpSeqCompleteQty < ReportInfo.FirstQty + SumOfReportQty)
-                    return "错误：累计已转数超出上道工序的已报工数。该工序的累计已转数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，上道工序的已报工数：" + OpSeqCompleteQty.ToString("N2");
+                //if (OpSeqCompleteQty < ReportInfo.FirstQty + SumOfReportQty)
+                //    return "错误：累计已转数超出上道工序的已报工数。该工序的累计已转数：" + SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty + ")，上道工序的已报工数：" + OpSeqCompleteQty.ToString("N2");
 
 
                 decimal SumOfAcceptedQtyFromPreOprSeq = GetSumOfAcceptQtyFromPreOprSeq(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)PreOpSeq);
                 if (SumOfAcceptedQtyFromPreOprSeq < SumOfReportQty + ReportInfo.FirstQty)
-                    return "错误：累计已转数超出累计接收数。该工序的累计已转数：" + (SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty) + ")，该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq.ToString("N2");
+                    return "错误：累计已转数将超出累计接收数。该工序的累计已转数：" + (SumOfReportQty.ToString("N2") + "(+" + ReportInfo.FirstQty) + ")，该工序的累计接收数：" + SumOfAcceptedQtyFromPreOprSeq.ToString("N2");
             }
 
             string NextSetpInfo = GetNextSetpInfo(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, dt.Rows[0]["Company"].ToString());
