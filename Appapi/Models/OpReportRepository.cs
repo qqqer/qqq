@@ -693,7 +693,7 @@ namespace Appapi.Models
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             sql = sql.Replace("'", "");
-            AddOpLog(null, ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 102, OpDate, sql);
+            AddOpLog(null, ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.JobSeq, 102, OpDate, "报工提交成功，自动清除process");
 
             return "处理成功";
         }
@@ -724,7 +724,7 @@ namespace Appapi.Models
                     return "错误：该批次的流程已结束";
 
                 if (theReport.Status != 2)
-                    return "错误：流程未在当前节点上";
+                    return "错误：流程未在当前节点上，在 " + theReport.Status + "节点";
 
                 if (CheckInfo.QualifiedQty != 0 && CheckInfo.TransformUserGroup == "")
                     return "错误：下步接收人不能为空";
@@ -975,7 +975,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已删除";
 
             if (theSubReport.Status != 3)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
             if (!(theSubReport.DMRUnQualifiedQty != null) && TransmitInfo.NextUserGroup == "")
                 return "错误：下步接收人不能为空";
@@ -1121,7 +1121,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已结束";
 
             if (theReport.Status != 3)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theReport.Status + "节点";
 
             if (TransmitInfo.NextUserGroup == "")
                 return "错误：下步接收人不能为空";
@@ -1212,7 +1212,7 @@ namespace Appapi.Models
                     return "错误：该批次的流程已删除";
 
                 if (theSubReport.Status != 4)
-                    return "错误：流程未在当前节点上";
+                    return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
 
                 if ((theSubReport.DMRQualifiedQty) != null)
@@ -1349,7 +1349,7 @@ namespace Appapi.Models
                     return "错误：该批次的流程已结束";
 
                 if (theReport.Status != 4)
-                    return "错误：流程未在当前节点上";
+                    return "错误：流程未在当前节点上，在 " + theReport.Status + "节点";
 
                 string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
                 if (res != "正常")
@@ -1910,7 +1910,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已结束";
 
             if ((int)(theReport.Status) != oristatus)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theReport.Status + "节点";
 
             if (oristatus == 4)
             {

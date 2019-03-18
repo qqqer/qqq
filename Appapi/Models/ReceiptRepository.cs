@@ -55,7 +55,7 @@ namespace Appapi.Models
 
         private static DataTable GetAllOpSeqOfSeriesSUB(Receipt theBatch) //取出该订单中的连续委外工序（包括当前处理的批次工序）的工序号、poline、porelnum、工序描述、工序代码
         {
-            string sql = @"  Select jobseq, poline,porelnum ,OpDesc,OpCode, pr.company,pr.ponum from erp.porel pr 
+            string sql = @"  Select jobseq,PartNum, Description, poline,porelnum ,OpDesc,OpCode, pr.company,pr.ponum from erp.porel pr 
                           left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
                           where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}' order by jobseq  asc";
             sql = string.Format(sql, theBatch.PoNum, theBatch.JobNum, theBatch.AssemblySeq, theBatch.Company);
@@ -553,6 +553,8 @@ namespace Appapi.Models
                     if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
                         return "错误： 收货数超出该阶层的可生产数量";
 
+                    if (temp.Rows[0]["PartNum"].ToString() != RB.PartNum || temp.Rows[0]["Description"].ToString() != RB.PartDesc)
+                        return "错误：物料信息与工单不一致";
                     //if (CommonRepository.IsOpSeqComplete(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq))
                     //    return "错误：该工序已收满";
 
@@ -765,6 +767,9 @@ namespace Appapi.Models
                 object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql2, null);
                 int id = Convert.IsDBNull(o) || o == null ? 0 : (int)o;
 
+                if (temp.Rows[0]["PartNum"].ToString() != RB.PartNum || temp.Rows[0]["Description"].ToString() != RB.PartDesc)
+                    return "错误：物料信息与工单不一致";
+
                 if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, id))
                     return "错误： 收货数超出该阶层的可生产数量";
                 //if (CommonRepository.IsOpSeqComplete(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq))
@@ -887,7 +892,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已结束";
 
             else if ((int)theBatch.Rows[0]["status"] != 1)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theBatch.Rows[0]["status"].ToString() + "节点";
 
             else //status == 1  表明在第二届点被退回， 更新批次信息。
             {
@@ -965,7 +970,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已结束";
 
             else if (theBatch.Status != 2)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theBatch.Status.ToString() + "节点";
 
             else //status == 2  更新批次信息。
             {
@@ -1090,7 +1095,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已结束";
 
             else if (theBatch.Status != 3)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theBatch.Status + "节点";
 
             else //status == 3  选人。
             {
@@ -1159,7 +1164,7 @@ namespace Appapi.Models
                     return "错误：该批次的流程已结束";
 
                 else if (theBatch.Status != 4)
-                    return "错误：流程未在当前节点上";
+                    return "错误：流程未在当前节点上，在 " + theBatch.Status + "节点";
 
                 else
                 {
@@ -1556,7 +1561,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已结束";
 
             else if ((int)(theBatch.Rows[0]["status"]) != oristatus)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theBatch.Rows[0]["status"].ToString() + "节点";
 
 
             if (oristatus == 4)
@@ -1829,7 +1834,7 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string sql = @"update Receipt set IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, isComplete = 1, IQCRemark = '" + IQCInfo.IQCRemark + "' where ID = {4}";
+            string sql = @"update Receipt set SecondUserID = '"+ HttpContext.Current.Session["UserId"].ToString() + "', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, isComplete = 1, IQCRemark = '" + IQCInfo.IQCRemark + "' where ID = {4}";
             sql = string.Format(sql, Convert.ToInt32(IQCInfo.IsAllCheck), (IQCInfo.InspectionQty) == -1 ? "null" : IQCInfo.InspectionQty.ToString(), IQCInfo.PassedQty, IQCInfo.FailedQty, IQCInfo.ID);
 
 

@@ -281,6 +281,15 @@ namespace Appapi.Models
         }
 
 
+        private static decimal GetSumOfReportQty(string JobNum, int AssemblySeq, int MtlSeq,  string PartNum)
+        {
+            string sql = " select sum(UnQualifiedQty) from  MtlReport where JobNum='" + JobNum + "' and MtlSeq = " + MtlSeq + " and PartNum = '" + PartNum + "' and AssemblySeq = " + AssemblySeq + "";
+
+            object SumOfReportQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            return Convert.ToDecimal(SumOfReportQty);
+        }
+
+
 
         public static string ReportCommit(OpReport ReportInfo)
         {
@@ -300,8 +309,10 @@ namespace Appapi.Models
                 return "错误：化学品暂不能上报";
 
 
-            if (GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq) < ReportInfo.UnQualifiedQty)
-                return "错误：上报数量大于物料的已发料数量，或该物料未发料";
+            decimal MtlIssuedQty = GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq);
+            decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq, ReportInfo.PartNum);
+            if (MtlIssuedQty - SumOfReportQty < ReportInfo.UnQualifiedQty)
+                return "错误：累计上报数量："+ SumOfReportQty.ToString("N2") + "(+" + ((decimal)ReportInfo.UnQualifiedQty).ToString("N2") + ")，大于物料的已发料数量：" + MtlIssuedQty.ToString("N2") +"，或该物料未发料";
 
 
             string sql = @"select jh.Company, Plant from erp.JobHead jh  where jh.JobNum = '" + ReportInfo.JobNum + "' ";
@@ -543,7 +554,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已删除";
 
             if (theSubReport.Status != 3)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
 
             //以下只会执行一个if
@@ -618,7 +629,7 @@ namespace Appapi.Models
                 return "错误：该批次的流程已删除";
 
             if (theSubReport.Status != 4)
-                return "错误：流程未在当前节点上";
+                return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
 
 
