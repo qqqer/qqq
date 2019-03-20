@@ -1099,9 +1099,9 @@ namespace Appapi.Models
                 AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 302, OpDate, "返修提交|" + sql);
             }
 
-
             return "处理成功";
         }
+
 
 
         private static string TransferCommitOfMain(OpReport TransmitInfo)//apinum 301

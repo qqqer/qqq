@@ -1146,7 +1146,7 @@ namespace Appapi.Models
                     return GetErrorInfo(theBatch);
 
                 else if (theBatch.PartNum != RB.PartNum || (!theBatch.PartDesc.Contains("?") && theBatch.PartDesc != RB.PartDesc))
-                    return "错误：物料信息已被更改，请联系采购部";
+                    return "错误：物料信息已被更改";
 
                 else if (theBatch.AtRole == 8 && (res = CheckBinNum(AcceptInfo)) != "ok") //去向仓库，则需检查库位
                     return res;
