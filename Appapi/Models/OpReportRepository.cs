@@ -906,8 +906,23 @@ namespace Appapi.Models
                 return "错误：库位与仓库不匹配";
 
 
-
             string res;
+
+
+            if (theReport.DMRID is DBNull || theReport.DMRID == null)//处理旧版本遗留数据，以后可删除
+            {
+                int DMRID = -1;
+
+                res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, out DMRID); //产品其它不良 D22  D
+                if (res.Substring(0, 1).Trim() != "1")
+                    return "错误：" + res;
+                sql = " update bpm set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                theReport.DMRID = DMRID;
+            }
+
+
             if (DMRInfo.DMRQualifiedQty > 0)
             {
                 res = ErpAPI.CommonRepository.ConcessionDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, (decimal)DMRInfo.DMRQualifiedQty, theReport.JobNum, "报工");
