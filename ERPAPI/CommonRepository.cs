@@ -529,6 +529,7 @@ namespace ErpAPI
             }
 
             EpicorSession.PlantID = plant;
+            FailedWarehouseCode = plant == "MfgSys" ? FailedWarehouseCode : "RR" + FailedWarehouseCode;
 
             try
             {
