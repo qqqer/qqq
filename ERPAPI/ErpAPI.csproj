@@ -95,11 +95,17 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Common.cs" />
-    <Compile Include="MtlIssue.cs" />
-    <Compile Include="OpReport.cs" />
-    <Compile Include="Receipt.cs" />
+    <Compile Include="CommonRepository.cs" />
+    <Compile Include="MtlIssueRepository.cs" />
+    <Compile Include="OpReportRepository.cs" />
+    <Compile Include="ReceiptRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{4f6d6bb3-d978-4871-9d43-0763abbe3e34}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

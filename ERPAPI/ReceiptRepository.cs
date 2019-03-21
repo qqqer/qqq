@@ -18,7 +18,7 @@ using System.Web;
 
 namespace ErpAPI
 {
-    public static class Receipt
+    public static class ReceiptRepository
     {
 
         public static string poDes(int ponum, int poline, int porel, string companyId)
@@ -31,10 +31,10 @@ namespace ErpAPI
                 whereItems.Add(new QueryWhereItemRow() { TableID = "porel", FieldName = "porelnum", RValue = porel.ToString() });
                 string sql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[RcvPerson_c] as [ReqDetail_RcvPerson_c] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum ";
                 sql = sql + " left outer join Erp.Warehse as Warehse on PartPlant.Company = Warehse.Company and PartPlant.PrimWhse = Warehse.WarehouseCode left outer join ReqDetail as ReqDetail on PODetail.Company = ReqDetail.Company and PODetail.PONUM = ReqDetail.PONUM and PODetail.POLine = ReqDetail.POLine left outer join Erp.ReqHead as ReqHead on ReqDetail.Company = ReqHead.Company and ReqDetail.ReqNum = ReqHead.ReqNum left outer join Erp.UserFile as UserFile on ReqHead.RequestorID = UserFile.DcdUserID left outer join Erp.JobMtl as JobMtl on PORel.Company = JobMtl.Company and PORel.JobNum = JobMtl.JobNum and PORel.AssemblySeq = JobMtl.AssemblySeq and PORel.JobSeq = JobMtl.MtlSeq left outer join Erp.JobOper as JobOper on JobMtl.Company = JobOper.Company and JobMtl.JobNum = JobOper.JobNum and JobMtl.AssemblySeq = JobOper.AssemblySeq and JobMtl.RelatedOperation = JobOper.OprSeq left outer join Erp.OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOper.OpCode = OpMaster.OpCode where (PORel.Company = '" + companyId + "'  and PORel.PONum = '" + ponum + "'  and PORel.POLine ='" + poline + "'  and PORel.PORelNum ='" + porel + "')";
-                DataTable dt = Common.GetDataByERP(sql);
+                DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
 
-                for (int i = 0; i < dt.Columns.Count; i++)
+                for (int i = 0; dt != null && i < dt.Columns.Count; i++)
                 {
                     dt.Columns[i].ColumnName = dt.Columns[i].ColumnName.Replace('_', '.');
                 }
@@ -42,7 +42,7 @@ namespace ErpAPI
                 string jobnum = "", jobseqType = "", tranType = "";
                 bool nonStock = false;
                 int reqnum = 0, asmSeq = 0, oprSeq = 0, vendornum = 0;
-                if (dt.Rows.Count > 0)
+                if (dt != null && dt.Rows.Count > 0)
                 {
                     jobnum = dt.Rows[0]["PORel.JobNum"].ToString().Trim();
                     jobseqType = dt.Rows[0]["PORel.JobSeqType"].ToString().Trim().ToLower();
@@ -78,23 +78,23 @@ namespace ErpAPI
 
                         string ss = "",code,c;
                         int nextAsm = 0, nextOprSeq = 0;
-                        ss = Common.getJobNextOprTypes(jobnum, asmSeq, oprSeq, out nextAsm, out nextOprSeq, out code, out c,companyId);
+                        ss = CommonRepository.getJobNextOprTypes(jobnum, asmSeq, oprSeq, out nextAsm, out nextOprSeq, out code, out c,companyId);
                         if (ss.Substring(0, 1).Trim().ToLower() == "s")
                         {
                             DataTable dt2;
 
                             sql = @"select PONum, POLine, PORelNum from erp.PORel pr INNER JOIN  Erp.JobOper jo  on  pr.JobNum = jo.JobNum and pr.AssemblySeq  = jo.AssemblySeq and pr.JobSeq = jo.OprSeq
 	                                where pr.JobNum='"+ jobnum + "' and pr.AssemblySeq = " + nextAsm + " and pr.JobSeq = " + nextOprSeq +"";
-                            dt2 = Common.GetDataByERP(sql);
+                            dt2 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
                             string relsql = "select [PORel].[PONum] as [PORel_PONum],[PORel].[POLine] as [PORel_POLine],[PORel].[PORelNum] as [PORel_PORelNum],[PODetail].[PartNum] as [PODetail_PartNum],[Part].[NonStock] as [Part_NonStock],[PORel].[JobNum] as [PORel_JobNum],[PORel].[AssemblySeq] as [PORel_AssemblySeq],[PORel].[JobSeqType] as [PORel_JobSeqType],[PORel].[JobSeq] as [PORel_JobSeq],[ReqDetail].[ReqNum] as [ReqDetail_ReqNum],[ReqDetail].[ReqLine] as [ReqDetail_ReqLine],[ReqHead].[RequestorID] as [ReqHead_RequestorID],[UserFile].[Name] as [UserFile_Name],[PartPlant].[PrimWhse] as [PartPlant_PrimWhse],[Warehse].[Description] as [Warehse_Description],[JobOper].[OprSeq] as [JobOper_OprSeq],[OpMaster].[OpDesc] as [OpMaster_OpDesc],[PORel].[TranType] as [PORel_TranType],[PODetail].[VendorNum] as [PODetail_VendorNum],[ReqDetail].[RcvPerson_c] as [ReqDetail_RcvPerson_c] from Erp.PORel as PORel inner join Erp.PODetail as PODetail on PORel.Company = PODetail.Company and PORel.PONUM = PODetail.PONum and PORel.POLine = PODetail.POLine left outer join Erp.Part as Part on PODetail.Company = Part.Company and PODetail.PartNum = Part.PartNum left outer join Erp.PartPlant as PartPlant on Part.Company = PartPlant.Company and Part.PartNum = PartPlant.PartNum left outer join Erp.Warehse as Warehse on PartPlant.Company = Warehse.Company and PartPlant.PrimWhse = Warehse.WarehouseCode left outer join ReqDetail as ReqDetail on PODetail.Company = ReqDetail.Company and PODetail.PONUM = ReqDetail.PONUM and PODetail.POLine = ReqDetail.POLine left outer join Erp.ReqHead as ReqHead on ReqDetail.Company = ReqHead.Company and ReqDetail.ReqNum = ReqHead.ReqNum left outer join Erp.UserFile as UserFile on ReqHead.RequestorID = UserFile.DcdUserID left outer join Erp.JobMtl as JobMtl on PORel.Company = JobMtl.Company and PORel.JobNum = JobMtl.JobNum and PORel.AssemblySeq = JobMtl.AssemblySeq and PORel.JobSeq = JobMtl.MtlSeq left outer join Erp.JobOper as JobOper on JobMtl.Company = JobOper.Company and JobMtl.JobNum = JobOper.JobNum and JobMtl.AssemblySeq = JobOper.AssemblySeq and JobMtl.RelatedOperation = JobOper.OprSeq left outer join Erp.OpMaster as OpMaster on JobOper.Company = OpMaster.Company and JobOper.OpCode = OpMaster.OpCode where (PORel.Company = '" + companyId + "'  and PORel.PONum = "+ dt2.Rows[0]["PONum"].ToString() + "  and PORel.POLine ="+ dt2.Rows[0]["POLine"].ToString() + "  and PORel.PORelNum ="+ dt2.Rows[0]["PORelNum"].ToString() + ")";
-                            dt2 = Common.GetDataByERP(relsql);
-                            for (int i = 0; i < dt2.Columns.Count; i++)
+                            dt2 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, relsql);
+                            for (int i = 0; dt2 != null && i < dt2.Columns.Count; i++)
                             {
                                 dt2.Columns[i].ColumnName = dt2.Columns[i].ColumnName.Replace('_', '.');
                             }
 
-                            if (dt2.Rows.Count > 0)
+                            if (dt2 != null && dt2.Rows.Count > 0)
                             {
                                 int ven = 0;
                                 string nponum = "", npoline = "", nporel = "";
@@ -156,13 +156,18 @@ namespace ErpAPI
             #endregion
 
 
-            Session EpicorSession =  Common.GetEpicorSession();
+            Session EpicorSession =  CommonRepository.GetEpicorSession();
             if (EpicorSession == null)
             {
                 return "0|erp用户数不够，请稍候再试.ERR:porcv";
             }
             EpicorSession.CompanyID = companyId;
-            string plantid = Common.QueryERP("select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'");
+
+
+            string sql = "select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'";
+            object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            string plantid = o == null ? "" : o.ToString();
+
             EpicorSession.PlantID = plantid;
 
             POImpl poAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<POImpl>(EpicorSession, ImplBase<Erp.Contracts.POSvcContract>.UriPath);
@@ -185,7 +190,7 @@ namespace ErpAPI
                     {
                         if (wh2 == "")
                         {
-                            pb2 = Common.GetPartWB(dtRcvDtl.Rows[j]["partnum"].ToString().Trim(), companyId, plantid);
+                            pb2 = CommonRepository.GetPartWB(dtRcvDtl.Rows[j]["partnum"].ToString().Trim(), companyId, plantid);
                             wh2 = pb2[0].Trim();
                         }
                         if (bin2 == "")
@@ -213,7 +218,13 @@ namespace ErpAPI
                 ds.Tables["RcvHead"].Rows[0]["ReceiptDate"] = recdate;//dtRcv.Rows[0]["recdate"].ToString();
                 u = 8;
                 ds.Tables["RcvHead"].Rows[0]["PONum"] = poNum;
-                ds.Tables["RcvHead"].Rows[0]["Plant"] = Common.QueryERP("select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'");
+
+
+                sql = "select Plant from erp.POrel where PONum='" + poNum + "' and POLine='" + poLine + "'";
+                o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                ds.Tables["RcvHead"].Rows[0]["Plant"] = o == null ? "" : o.ToString();
+
+
                 u = 9;
                 recAD.Update(ds);
                 u = 10;
@@ -270,7 +281,7 @@ namespace ErpAPI
                     if (ordertype.ToLower() != "pur-ukn")
                     {
 
-                        pb = Common.GetPartWB(dtRcvDtl.Rows[i]["partnum"].ToString(), companyId, plantid);
+                        pb = CommonRepository.GetPartWB(dtRcvDtl.Rows[i]["partnum"].ToString(), companyId, plantid);
                         // pb[1] = logic2.GetPartWB(dtRcvDtl.Rows[i]["warehousecode"].ToString().Trim())[1];
                         if (whcode == "") //取物料主要仓库
                         { whcode = pb[0].Trim(); }
@@ -279,7 +290,7 @@ namespace ErpAPI
                         //  据库位条码信息校验仓库并取库位
                         if (jobnum == "")
                         {
-                            chkbinInfo = Common.checkbin(dtRcvDtl.Rows[i]["binnum"].ToString().Trim(), whcode, companyId);
+                            chkbinInfo = CommonRepository.checkbin(dtRcvDtl.Rows[i]["binnum"].ToString().Trim(), whcode, companyId);
                             if (chkbinInfo.Substring(0, 1) == "1")
                             { bin2 = chkbinInfo.Substring(2); }
                             else
@@ -300,7 +311,12 @@ namespace ErpAPI
                             {
                                 lotStr = jobnum;
                             }
-                            string lotnum = Common.QueryERP("select pl.LotNum from erp.partlot pl left join erp.PODetail pd on pl.Company=pd.Company and pl.PartNum=pd.PartNum where pl.Company='" + companyId + "' and pd.PONUM=" + poNum + " and pd.POLine=" + poline + " and pl.LotNum='" + lotStr + "'");
+
+                            sql = "select pl.LotNum from erp.partlot pl left join erp.PODetail pd on pl.Company=pd.Company and pl.PartNum=pd.PartNum where pl.Company='" + companyId + "' and pd.PONUM=" + poNum + " and pd.POLine=" + poline + " and pl.LotNum='" + lotStr + "'";
+                            o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                            string lotnum = o == null ? "" : o.ToString();
+
+
                             if (!string.IsNullOrEmpty(lotnum))
                             {
                                 ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["LotNum"] = lotStr;
@@ -309,7 +325,10 @@ namespace ErpAPI
                             {
                                 if (dtRcvDtl.Columns.Contains("HeatNum") && !string.IsNullOrEmpty(dtRcvDtl.Rows[i]["HeatNum"].ToString()))
                                 {
-                                    string partnum = Common.QueryERP("select PartNum from erp.PODetail where Company='" + companyId + "' and PONUM=" + poNum + " and POLine=" + poline);
+                                    sql = "select PartNum from erp.PODetail where Company='" + companyId + "' and PONUM=" + poNum + " and POLine=" + poline;
+                                    o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                                    string partnum = o == null ? "" : o.ToString();
+
                                     lotadapter.GetNewPartLot(lotds, partnum);
                                     lotds.Tables["PartLot"].Rows[i]["LotNum"] = lotStr;
                                     lotds.Tables["PartLot"].Rows[i]["HeatNum"] = dtRcvDtl.Rows[i]["HeatNum"].ToString();
@@ -368,7 +387,7 @@ namespace ErpAPI
             {
                 if (EpicorSession == null || !EpicorSession.IsValidSession(EpicorSession.SessionID, "manager"))
                 {
-                    EpicorSession = Common.GetEpicorSession();
+                    EpicorSession = CommonRepository.GetEpicorSession();
                 }
                 EpicorSession.CompanyID = companyId;
                 recAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<ReceiptImpl>(EpicorSession, ImplBase<Erp.Contracts.ReceiptSvcContract>.UriPath);
@@ -464,8 +483,8 @@ namespace ErpAPI
                     binnum = tranDT.Rows[i]["fromBinNum"].ToString().Trim();
                     lotnum = tranDT.Rows[i]["lotnum"].ToString().Trim();
                     
-                    DataTable dt = Common.GetDataByERP("select [PartBin].[OnhandQty] as [PartBin_OnhandQty] from Erp.PartBin as PartBin where (PartBin.Company = '" + company + "'  and PartBin.PartNum = '" + partnum + "'  and PartBin.WarehouseCode = '" + wcode + "'  and PartBin.BinNum = '" + binnum + "'  and PartBin.LotNum = '" + lotnum + "')");
-                    if (dt.Rows.Count <= 0)
+                    DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, "select [PartBin].[OnhandQty] as [PartBin_OnhandQty] from Erp.PartBin as PartBin where (PartBin.Company = '" + company + "'  and PartBin.PartNum = '" + partnum + "'  and PartBin.WarehouseCode = '" + wcode + "'  and PartBin.BinNum = '" + binnum + "'  and PartBin.LotNum = '" + lotnum + "')");
+                    if (dt == null || dt.Rows.Count <= 0)
                     {
 
                         return ("0|第" + (i + 1).ToString() + "行源库位无库存,请输入有效数据后再执行转仓");
@@ -482,7 +501,7 @@ namespace ErpAPI
                 }
 
 
-                Session EpicorSession = Common.GetEpicorSession();
+                Session EpicorSession = CommonRepository.GetEpicorSession();
 
                 if (EpicorSession == null)
                 {

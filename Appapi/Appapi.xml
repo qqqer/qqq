@@ -1,0 +1,1039 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Appapi</name>
+    </assembly>
+    <members>
+        <member name="M:Appapi.Areas.HelpPage.ApiDescriptionExtensions.GetFriendlyId(System.Web.Http.Description.ApiDescription)">
+            <summary>
+            Generates an URI-friendly ID for the <see cref="T:System.Web.Http.Description.ApiDescription"/>. E.g. "Get-Values-id_name" instead of "GetValues/{id}?name={name}"
+            </summary>
+            <param name="description">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <returns>The ID as a string.</returns>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.HelpPageConfig">
+            <summary>
+            Use this class to customize the Help Page.
+            For example you can set a custom <see cref="T:System.Web.Http.Description.IDocumentationProvider"/> to supply the documentation
+            or you can provide the samples for the requests/responses.
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.Controllers.HelpController">
+            <summary>
+            The controller that will handle requests for the help page.
+            </summary>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetDocumentationProvider(System.Web.Http.HttpConfiguration,System.Web.Http.Description.IDocumentationProvider)">
+            <summary>
+            Sets the documentation provider for help page.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="documentationProvider">The documentation provider.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleObjects(System.Web.Http.HttpConfiguration,System.Collections.Generic.IDictionary{System.Type,System.Object})">
+            <summary>
+            Sets the objects that will be used by the formatters to produce sample requests/responses.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sampleObjects">The sample objects.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleRequest(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.String,System.String)">
+            <summary>
+            Sets the sample request directly for the specified media type and action.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample request.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleRequest(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.String,System.String,System.String[])">
+            <summary>
+            Sets the sample request directly for the specified media type and action with parameters.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample request.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleResponse(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.String,System.String)">
+            <summary>
+            Sets the sample request directly for the specified media type of the action.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample response.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleResponse(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.String,System.String,System.String[])">
+            <summary>
+            Sets the sample response directly for the specified media type of the action with specific parameters.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample response.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleForMediaType(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Sets the sample directly for all actions with the specified media type.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample.</param>
+            <param name="mediaType">The media type.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetSampleForType(System.Web.Http.HttpConfiguration,System.Object,System.Net.Http.Headers.MediaTypeHeaderValue,System.Type)">
+            <summary>
+            Sets the sample directly for all actions with the specified type and media type.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sample">The sample.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="type">The parameter type or return type of an action.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetActualRequestType(System.Web.Http.HttpConfiguration,System.Type,System.String,System.String)">
+            <summary>
+            Specifies the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> passed to the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            The help page will use this information to produce more accurate request samples.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="type">The type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetActualRequestType(System.Web.Http.HttpConfiguration,System.Type,System.String,System.String,System.String[])">
+            <summary>
+            Specifies the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> passed to the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            The help page will use this information to produce more accurate request samples.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="type">The type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetActualResponseType(System.Web.Http.HttpConfiguration,System.Type,System.String,System.String)">
+            <summary>
+            Specifies the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> returned as part of the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            The help page will use this information to produce more accurate response samples.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="type">The type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetActualResponseType(System.Web.Http.HttpConfiguration,System.Type,System.String,System.String,System.String[])">
+            <summary>
+            Specifies the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> returned as part of the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            The help page will use this information to produce more accurate response samples.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="type">The type.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.GetHelpPageSampleGenerator(System.Web.Http.HttpConfiguration)">
+            <summary>
+            Gets the help page sample generator.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <returns>The help page sample generator.</returns>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.SetHelpPageSampleGenerator(System.Web.Http.HttpConfiguration,Appapi.Areas.HelpPage.HelpPageSampleGenerator)">
+            <summary>
+            Sets the help page sample generator.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="sampleGenerator">The help page sample generator.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.GetModelDescriptionGenerator(System.Web.Http.HttpConfiguration)">
+            <summary>
+            Gets the model description generator.
+            </summary>
+            <param name="config">The configuration.</param>
+            <returns>The <see cref="T:Appapi.Areas.HelpPage.ModelDescriptions.ModelDescriptionGenerator"/></returns>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageConfigurationExtensions.GetHelpPageApiModel(System.Web.Http.HttpConfiguration,System.String)">
+            <summary>
+            Gets the model that represents an API displayed on the help page. The model is initialized on the first call and cached for subsequent calls.
+            </summary>
+            <param name="config">The <see cref="T:System.Web.Http.HttpConfiguration"/>.</param>
+            <param name="apiDescriptionId">The <see cref="T:System.Web.Http.Description.ApiDescription"/> ID.</param>
+            <returns>
+            An <see cref="T:Appapi.Areas.HelpPage.Models.HelpPageApiModel"/>
+            </returns>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.ModelDescriptions.ModelDescription">
+            <summary>
+            Describes a type model.
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.ModelDescriptions.ModelDescriptionGenerator">
+            <summary>
+            Generates model descriptions for given types.
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.ModelDescriptions.ModelNameAttribute">
+            <summary>
+            Use this attribute to change the name of the <see cref="T:Appapi.Areas.HelpPage.ModelDescriptions.ModelDescription"/> generated for a type.
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.Models.HelpPageApiModel">
+            <summary>
+            The model that represents an API displayed on the help page.
+            </summary>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.Models.HelpPageApiModel.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Appapi.Areas.HelpPage.Models.HelpPageApiModel"/> class.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.ApiDescription">
+            <summary>
+            Gets or sets the <see cref="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.ApiDescription"/> that describes the API.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.UriParameters">
+            <summary>
+            Gets or sets the <see cref="T:Appapi.Areas.HelpPage.ModelDescriptions.ParameterDescription"/> collection that describes the URI parameters for the API.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.RequestDocumentation">
+            <summary>
+            Gets or sets the documentation for the request.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.RequestModelDescription">
+            <summary>
+            Gets or sets the <see cref="T:Appapi.Areas.HelpPage.ModelDescriptions.ModelDescription"/> that describes the request body.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.RequestBodyParameters">
+            <summary>
+            Gets the request body parameter descriptions.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.ResourceDescription">
+            <summary>
+            Gets or sets the <see cref="T:Appapi.Areas.HelpPage.ModelDescriptions.ModelDescription"/> that describes the resource.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.ResourceProperties">
+            <summary>
+            Gets the resource property descriptions.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.SampleRequests">
+            <summary>
+            Gets the sample requests associated with the API.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.SampleResponses">
+            <summary>
+            Gets the sample responses associated with the API.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.Models.HelpPageApiModel.ErrorMessages">
+            <summary>
+            Gets the error messages associated with this model.
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.HelpPageSampleGenerator">
+            <summary>
+            This class will generate the samples for the help page.
+            </summary>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.#ctor">
+            <summary>
+            Initializes a new instance of the <see cref="T:Appapi.Areas.HelpPage.HelpPageSampleGenerator"/> class.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleGenerator.ActualHttpMessageTypes">
+            <summary>
+            Gets CLR types that are used as the content of <see cref="T:System.Net.Http.HttpRequestMessage"/> or <see cref="T:System.Net.Http.HttpResponseMessage"/>.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleGenerator.ActionSamples">
+            <summary>
+            Gets the objects that are used directly as samples for certain actions.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleGenerator.SampleObjects">
+            <summary>
+            Gets the objects that are serialized as samples by the supported formatters.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleGenerator.SampleObjectFactories">
+            <summary>
+            Gets factories for the objects that the supported formatters will serialize as samples. Processed in order,
+            stopping when the factory successfully returns a non-<see langref="null"/> object.
+            </summary>
+            <remarks>
+            Collection includes just <see cref="M:Appapi.Areas.HelpPage.ObjectGenerator.GenerateObject(System.Type)"/> initially. Use
+            <code>SampleObjectFactories.Insert(0, func)</code> to provide an override and
+            <code>SampleObjectFactories.Add(func)</code> to provide a fallback.</remarks>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.GetSampleRequests(System.Web.Http.Description.ApiDescription)">
+            <summary>
+            Gets the request body samples for a given <see cref="T:System.Web.Http.Description.ApiDescription"/>.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <returns>The samples keyed by media type.</returns>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.GetSampleResponses(System.Web.Http.Description.ApiDescription)">
+            <summary>
+            Gets the response body samples for a given <see cref="T:System.Web.Http.Description.ApiDescription"/>.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <returns>The samples keyed by media type.</returns>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.GetSample(System.Web.Http.Description.ApiDescription,Appapi.Areas.HelpPage.SampleDirection)">
+            <summary>
+            Gets the request or response body samples.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <param name="sampleDirection">The value indicating whether the sample is for a request or for a response.</param>
+            <returns>The samples keyed by media type.</returns>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.GetActionSample(System.String,System.String,System.Collections.Generic.IEnumerable{System.String},System.Type,System.Net.Http.Formatting.MediaTypeFormatter,System.Net.Http.Headers.MediaTypeHeaderValue,Appapi.Areas.HelpPage.SampleDirection)">
+            <summary>
+            Search for samples that are provided directly through <see cref="P:Appapi.Areas.HelpPage.HelpPageSampleGenerator.ActionSamples"/>.
+            </summary>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+            <param name="type">The CLR type.</param>
+            <param name="formatter">The formatter.</param>
+            <param name="mediaType">The media type.</param>
+            <param name="sampleDirection">The value indicating whether the sample is for a request or for a response.</param>
+            <returns>The sample that matches the parameters.</returns>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.GetSampleObject(System.Type)">
+            <summary>
+            Gets the sample object that will be serialized by the formatters. 
+            First, it will look at the <see cref="P:Appapi.Areas.HelpPage.HelpPageSampleGenerator.SampleObjects"/>. If no sample object is found, it will try to create
+            one using <see cref="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.DefaultSampleObjectFactory(Appapi.Areas.HelpPage.HelpPageSampleGenerator,System.Type)"/> (which wraps an <see cref="T:Appapi.Areas.HelpPage.ObjectGenerator"/>) and other
+            factories in <see cref="P:Appapi.Areas.HelpPage.HelpPageSampleGenerator.SampleObjectFactories"/>.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>The sample object.</returns>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.ResolveHttpRequestMessageType(System.Web.Http.Description.ApiDescription)">
+            <summary>
+            Resolves the actual type of <see cref="T:System.Net.Http.ObjectContent`1"/> passed to the <see cref="T:System.Net.Http.HttpRequestMessage"/> in an action.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <returns>The type.</returns>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.ResolveType(System.Web.Http.Description.ApiDescription,System.String,System.String,System.Collections.Generic.IEnumerable{System.String},Appapi.Areas.HelpPage.SampleDirection,System.Collections.ObjectModel.Collection{System.Net.Http.Formatting.MediaTypeFormatter}@)">
+            <summary>
+            Resolves the type of the action parameter or return value when <see cref="T:System.Net.Http.HttpRequestMessage"/> or <see cref="T:System.Net.Http.HttpResponseMessage"/> is used.
+            </summary>
+            <param name="api">The <see cref="T:System.Web.Http.Description.ApiDescription"/>.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+            <param name="sampleDirection">The value indicating whether the sample is for a request or a response.</param>
+            <param name="formatters">The formatters.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleGenerator.WriteSampleObjectUsingFormatter(System.Net.Http.Formatting.MediaTypeFormatter,System.Object,System.Type,System.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Writes the sample object using formatter.
+            </summary>
+            <param name="formatter">The formatter.</param>
+            <param name="value">The value.</param>
+            <param name="type">The type.</param>
+            <param name="mediaType">Type of the media.</param>
+            <returns></returns>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.HelpPageSampleKey">
+            <summary>
+            This is used to identify the place where the sample should be applied.
+            </summary>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleKey.#ctor(System.Net.Http.Headers.MediaTypeHeaderValue)">
+            <summary>
+            Creates a new <see cref="T:Appapi.Areas.HelpPage.HelpPageSampleKey"/> based on media type.
+            </summary>
+            <param name="mediaType">The media type.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleKey.#ctor(System.Net.Http.Headers.MediaTypeHeaderValue,System.Type)">
+            <summary>
+            Creates a new <see cref="T:Appapi.Areas.HelpPage.HelpPageSampleKey"/> based on media type and CLR type.
+            </summary>
+            <param name="mediaType">The media type.</param>
+            <param name="type">The CLR type.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleKey.#ctor(Appapi.Areas.HelpPage.SampleDirection,System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates a new <see cref="T:Appapi.Areas.HelpPage.HelpPageSampleKey"/> based on <see cref="P:Appapi.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>, controller name, action name and parameter names.
+            </summary>
+            <param name="sampleDirection">The <see cref="P:Appapi.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.HelpPageSampleKey.#ctor(System.Net.Http.Headers.MediaTypeHeaderValue,Appapi.Areas.HelpPage.SampleDirection,System.String,System.String,System.Collections.Generic.IEnumerable{System.String})">
+            <summary>
+            Creates a new <see cref="T:Appapi.Areas.HelpPage.HelpPageSampleKey"/> based on media type, <see cref="P:Appapi.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>, controller name, action name and parameter names.
+            </summary>
+            <param name="mediaType">The media type.</param>
+            <param name="sampleDirection">The <see cref="P:Appapi.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>.</param>
+            <param name="controllerName">Name of the controller.</param>
+            <param name="actionName">Name of the action.</param>
+            <param name="parameterNames">The parameter names.</param>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleKey.ControllerName">
+            <summary>
+            Gets the name of the controller.
+            </summary>
+            <value>
+            The name of the controller.
+            </value>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleKey.ActionName">
+            <summary>
+            Gets the name of the action.
+            </summary>
+            <value>
+            The name of the action.
+            </value>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleKey.MediaType">
+            <summary>
+            Gets the media type.
+            </summary>
+            <value>
+            The media type.
+            </value>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleKey.ParameterNames">
+            <summary>
+            Gets the parameter names.
+            </summary>
+        </member>
+        <member name="P:Appapi.Areas.HelpPage.HelpPageSampleKey.SampleDirection">
+            <summary>
+            Gets the <see cref="P:Appapi.Areas.HelpPage.HelpPageSampleKey.SampleDirection"/>.
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.ImageSample">
+            <summary>
+            This represents an image sample on the help page. There's a display template named ImageSample associated with this class.
+            </summary>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.ImageSample.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Appapi.Areas.HelpPage.ImageSample"/> class.
+            </summary>
+            <param name="src">The URL of an image.</param>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.InvalidSample">
+            <summary>
+            This represents an invalid sample on the help page. There's a display template named InvalidSample associated with this class.
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.ObjectGenerator">
+            <summary>
+            This class will create an object of a given type and populate it with sample data.
+            </summary>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.ObjectGenerator.GenerateObject(System.Type)">
+            <summary>
+            Generates an object for a given type. The type needs to be public, have a public default constructor and settable public properties/fields. Currently it supports the following types:
+            Simple types: <see cref="T:System.Int32"/>, <see cref="T:System.String"/>, <see cref="T:System.Enum"/>, <see cref="T:System.DateTime"/>, <see cref="T:System.Uri"/>, etc.
+            Complex types: POCO types.
+            Nullables: <see cref="T:System.Nullable`1"/>.
+            Arrays: arrays of simple types or complex types.
+            Key value pairs: <see cref="T:System.Collections.Generic.KeyValuePair`2"/>
+            Tuples: <see cref="T:System.Tuple`1"/>, <see cref="T:System.Tuple`2"/>, etc
+            Dictionaries: <see cref="T:System.Collections.Generic.IDictionary`2"/> or anything deriving from <see cref="T:System.Collections.Generic.IDictionary`2"/>.
+            Collections: <see cref="T:System.Collections.Generic.IList`1"/>, <see cref="T:System.Collections.Generic.IEnumerable`1"/>, <see cref="T:System.Collections.Generic.ICollection`1"/>, <see cref="T:System.Collections.IList"/>, <see cref="T:System.Collections.IEnumerable"/>, <see cref="T:System.Collections.ICollection"/> or anything deriving from <see cref="T:System.Collections.Generic.ICollection`1"/> or <see cref="T:System.Collections.IList"/>.
+            Queryables: <see cref="T:System.Linq.IQueryable"/>, <see cref="T:System.Linq.IQueryable`1"/>.
+            </summary>
+            <param name="type">The type.</param>
+            <returns>An object of the given type.</returns>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.SampleDirection">
+            <summary>
+            Indicates whether the sample is used for request or response
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.TextSample">
+            <summary>
+            This represents a preformatted text sample on the help page. There's a display template named TextSample associated with this class.
+            </summary>
+        </member>
+        <member name="T:Appapi.Areas.HelpPage.XmlDocumentationProvider">
+            <summary>
+            A custom <see cref="T:System.Web.Http.Description.IDocumentationProvider"/> that reads the API documentation from an XML documentation file.
+            </summary>
+        </member>
+        <member name="M:Appapi.Areas.HelpPage.XmlDocumentationProvider.#ctor(System.String)">
+            <summary>
+            Initializes a new instance of the <see cref="T:Appapi.Areas.HelpPage.XmlDocumentationProvider"/> class.
+            </summary>
+            <param name="documentPath">The physical path to XML document.</param>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.GetMtlInfo(System.String,System.Int32)">
+            <summary>
+            获取物料序号,PartNum,物料描述,JobNum,AssemblySeq
+            </summary>
+            <param name="JobNum"></param>
+            <param name="AssemblySeq"></param>
+            <returns>返回MtlSeq,PartNum,Description,JobNum,AssemblySeq</returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.GetPartLots(System.String,System.Int32,System.String,System.Int32)">
+            <summary>
+            获取参数锁定的物料的所有批次号
+            </summary>
+            <param name="PartNum"></param>
+            <param name="MtlSeq"></param>
+            <param name="JobNum"></param>
+            <param name="AssemblySeq"></param>
+            <returns>返回参数锁定的物料的所有批次号</returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.ReportCommit(Appapi.Models.OpReport)">
+            <summary>
+            物料不良一节点提交接口
+            </summary>
+            <param name="CreateInfo">json串</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.DMRCommit(Appapi.Models.OpReport)">
+            <summary>
+            物料不良dmr提交接口
+            </summary>
+            <param name="DMRInfo">json串</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.TransferCommit(Appapi.Models.OpReport)">
+            <summary>
+            物料不良转序三节点提交接口
+            </summary>
+            <param name="TransferInfo">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.AcceptCommit(Appapi.Models.OpReport)">
+            <summary>
+            物料不良接收提交接口
+            </summary>
+            <param name="AcceptInfo">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.GetRemainsOfUser">
+            <summary>
+            获取属于请求账号的所有物料不良代表事项（不包括dmr待办事项）
+            </summary>
+            <returns>返回属于请求账号的所有物料不良代表事项（不包括dmr待办事项）</returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.GetDMRRemainsOfUser">
+            <summary>
+            获取所有物料不良dmr待办事项
+            </summary>
+            <returns>返回所有物料不良dmr待办事项 </returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.GetNextUserGroup(System.Int32,System.Boolean)">
+            <summary>
+            获取二选三或三选四的下步可选办理人
+            </summary>
+            <param name="ID">MtlReport ID 或 BPMSub Id</param>
+            <param name="IsSubProcess">true：MtlReport ID， false：BPMSub Id </param>
+            <returns>返回二选三或三选四的下步可选办理人</returns>
+        </member>
+        <member name="M:Appapi.Controllers.MtlReportController.GetRecordByID(System.Int32)">
+            <summary>
+            获取指定记录的所有字段
+            </summary>
+            <param name="ID">若无负号代表MtlReport ID， 若有负号代表BPMSub Id</param>
+            <returns>返回该条记录的所有字段</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.Start(System.String)">
+            <summary>
+            开始作业申请
+            </summary>
+            <param name="values">工单号~阶层号~工序序号~工序代码</param>
+            <returns>工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.ReporterCommit(Appapi.Models.OpReport)">
+            <summary>
+            作业完成报工申请
+            </summary>
+            <param name="ReportInfo">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.CheckerCommit(Appapi.Models.OpReport)">
+            <summary>
+            品检提交
+            </summary>
+            <param name="CheckInfo">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.TransferCommit(Appapi.Models.OpReport)">
+            <summary>
+            主流程或子流程的转序提交
+            </summary>
+            <param name="TransmitInfo">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.AccepterCommit(Appapi.Models.OpReport)">
+            <summary>
+            主流程或子流程的接收提交
+            </summary>
+            <param name="AcceptInfo">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.DMRCommit(Appapi.Models.OpReport)">
+            <summary>
+            dmr提交
+            </summary>
+            <param name="DMRInfo">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetProcessOfUser">
+            <summary>
+            获取属于该请求用户的正在进行的作业信息
+            </summary>
+            <returns>返回属于该请求用户的正在进行的作业信息：工单号~阶层号~工序序号~工序代码~工序描述~NextJobSeq~NextOpCode~NextOpDesc~startdate~累计已报数量
+            若无正在进行的作业 则返回null</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetAssemblySeqByJobNum(System.String)">
+            <summary>
+            获取该工单所有AssemblySeq, PartNum, 物料描述
+            </summary>
+            <param name="JobNum"></param>
+            <returns>返回该工单所有AssemblySeq, PartNum, 物料Description</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetJobSeq(System.String,System.Int32)">
+            <summary>
+            获取参数锁定的工序的信息OprSeq,OpDesc,OpCode, erp.joboper.QtyCompleted
+            </summary>
+            <param name="JobNum"></param>
+            <param name="AssemblySeq"></param>
+            <returns>返回erp.joboper中参数锁定的所有工序的OprSeq,OpDesc,OpCode, QtyCompleted字段值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetRemainsOfUser">
+            <summary>
+            获取属于请求账号的所有物料不良代表事项（不包括dmr待办事项）
+            </summary>
+            <returns>返回属于请求账号的所有物料不良代表事项（不包括dmr待办事项）</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetRecordByID(System.Int32)">
+            <summary>
+            获取参数指定的记录的所有字段
+            </summary>
+            <param name="ID">若无负号代表bpm ID， 若有负号代表BPMSub Id</param>
+            <returns>返回该条记录的所有字段</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetNextUserGroup(System.String,System.Int32,System.String[])">
+            <summary>
+            主流程 二选三，三选四  重载版本
+            </summary>
+            <param name="OpCode"></param>
+            <param name="ID"></param>
+            <param name="pa">可选参数</param>
+            <returns>返回下步可选办理人</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetNextUserGroup(System.String,System.Int32,System.String)">
+            <summary>
+            主流程 一选二 需要工单号 重载版本
+            </summary>
+            <param name="OpCode"></param>
+            <param name="ID"></param>
+            <param name="JobNum">传工单号</param>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetReason(System.String)">
+            <summary>
+            返回erp.Reason表中原因代码和原因描述
+            </summary>
+            <param name="type">erp.Reason表中的ReasonType</param>
+            <returns>ReasonCode, Description字段</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetDMRNextUserGroup(System.String,System.Int32)">
+            <summary>
+            dmr选三
+            </summary>
+            <param name="OpCode"></param>
+            <param name="ID">bpm表 id</param>
+            <returns>返回下步可选办理人</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetDMRRemainsOfUser">
+            <summary>
+            获取所有报工不良dmr待办事项
+            </summary>
+            <returns>返回所有报工不良dmr待办事项</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetNextUserGroupOfSub(System.Int32)">
+            <summary>
+            子流程 三选四
+            </summary>
+            <param name="ID">bpmsub id</param>
+            <returns>返回下步可选办理人</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.ClearProcess">
+            <summary>
+            强制清除该账号当前开始的工序
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetRecordsForPrint(System.String,System.Nullable{System.Int32},System.Nullable{System.Int32})">
+            <summary>
+            获取要打印的记录的所有字段，工单号必须，阶层号和工序号可选
+            </summary>
+            <param name="JobNum"></param>
+            <param name="AssemblySeq"></param>
+            <param name="JobSeq"></param>
+            <returns>返回每条记录的所有字段值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.PrintQR(System.Int32,System.Int32)">
+            <summary>
+            复制主流程二维码
+            </summary>
+            <param name="id">bpm id</param>
+            <param name="printqty">打印数量</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetRecordByQR(System.String)">
+            <summary>
+            扫码获取主流程的信息，提取参数中的PrintID，找到在bpm表中匹配的记录
+            </summary>
+            <param name="values">公司ID%物料编码 % 描述 % 批次号 %《工单号 % 半成品号 % 标签识别码 % PrintID % 订单号 % 行号 % 交货数量 % 发货行%工序号%炉批号</param>
+            <returns>返回ScanResult对象， 若成功则ScanResult.error为null，ScanResult.batch不为null， 否则ScanResult.error != null，ScanResult.batch为null</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.DeleteProcess(System.Int32)">
+            <summary>
+            二节点强制删除当前报工流程
+            </summary>
+            <param name="ID">bpm id</param>
+            <returns>"删除成功"</returns>
+        </member>
+        <member name="M:Appapi.Controllers.OpReportController.GetRelatedJobNum(System.String)">
+            <summary>
+            获取包含该子串的所有工单号
+            </summary>
+            <param name="JobNum">工单号子串</param>
+            <returns>返回包含该子串的所有工单号</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.Login(System.Object)">
+            <summary>
+            web或手机登录
+            </summary>
+            <param name="Account">账号</param>
+            <returns>bool值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.Login2">
+            <summary>
+            winform登录
+            </summary>
+            <returns>bool值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.SignOut">
+            <summary>
+            退出登录
+            </summary>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetReceivingBasis(Appapi.Models.Receipt)">
+            <summary>
+            手动收货搜索
+            </summary>
+            <param name="Condition">json</param>
+            <returns>根据Condition 返回所有匹配的待收事项</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.ReceiveCommitWithNonQRCode(Appapi.Models.Receipt)">
+            <summary>
+            无码收货提交
+            </summary>
+            <param name="Para">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.ReceiveCommitWithQRCode(Appapi.Models.Receipt)">
+            <summary>
+            有码收货提交
+            </summary>
+            <param name="Para">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.IQCCommit">
+            <summary>
+            IQC提交，winform接口
+            </summary>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.UpLoadIQCFile">
+            <summary>
+            FTP提交IQC报告，上传指定批次的单个IQC文件，winform接口
+            </summary>
+            <returns>bool值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.TransferCommit(Appapi.Models.Receipt)">
+            <summary>
+            收料转序提交
+            </summary>
+            <param name="para">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.AcceptCommit(Appapi.Models.Receipt)">
+            <summary>
+            第四节点入库提交
+            </summary>
+            <param name="para">json</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetNextUserGroup(System.Int64,System.String,System.String,System.Int32)">
+            <summary>
+            一选二，二选三，三选四  重载版本
+            </summary>
+            <param name="nextStatus">下个节点号</param>
+            <param name="company"></param>
+            <param name="plant"></param>
+            <param name="id">若是一选二则id传0，其他二种情况传真实的receipt id</param>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.ReturnStatus(System.Object)">
+            <summary>
+            收料节点回退 web或手机接口
+            </summary>
+            <param name="para">json串，其中 para.Status当前节点号, para.ReasonID原因id, para.ReasonRemark备注</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.ReturnStatus2">
+            <summary>
+            收料节点回退 winform接口
+            </summary>
+            <param name="para">包含当前节点号, 原因id, 备注</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetWarehouse(System.String)">
+            <summary>
+            根据指定的物料编码返回所在的仓库信息
+            </summary>
+            <param name="partnum">物料编码</param>
+            <returns>返回该物料可存放的所有仓库编号和描述</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.ParseQRValues(System.String)">
+            <summary>
+            替换原始二维码里的内容，用~替换%作为分隔符
+            </summary>
+            <param name="values">原始二维码内容</param>
+            <returns>末尾追加了工厂值和供应商名和单位 并且用~替换%作为分隔符</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetRemainsOfUser">
+            <summary>
+            获取当前用户的待办事项
+            </summary>
+            <returns>返回当前用户的所有待办事项</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetRecordByID(System.Int32)">
+            <summary>
+            从receipt表中获取ID指定的记录行
+            </summary>
+            <param name="ReceiptID">Receipt ID</param>
+            <returns>返回该记录的所有字段值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetRecordByCondition(Appapi.Models.Receipt)">
+            <summary>
+            web或手机端接口   按条件从receipt表中获取的记录集合 可选条件：ponum ，poline partnum  PartDesc  BatchNo  SupplierNo  IsRestrictRcv（true表示非打印批次）
+            </summary>
+            <param name="con">Receipt类</param>
+            <returns>返回所有符合指定条件的记录，且按第一节点提交时间倒序</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetRecordByCondition2">
+            <summary>
+             winform接口 功能和 /api/Receipt/GetRecordByCondition 相同
+            </summary>
+            <returns>返回所有符合指定条件的记录，且按第一节点提交时间倒序</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetFileList(System.String)">
+            <summary>
+            获取指定批次的IQC文件
+            </summary>
+            <param name="batchno">批次号</param>
+            <returns>返回指定批次的所有IQC文件</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.DeleteIQCFile(System.Int32,System.String,System.String)">
+            <summary>
+            删除指定批次的单个IQC文件
+            </summary>
+            <param name="id">IQCFile id</param>
+            <param name="filepath">IQCFile FilePath</param>
+            <param name="filename">IQCFile FileName</param>
+            <returns>bool值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetValueForTranStk_1(System.String)">
+            <summary>
+            库存转库取数接口
+            </summary>
+            <param name="oristr">company~partnum</param>
+            <returns>返回partnum~partdesc~onhandqty~company~dimcode</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetValueForTranStk_2(System.Object)">
+            <summary>
+            库存转库取数接口
+            </summary>
+            <param name="para">必填条件para.Company， para.WarehouseCode，可选条件 para.BinNum， para.LotNum</param>
+            <returns>返回所有符合条件的记录的BinNum, LotNum, OnhandQty字段</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.TranStk(System.Object)">
+            <summary>
+            库存转库提交接口
+            </summary>
+            <param name="para">para.PartNum，para.PartDesc，para.Warehouse（原来仓库），para.BinNum（原来库位），para.ToBinNum，para.LotNum，para.ToQty（转的数量），para.uom（单位）</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.CheckVersion(System.String)">
+            <summary>
+            检测版本号，若参数的值和数据库里的版本号字段的值相等则返回true否则false
+            </summary>
+            <param name="version">版本号</param>
+            <returns>bool值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.ForceComplete">
+            <summary>
+            winform 接口 IQC强制全退 强制结束该在跑批次 成功返回true失败则false
+            </summary>
+            <returns>bool值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetPartRecords(System.String)">
+            <summary>
+            获取物料的仓库记录
+            </summary>
+            <param name="partnum">物料编码</param>
+            <returns>返该物料有关的erp.partbin记录</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetAllCommentTextOfSeriesSUB(System.Int32,System.String,System.Int32,System.String)">
+            <summary>
+            获取所有连续委外工序的描述
+            </summary>
+            <param name="PoNum"></param>
+            <param name="JobNum"></param>
+            <param name="AssemblySeq"></param>
+            <param name="Company"></param>
+            <returns>返回符合参数条件的连续委外工序的描述</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.PrintQR(Appapi.Models.Receipt)">
+            <summary>
+            打印二维码
+            </summary>
+            <param name="info">要成为二维码的内容的键值对</param>
+            <returns>处理成功或错误提示</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.SetIsPrintRcv(System.Int32)">
+            <summary>
+            设置暂收单为打印状态
+            </summary>
+            <param name="ID">Receipt id</param>
+            <returns>bool值</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetRecordByQR(System.String,System.Boolean)">
+            <summary>
+            扫码获取收料待办事项
+            </summary>
+            <param name="values">二维码字符串</param>
+            <param name="IsForPrintQR">指示本次扫码是为了重新打印该二维码（true）还是获取待办事项（false）</param>
+            <returns>返回ScanResult对象， 若成功则ScanResult.error为null，ScanResult.batch不为null， 否则ScanResult.error != null，ScanResult.batch为null</returns>
+        </member>
+        <member name="M:Appapi.Controllers.ReceiptController.GetReason">
+            <summary>
+            获取APP.Reason表里的所有记录
+            </summary>
+            <returns>返回APP.Reason表里的所有记录</returns>
+        </member>
+        <member name="M:Appapi.Models.FTPRepository.GetFilesDetailList(System.String)">
+            获取根目录下明细(包含文件和文件夹)
+        </member>
+        <member name="M:Appapi.Models.FTPRepository.GetDirectoryList(System.String)">
+            获取指定路径下所有的文件夹列表(仅文件夹)
+        </member>
+        <member name="M:Appapi.Models.FTPRepository.IsFolderExist(System.String,System.String)">
+            判断指定路径下指定的文件夹是否存在
+        </member>
+        <member name="M:Appapi.Models.FTPRepository.DeleteFile(System.String,System.String)">
+            删除文件
+        </member>
+        <member name="T:Appapi.Models.Receipt">
+            <summary>
+            PoNum、PoLine、PORelNum、Company确定一个唯一的收货依据ReceivingBasis（erp数据库查询得到）
+            PoNum、PoLine、PORelNum、Plant、Company、 batchNo 确定某个收货依据的某次收货记录（查询Receipt表得到）
+            
+            收货记录中包含它所属的收货依据的所有信息
+            </summary>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.GetReceiptID(Appapi.Models.Receipt)">
+            <summary>
+            获取该批次号在Receipt表中的ID
+            </summary>
+            <param name="batInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.GetValidBatchs(System.Collections.Generic.List{Appapi.Models.Receipt})">
+            <summary>
+            从给定的待办批次列表中筛选出有效的待办批次
+            </summary>
+            <param name="batchs"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.GetReceivingBasis(Appapi.Models.Receipt)">
+            <summary>
+            根据条件，返回有效收货依据列表
+            </summary>
+            <param name="Condition"></param>
+            <returns>若返回null， 说明按照条件没有找到有效的收货依据</returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.ReceiveCommitWithNonQRCode(Appapi.Models.Receipt)">
+            <summary>
+            无二维码收货
+            </summary>
+            <param name="batInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.ReceiveCommitWithQRCode(Appapi.Models.Receipt)">
+            <summary>
+            有二维码收货
+            </summary>
+            <param name="batInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.IQCCommit(Appapi.Models.Receipt)">
+            <summary>
+            
+            </summary>
+            <param name="IQCInfo"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.GetNextUserGroup(System.Int64,System.String,System.String,System.Int32)">
+            <summary>
+            返回下个节点的可选人员
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.ReturnStatus(System.Int32,System.Int32,System.Int32,System.String,System.Int32)">
+            <summary>
+            流程回退到上一个节点
+            </summary>
+            <param name="ID"></param>
+            <param name="oristatus"></param>
+            <param name="ReasonID"></param>
+            <returns></returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.ParseQRValues(System.String)">
+            <summary>
+            补全扫描原始数据
+            </summary>
+            <param name="values"></param>
+            <returns>返回16个值，用~隔开</returns>
+        </member>
+        <member name="M:Appapi.Models.ReceiptRepository.GetRemainsOfUser">
+            <summary>
+            获取当前用户的待办事项
+            </summary>
+            <returns></returns>
+        </member>
+    </members>
+</doc>
