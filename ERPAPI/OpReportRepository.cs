@@ -20,7 +20,7 @@ namespace ErpAPI
 {
     public static class OpReportRepository
     {
-        public static string TimeAndCost(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId,string plantId, out string Character05, out int tranid)
+        public static string TimeAndCost(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, string plantId, out string Character05, out int tranid)
 
         { //JobNum as string ,jobQty as decimal,partNum as string
             Character05 = "";
@@ -73,9 +73,9 @@ namespace ErpAPI
                     // EpicorSessionManager.DisposeSession();
                     return "0|以前报工数量" + compQty + "+ 本次报工数量" + (LQty + disQty) + "  >  工序数量" + runQty + "，不能报工。";
                 }
-                if (empid.Trim() == "") { Character05=empid = "DB"; }
-      
-                
+                if (empid.Trim() == "") { Character05 = empid = "DB"; }
+
+
                 Session EpicorSession = CommonRepository.GetEpicorSession();
                 if (EpicorSession == null)
                 {
@@ -97,7 +97,7 @@ namespace ErpAPI
                 DataTable dt2 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
                 int LaborHedSeq;
 
-                if (dt2 != null) 
+                if (dt2 != null)
                 {
                     string OriDay = ((DateTime)dt2.Rows[0]["Date"]).ToString("yyyy-MM-dd");//截取从数据库获得的时间的年月日部分
                     string today = DateTime.Now.ToString("yyyy-MM-dd");//截取当前时间的年月日部分
@@ -130,20 +130,20 @@ namespace ErpAPI
 
 
                 dsLabHed = labAd.GetByID(LaborHedSeq);
-                
-                outTime  = EndDate.Hour;// + System.DateTime.Now.Minute / 100;
+
+                outTime = EndDate.Hour;// + System.DateTime.Now.Minute / 100;
                 labAd.GetNewLaborDtlWithHdr(dsLabHed, System.DateTime.Today, 0, System.DateTime.Today, outTime, LaborHedSeq);
-                 
+
                 labAd.DefaultLaborType(dsLabHed, "P");
                 labAd.DefaultJobNum(dsLabHed, JobNum);
-               /// labAd.defaultjo
+                /// labAd.defaultjo
                 labAd.DefaultAssemblySeq(dsLabHed, asmSeq);
                 string msg;
                 labAd.DefaultOprSeq(dsLabHed, oprSeq, out msg);
 
                 dtLabDtl = dsLabHed.LaborDtl;
 
-                if(LQty > 0 )
+                if (LQty > 0)
                     labAd.DefaultLaborQty(dsLabHed, LQty, out msg);
 
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborQty"] = LQty;
@@ -154,14 +154,14 @@ namespace ErpAPI
 
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrepQty"] = disQty;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrpRsnCode"] = disQty > 0 ? disCode : "";
-                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["TimeStatus"] = "A"; 
+                dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["TimeStatus"] = "A";
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockinTime"] = Convert.ToDecimal(StartDate.TimeOfDay.TotalHours.ToString("N2"));
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockOutTime"] = timeSpan.TotalMinutes < 1 ? Convert.ToDecimal(EndDate.AddMinutes(1).TimeOfDay.TotalHours.ToString("N2")) : Convert.ToDecimal(EndDate.TimeOfDay.TotalHours.ToString("N2"));
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborHrs"] = labh;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Date01"] = System.DateTime.Today;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ShortChar01"] = System.DateTime.Now.ToString("hh:mm:ss");
 
-               
+
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["OpComplete"] = "1";
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Complete"] = "1";
                 labAd.DefaultDtlTime(dsLabHed);
@@ -170,10 +170,36 @@ namespace ErpAPI
                 {
                     labAd.CheckWarnings(dsLabHed, out cMessageText);
                     labAd.Update(dsLabHed);
-                    string LaborDtlSeq = dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborDtlSeq"].ToString();
+                }
+                catch (Exception ex)
+                {
+                    EpicorSession.Dispose();
+                    return "0|" + ex.Message.ToString();
+                }
 
+                //adapter.ValidateChargeRateForTimeType(ds, out oumsg);
+                //try
+                //{
+                //    labAd.SubmitForApproval(dsLabHed, false, out cMessageText);
+                //}
+                //catch (Exception ex)
+                //{
+                //    EpicorSession.Dispose();
+                //    return "0|" + ex.Message.ToString();
+                //}
+                //try
+                //{
+                //    EpicorSession.Dispose();
+                //}
+                //catch
+                //{ }
+                string LaborDtlSeq="";
+                try
+                {
                     if (disQty > 0)
                     {
+                        LaborDtlSeq = dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborDtlSeq"].ToString();
+
                         sql = "select tranid from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " ";
                         object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
@@ -182,26 +208,14 @@ namespace ErpAPI
                 }
                 catch (Exception ex)
                 {
-                    EpicorSession.Dispose();
-                    return "0|" + ex.Message.ToString();
+                    return "2|时间费用写入成功. 获取tranid时异常：" + ex.Message.ToString() + "    LaborDtlSeq " + LaborDtlSeq;
                 }
-                //adapter.ValidateChargeRateForTimeType(ds, out oumsg);
-                try
-                {
-                    labAd.SubmitForApproval(dsLabHed, false, out cMessageText);
-                }
-                catch (Exception ex)
-                {
-                    EpicorSession.Dispose();
-                    return "0|" + ex.Message.ToString();
-                }
-                try
+                finally
                 {
                     EpicorSession.Dispose();
                 }
-                catch
-                { }
-                return "1|处理成功";
+
+                return "1|";
             }
             catch (Exception ex)
             {

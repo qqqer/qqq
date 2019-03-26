@@ -748,10 +748,13 @@ namespace Appapi.Models
         {
             string sql = "";
             DataTable dt = null;
+            string jobnum = "";
             if (!IsSubProcess)//2选3
             {
                 sql = @"select * from MtlReport where Id = " + id + "";
                 OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
+
+                jobnum = theReport.JobNum;
 
                 sql = @"select RelatedOperation from erp.JobMtl where JobNum = '" + theReport.JobNum + "' and  AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq = " + theReport.MtlSeq + "";
                 int RelatedOperation = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
@@ -762,17 +765,17 @@ namespace Appapi.Models
                 sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
                 string TransformUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select UserID, UserName from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and CHARINDEX('" + theReport.Plant + "', plant) > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
+                sql = "select * from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and CHARINDEX('" + theReport.Plant + "', plant) > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
                 dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
             else//3选4
             {
                 sql = @"select * from bpmsub where Id = " + id + "";
                 OpReport theSubReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
-
+                jobnum = theSubReport.JobNum;
                 if (theSubReport.DMRQualifiedQty != null)
                 {
-                    sql = "select UserID, UserName from userfile where userid = '" + theSubReport.CreateUser + "'";
+                    sql = "select * from userfile where userid = '" + theSubReport.CreateUser + "'";
                 }
 
                 if (theSubReport.DMRUnQualifiedQty != null)
@@ -784,7 +787,7 @@ namespace Appapi.Models
                     bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
                     if (IsSubContract)
-                        sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0  and  RoleID & " + 16 + " != 0 and RoleID != 2147483647";
+                        sql = "select * from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0  and  RoleID & " + 16 + " != 0 and RoleID != 2147483647";
                     else
                     {
                         sql = @"select top 1  OpCode  from erp.JobOper  where JobNum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc";
@@ -793,11 +796,14 @@ namespace Appapi.Models
                         sql = "select NextUser from BPMOpCode where OpCode = '" + nextOpCode + "'";
                         string NextUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                        sql = "select UserID, UserName from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0 and  CHARINDEX(userid, '" + NextUser + "') > 0 and  RoleID & " + 128 + " != 0 and RoleID != 2147483647";
+                        sql = "select * from userfile where disabled = 0  and CHARINDEX('" + theSubReport.Plant + "', plant) > 0 and  CHARINDEX(userid, '" + NextUser + "') > 0 and  RoleID & " + 128 + " != 0 and RoleID != 2147483647";
                     }
                 }
                 dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
+
+            dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
+
 
             return dt == null || dt.Rows.Count == 0 ? null : dt;
         }
