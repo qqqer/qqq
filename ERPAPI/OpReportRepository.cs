@@ -203,7 +203,7 @@ namespace ErpAPI
                         sql = "select tranid from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " ";
                         object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-                        tranid = int.Parse(o == null ? "" : o.ToString());
+                        tranid = int.Parse(o == null ? "-1" : o.ToString());
                     }
                 }
                 catch (Exception ex)
