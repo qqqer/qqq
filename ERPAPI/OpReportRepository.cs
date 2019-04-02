@@ -20,7 +20,7 @@ namespace ErpAPI
 {
     public static class OpReportRepository
     {
-        public static string TimeAndCost(string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, string plantId, out string Character05, out int tranid)
+        public static string TimeAndCost(int BPMID, string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, string plantId, out string Character05, out int tranid)
 
         { //JobNum as string ,jobQty as decimal,partNum as string
             Character05 = "";
@@ -165,34 +165,31 @@ namespace ErpAPI
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["OpComplete"] = "1";
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Complete"] = "1";
                 labAd.DefaultDtlTime(dsLabHed);
-                string cMessageText = "";
+                string cMessageText = ""; 
                 try
                 {
-                    labAd.CheckWarnings(dsLabHed, out cMessageText);
+                    labAd.CheckWarnings(dsLabHed, out cMessageText); //cMessageText返回空串表示正常
+
+
+                    if (cMessageText != "")
+                    {
+                        sql = "insert into warning values('" + cMessageText + "', " + BPMID + ")";
+                        Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        //return "0|" + cMessageText;
+                    }
+
                     labAd.Update(dsLabHed);
                 }
                 catch (Exception ex)
-                {
-                    EpicorSession.Dispose();
+                {            
                     return "0|" + ex.Message.ToString();
                 }
+                finally
+                {
+                    EpicorSession.Dispose();
+                }
 
-                //adapter.ValidateChargeRateForTimeType(ds, out oumsg);
-                //try
-                //{
-                //    labAd.SubmitForApproval(dsLabHed, false, out cMessageText);
-                //}
-                //catch (Exception ex)
-                //{
-                //    EpicorSession.Dispose();
-                //    return "0|" + ex.Message.ToString();
-                //}
-                //try
-                //{
-                //    EpicorSession.Dispose();
-                //}
-                //catch
-                //{ }
+                
                 string LaborDtlSeq="";
                 try
                 {
@@ -215,7 +212,7 @@ namespace ErpAPI
                     EpicorSession.Dispose();
                 }
 
-                return "1|";
+                return "1|TimeAndCost执行成功";
             }
             catch (Exception ex)
             {
