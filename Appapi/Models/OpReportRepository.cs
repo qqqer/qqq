@@ -82,6 +82,7 @@ namespace Appapi.Models
         {
             string sql = @"
                    insert into BPMSub   select [CreateUser]
+                  ,Commiter
                   ,'{4}'
                   ,null
                   ,null
@@ -152,6 +153,7 @@ namespace Appapi.Models
         {
             string sql = @"
                    insert into BPMSub   select [CreateUser]
+                  ,Commiter
                   ,'{6}'
                   ,null
                   ,null
@@ -222,6 +224,7 @@ namespace Appapi.Models
         {
             string sql = @"
                insert into BPMSub   select [CreateUser]
+              , Commiter
               ,'{8}'
               ,null
               ,null
@@ -422,7 +425,11 @@ namespace Appapi.Models
                     }
                 }
 
-                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ")";
+                //多可见开关
+                string ShareSwitch =  ConfigurationManager.AppSettings["ShareSwitch"];
+                string ShareUserGroup = IsParallel == 1 && ShareSwitch == "true"  ? CreateUser : "";
+
+                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ", '"+ShareUserGroup+"')";
             }
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             sql = sql.Replace("'", "");
@@ -573,8 +580,12 @@ namespace Appapi.Models
             DateTime EndDate = (DateTime)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             TimeSpan LaborHrs = EndDate - ReportInfo.StartDate;
 
+            sql = @"select userid from process where id = " + (int)ReportInfo.ProcessId + "";
+            string CreateUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
             sql = @" insert into bpm
                   ([CreateUser]
+                  ,Commiter
                   ,[CreateDate]
                   ,[CheckUserGroup]
                   ,[PartNum]
@@ -611,6 +622,7 @@ namespace Appapi.Models
                   ,[DMRUnQualifiedQty]) values({0}) ";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
                 {
+                    CreateUser,
                     HttpContext.Current.Session["UserId"].ToString(),
                     OpDate,
                     ReportInfo.CheckUserGroup,
@@ -1557,7 +1569,12 @@ namespace Appapi.Models
         public static DataTable GetMultipleProcessOfUser()
         {
             string sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and  IsParallel = 1";
-            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+            DataTable dt1 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
+            sql = @"select * from process where userid != '" + HttpContext.Current.Session["UserId"].ToString() + "' and   CHARINDEX('" + HttpContext.Current.Session["UserId"].ToString() + "', ShareUserGroup) > 0";
+            DataTable dt2 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
+            DataTable dt = CommonRepository.UnionDataTable(dt1, dt2);
 
             return dt;
         }
