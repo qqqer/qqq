@@ -305,7 +305,7 @@ namespace Appapi.Models
 
         private static decimal GetSumOfAcceptedQty(string jobnum, int asmSeq, int PreOprSeq)  //该指定工序的累积接收数
         {
-            decimal SumOfAcceptQty = 0;
+            decimal SumOfAcceptedQty = 0;
 
 
             string sql = @"select sum(QualifiedQty) from bpm where IsComplete = 0 and status > 2 and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
@@ -319,10 +319,10 @@ namespace Appapi.Models
             object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
             BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMSubAcceptQty == null ? 0 : BPMSubAcceptQty;
 
-            SumOfAcceptQty += Convert.ToDecimal(UnionAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
+            SumOfAcceptedQty += Convert.ToDecimal(UnionAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
 
 
-            return SumOfAcceptQty;
+            return SumOfAcceptedQty;
         }
 
 
@@ -1117,9 +1117,6 @@ namespace Appapi.Models
                 return "0|错误：原工序编号" + theReport.OpCode + "， 现工序编号：" + dt.Rows[0]["OpCode"].ToString() + "， 该报工流程已被自动删除";
             }
 
-            //if (CommonRepository.IsOpSeqComplete(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq))
-            //    return "错误：该工序已完成";
-
 
             string NextSetpInfo = GetNextSetpInfo(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, dt.Rows[0]["Company"].ToString());
             if (NextSetpInfo.Substring(0, 1).Trim() == "0")
@@ -1264,10 +1261,6 @@ namespace Appapi.Models
 
                 if ((theSubReport.DMRRepairQty) != null)
                 {
-                    //string res = CommonRepository.CheckJobHeadState(theSubReport.JobNum);
-                    //if (res != "正常")
-                    //    return "错误：" + res;
-
                     sql = " update bpmsub set " +
                            "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
                            "NextDate = '" + OpDate + "'," +
@@ -1428,20 +1421,13 @@ namespace Appapi.Models
             {
                 string sql = @"select * from BPM where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter > 0 and status > 2 and isdelete != 1 order by CreateDate desc";
                 sql = string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
-
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
-                if (dt == null)
-                    return null;
 
-                //UnQualifiedGroup默认包含整个不良品小组人，所以注释掉以下代码
-                //for (int i = dt.Rows.Count - 1; i >= 0; i--)
-                //{
-                //    if (!(dt.Rows[i]["UnQualifiedGroup"].ToString()).Contains(HttpContext.Current.Session["UserId"].ToString()))
-                //        dt.Rows[i].Delete();
-                //}
 
+                if (dt == null)  return null;
+
+   
                 List<OpReport> Remains = CommonRepository.DataTableToList<OpReport>(dt);
-
                 if (Remains != null)
                 {
                     for (int i = 0; i < Remains.Count; i++)
@@ -1453,6 +1439,7 @@ namespace Appapi.Models
                             userid = Remains[i].CheckUser;
                         if (Remains[i].Status == 4 || (Remains[i].PreStatus == 4 && Remains[i].Status == 99))
                             userid = Remains[i].TransformUser;
+
                         Remains[i].FromUser = CommonRepository.GetUserName(userid);
                     }
                 }
@@ -1470,12 +1457,11 @@ namespace Appapi.Models
         {
             string sql = @"select * from BPM where AtRole & {0} != 0 and isdelete != 1 and isComplete != 1 and CHARINDEX(company, '{1}') > 0   and   CHARINDEX(Plant, '{2}') > 0 order by CreateDate desc";
             sql = string.Format(sql, (int)HttpContext.Current.Session["RoleId"], HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
-
             DataTable dt1 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
 
             sql = @"select * from BPMsub where AtRole & {0} != 0 and UnQualifiedType = 1 and isdelete != 1 and isComplete != 1 and CHARINDEX(company, '{1}') > 0   and   CHARINDEX(Plant, '{2}') > 0 order by CreateDate desc";
             sql = string.Format(sql, (int)HttpContext.Current.Session["RoleId"], HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
-
             DataTable dt2 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
             DataTable dt = CommonRepository.UnionDataTable(dt1, dt2);
@@ -1493,8 +1479,9 @@ namespace Appapi.Models
                 else
                     dt.Rows[i].Delete();//当前节点群组未包含改用户
             }
-            List<OpReport> Remains = CommonRepository.DataTableToList<OpReport>(dt);
 
+
+            List<OpReport> Remains = CommonRepository.DataTableToList<OpReport>(dt);
             if (Remains != null)
             {
                 for (int i = 0; i < Remains.Count; i++)
@@ -1511,7 +1498,6 @@ namespace Appapi.Models
             }
 
             return Remains;
-
         }
 
 
@@ -1688,6 +1674,11 @@ namespace Appapi.Models
 
             if (theSubReport.DMRRepairQty != null)
             {
+                sql = @"select count(*) from erp.JobOper  where JobNum = '" + theSubReport.DMRJobNum + "'";
+                bool IsExistOprSeq = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+
+                if (!IsExistOprSeq) return null;
+
                 sql = @"select  SubContract  from erp.JobOper where jobnum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc ";
                 bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
@@ -1756,8 +1747,11 @@ namespace Appapi.Models
             string sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
             string TransformUsers = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
+
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, "select * from bpm where id = " + id + "");
             string jobnum = dt.Rows[0]["JobNum"].ToString();
+
+
             sql = "select * from userfile where disabled = 0 and CHARINDEX('" + dt.Rows[0]["Plant"].ToString() + "', plant) > 0 and CHARINDEX(userid, '" + TransformUsers + "') > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
             dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
 
@@ -1851,6 +1845,7 @@ namespace Appapi.Models
                 userid = sr.batch.CheckUser;
             if (sr.batch.Status == 4)
                 userid = sr.batch.TransformUser;
+
             sr.batch.FromUser = CommonRepository.GetUserName(userid);
 
 

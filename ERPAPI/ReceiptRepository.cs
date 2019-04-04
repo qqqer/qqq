@@ -175,6 +175,8 @@ namespace ErpAPI
             LotSelectUpdateImpl lotadapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<LotSelectUpdateImpl>(EpicorSession, ImplBase<Erp.Contracts.LotSelectUpdateSvcContract>.UriPath);
             LotSelectUpdateDataSet lotds = new LotSelectUpdateDataSet();
             #region 
+
+            
             int vendornumdel = 0;
             try
             {
@@ -512,7 +514,7 @@ namespace ErpAPI
                 //WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionidc", "");
                 InvTransferImpl invAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<InvTransferImpl>(EpicorSession, ImplBase<Erp.Contracts.InvTransferSvcContract>.UriPath);
                 InvTransferDataSet invDS;
-
+                
                 DataRow invDr;
                 string lotNum, tranUOM;
                 decimal tranQty;
