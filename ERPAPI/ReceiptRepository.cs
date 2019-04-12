@@ -503,6 +503,7 @@ namespace ErpAPI
                 }
 
 
+                
                 Session EpicorSession = CommonRepository.GetEpicorSession();
 
                 if (EpicorSession == null)
