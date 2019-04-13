@@ -747,14 +747,12 @@ namespace Appapi.Models
                     AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, res);
 
 
-                    if (res.Substring(0, 1).Trim() == "0" && res != "0|This is a duplicate entry of an existing record")
+                    if (res.Substring(0, 1).Trim() == "0")
                     {
                         return "错误：" + res;
                     }
 
                     
-
-
                     theReport.TranID = TranID; //及时更新该值
                     theReport.QualifiedQty = CheckInfo.QualifiedQty; //及时更新该值
                     theReport.UnQualifiedQty = CheckInfo.UnQualifiedQty; //及时更新该值
@@ -772,15 +770,9 @@ namespace Appapi.Models
                             "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + " " +
                             "where id = " + CheckInfo.ID + "";
 
-                    //string sql2 = "insert into sqllog(id,sql) values(" + CheckInfo.ID + ", @sql) ";
-                    //SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@sql", sql) };
-                    //Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql2, ps);
-
 
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                    if (res.Substring(0, 1).Trim() == "2")
-                        return "错误：提交失败，获取TranId时异常";
+                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "检验预提交成功|" + sql);
                 }
 
 
@@ -793,14 +785,13 @@ namespace Appapi.Models
 
 
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                sql = sql.Replace("'", "");
                 AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "检验提交成功|" + sql);
 
                 return "处理成功";
             }
             catch (Exception ex)
             {
-                AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "0|"+ex.Message);
+                AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "0|AppApi|"+ex.Message);
                 return "错误：" + ex.Message;
             }
             finally

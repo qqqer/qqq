@@ -61,17 +61,17 @@ namespace ErpAPI
                 if (jobCom)
                 {
 
-                    return "0|工单已关闭，不能报工。";
+                    return "0|ErpAPI|工单已关闭，不能报工。";
                 }
                 if (jobRes == false)
                 {
                     // EpicorSessionManager.DisposeSession();
-                    return "0|工单未发放，不能报工。";
+                    return "0|ErpAPI|工单未发放，不能报工。";
                 }
                 if ((compQty + LQty + disQty) > runQty)
                 {
                     // EpicorSessionManager.DisposeSession();
-                    return "0|以前报工数量" + compQty + "+ 本次报工数量" + (LQty + disQty) + "  >  工序数量" + runQty + "，不能报工。";
+                    return "0|ErpAPI|以前报工数量" + compQty + "+ 本次报工数量" + (LQty + disQty) + "  >  工序数量" + runQty + "，不能报工。";
                 }
                 if (empid.Trim() == "") { Character05 = empid = "DB"; }
 
@@ -79,7 +79,7 @@ namespace ErpAPI
                 Session EpicorSession = CommonRepository.GetEpicorSession();
                 if (EpicorSession == null)
                 {
-                    return "0|erp用户数不够，请稍候再试.接口：TimeAndCost";
+                    return "0|ErpAPI|erp用户数不够，请稍候再试.接口：TimeAndCost";
                 }
                 EpicorSession.CompanyID = companyId;
                 EpicorSession.PlantID = plantId;
@@ -182,7 +182,7 @@ namespace ErpAPI
                 }
                 catch (Exception ex)
                 {            
-                    return "0|" + ex.Message.ToString();
+                    return "2|ErpAPI|" + ex.Message.ToString();
                 }
                 finally
                 {
@@ -205,7 +205,7 @@ namespace ErpAPI
                 }
                 catch (Exception ex)
                 {
-                    return "2|时间费用写入成功. 获取tranid时异常：" + ex.Message.ToString() + "    LaborDtlSeq " + LaborDtlSeq;
+                    return "2|ErpAPI|时间费用写入成功. 获取tranid时异常：" + ex.Message.ToString() + "    LaborDtlSeq " + LaborDtlSeq;
                 }
                 finally
                 {
@@ -216,7 +216,7 @@ namespace ErpAPI
             }
             catch (Exception ex)
             {
-                return "0|" + ex.Message.ToString();
+                return "0|ErpAPI|" + ex.Message.ToString();
             }
         }
 
