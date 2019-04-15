@@ -466,7 +466,7 @@ namespace ErpAPI
                 NonConfImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<NonConfImpl>(EpicorSession, ImplBase<Erp.Contracts.NonConfSvcContract>.UriPath);
                 //EpicorSessionManager.EpicorSession.CompanyID = Company;
                 //EpicorSessionManager.EpicorSession.PlantID = plant;
-
+              
                 //新增物料
                 NonConfDataSet ds = adapter.AddNonConf("JobMaterial");
                 //加入工单
@@ -681,18 +681,22 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["TranUOM"] =IUM;
                 adapter.DefaultIssueComplete(ds);
 
-                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = plant == "MfgSys" ? "WIP" : "RRWIP";
-                ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
+                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = plant == "MfgSys" ? "WIP" : "RRWIP";              
                 adapter.ChangeWarehouse(ds);
+                ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
+
 
                 ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D03"; //返修D03，  让步接收D01
 
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
+
+                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
+                EpicorSession.Dispose();
                 return "0|" + ex.Message;
             }
         }
@@ -727,7 +731,7 @@ namespace ErpAPI
                 string opLegalNumberMessage = "";
 
                 DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
-                JobEntryImpl adapter1 = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<JobEntryImpl>(EpicorSession, ImplBase<Erp.Contracts.JobEntrySvcContract>.UriPath);
+                //JobEntryImpl adapter1 = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<JobEntryImpl>(EpicorSession, ImplBase<Erp.Contracts.JobEntrySvcContract>.UriPath);
                 
 
         
@@ -765,9 +769,9 @@ namespace ErpAPI
                 adapter.DefaultIssueComplete(ds);
 
                 ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
-                ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
+                
                 adapter.ChangeWarehouse(ds);
-
+                ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
                 ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D01"; //返修D03，  让步接收D01
 
                 //保存
