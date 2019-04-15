@@ -410,8 +410,11 @@ namespace Appapi.Models
             else ////无工序在进行，或 有工序在进行且都是并发
             {
                 sql = "select IsParallel from BPMOpCode where OpCode = '" + arr[3] + "'";
-
                 int IsParallel = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
+                sql = "select IsShare from BPMOpCode where OpCode = '" + arr[3] + "'";
+                int IsShare = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
                 if (UserProcess != null)
                 {
                     if (IsParallel == 0)
@@ -427,7 +430,7 @@ namespace Appapi.Models
 
                 //多可见开关
                 string ShareSwitch =  ConfigurationManager.AppSettings["ShareSwitch"];
-                string ShareUserGroup = IsParallel == 1 && ShareSwitch == "true"  ? CreateUser : "";
+                string ShareUserGroup = IsShare == 1 && ShareSwitch == "true"  ? CreateUser : "";
 
                 sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ", '"+ShareUserGroup+"')";
             }
