@@ -762,7 +762,7 @@ namespace Appapi.Models
                     AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, res);
 
 
-                    if (res.Substring(0, 1).Trim() == "0")
+                    if (res.Substring(0, 1).Trim() == "0") //0表示时间费用未写前发生错误，1表示全部执行成功，2表示时间费用已写后发生错误
                     {
                         return "错误：" + res;
                     }
