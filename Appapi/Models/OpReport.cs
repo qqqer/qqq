@@ -8,6 +8,8 @@ namespace Appapi.Models
     public class OpReport
     {
         public string CreateUser { get; set; }
+        public string StartUser { get; set; }
+
         public string CheckUser { get; set; }
         public string TransformUser { get; set; }
         public string NextUser { get; set; }

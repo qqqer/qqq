@@ -81,7 +81,9 @@ namespace Appapi.Models
         private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, int dmrid, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility)
         {
             string sql = @"
-                   insert into BPMSub   select [CreateUser]
+                   insert into BPMSub select 
+                   StartUser
+                  ,[CreateUser]
                   ,'{4}'
                   ,null
                   ,null
@@ -151,7 +153,7 @@ namespace Appapi.Models
         private static void InsertRepairRecord(int Id, decimal DMRRepairQty, string DMRJobNum, int DMRID, string TransformUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility)
         {
             string sql = @"
-                   insert into BPMSub   select [CreateUser]
+                   insert into BPMSub   select StartUser,[CreateUser]
                   ,'{6}'
                   ,null
                   ,null
@@ -221,7 +223,7 @@ namespace Appapi.Models
         private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility)
         {
             string sql = @"
-               insert into BPMSub   select [CreateUser]
+               insert into BPMSub   selectStartUser, [CreateUser]
               ,'{8}'
               ,null
               ,null
@@ -407,8 +409,11 @@ namespace Appapi.Models
             else ////无工序在进行，或 有工序在进行且都是并发
             {
                 sql = "select IsParallel from BPMOpCode where OpCode = '" + arr[3] + "'";
-
                 int IsParallel = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
+                sql = "select IsShare from BPMOpCode where OpCode = '" + arr[3] + "'";
+                int IsShare = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
                 if (UserProcess != null)
                 {
                     if (IsParallel == 0)
@@ -422,7 +427,11 @@ namespace Appapi.Models
                     }
                 }
 
-                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ")";
+                //多可见开关
+                string ShareSwitch =  ConfigurationManager.AppSettings["ShareSwitch"];
+                string ShareUserGroup = IsShare == 1 && ShareSwitch == "true"  ? CreateUser : "";
+
+                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ", '"+ShareUserGroup+"')";
             }
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             sql = sql.Replace("'", "");
@@ -573,8 +582,13 @@ namespace Appapi.Models
             DateTime EndDate = (DateTime)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             TimeSpan LaborHrs = EndDate - ReportInfo.StartDate;
 
+            sql = @"select userid from process where id = " + (int)ReportInfo.ProcessId + "";
+            string StartUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
             sql = @" insert into bpm
-                  ([CreateUser]
+                  (
+                    StartUser
+                  ,[CreateUser]
                   ,[CreateDate]
                   ,[CheckUserGroup]
                   ,[PartNum]
@@ -611,6 +625,7 @@ namespace Appapi.Models
                   ,[DMRUnQualifiedQty]) values({0}) ";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
                 {
+                    StartUser,
                     HttpContext.Current.Session["UserId"].ToString(),
                     OpDate,
                     ReportInfo.CheckUserGroup,
@@ -747,7 +762,7 @@ namespace Appapi.Models
                     AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, res);
 
 
-                    if (res.Substring(0, 1).Trim() == "0")
+                    if (res.Substring(0, 1).Trim() == "0") //0表示时间费用未写前发生错误，1表示全部执行成功，2表示时间费用已写后发生错误
                     {
                         return "错误：" + res;
                     }
@@ -1424,8 +1439,6 @@ namespace Appapi.Models
                     for (int i = 0; i < Remains.Count; i++)
                     {
                         string userid = "";
-                        if (Remains[i].Status == 2)
-                            userid = Remains[i].CreateUser;
                         if (Remains[i].Status == 3 || (Remains[i].PreStatus == 2 && Remains[i].Status == 99))
                             userid = Remains[i].CheckUser;
                         if (Remains[i].Status == 4 || (Remains[i].PreStatus == 4 && Remains[i].Status == 99))
@@ -1534,7 +1547,12 @@ namespace Appapi.Models
         public static DataTable GetMultipleProcessOfUser()
         {
             string sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and  IsParallel = 1";
-            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+            DataTable dt1 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
+            sql = @"select * from process where userid != '" + HttpContext.Current.Session["UserId"].ToString() + "' and   CHARINDEX('" + HttpContext.Current.Session["UserId"].ToString() + "', ShareUserGroup) > 0";
+            DataTable dt2 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
+            DataTable dt = CommonRepository.UnionDataTable(dt1, dt2);
 
             return dt;
         }
