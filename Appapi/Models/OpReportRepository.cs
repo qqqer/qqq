@@ -81,8 +81,9 @@ namespace Appapi.Models
         private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, int dmrid, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility)
         {
             string sql = @"
-                   insert into BPMSub   select [CreateUser]
-                  ,Commiter
+                   insert into BPMSub select 
+                   StartUser
+                  ,[CreateUser]
                   ,'{4}'
                   ,null
                   ,null
@@ -152,8 +153,7 @@ namespace Appapi.Models
         private static void InsertRepairRecord(int Id, decimal DMRRepairQty, string DMRJobNum, int DMRID, string TransformUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility)
         {
             string sql = @"
-                   insert into BPMSub   select [CreateUser]
-                  ,Commiter
+                   insert into BPMSub   select StartUser,[CreateUser]
                   ,'{6}'
                   ,null
                   ,null
@@ -223,8 +223,7 @@ namespace Appapi.Models
         private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility)
         {
             string sql = @"
-               insert into BPMSub   select [CreateUser]
-              , Commiter
+               insert into BPMSub   selectStartUser, [CreateUser]
               ,'{8}'
               ,null
               ,null
@@ -584,11 +583,12 @@ namespace Appapi.Models
             TimeSpan LaborHrs = EndDate - ReportInfo.StartDate;
 
             sql = @"select userid from process where id = " + (int)ReportInfo.ProcessId + "";
-            string CreateUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            string StartUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             sql = @" insert into bpm
-                  ([CreateUser]
-                  ,Commiter
+                  (
+                    StartUser
+                  ,[CreateUser]
                   ,[CreateDate]
                   ,[CheckUserGroup]
                   ,[PartNum]
@@ -625,7 +625,7 @@ namespace Appapi.Models
                   ,[DMRUnQualifiedQty]) values({0}) ";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
                 {
-                    CreateUser,
+                    StartUser,
                     HttpContext.Current.Session["UserId"].ToString(),
                     OpDate,
                     ReportInfo.CheckUserGroup,
@@ -1439,8 +1439,6 @@ namespace Appapi.Models
                     for (int i = 0; i < Remains.Count; i++)
                     {
                         string userid = "";
-                        if (Remains[i].Status == 2)
-                            userid = Remains[i].CreateUser;
                         if (Remains[i].Status == 3 || (Remains[i].PreStatus == 2 && Remains[i].Status == 99))
                             userid = Remains[i].CheckUser;
                         if (Remains[i].Status == 4 || (Remains[i].PreStatus == 4 && Remains[i].Status == 99))
