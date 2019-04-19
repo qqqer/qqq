@@ -209,6 +209,7 @@
     <Compile Include="Models\OpReport.cs" />
     <Compile Include="Models\OpReportRepository.cs" />
     <Compile Include="Models\FTPRepository.cs" />
+    <Compile Include="Models\Process.cs" />
     <Compile Include="Models\Reason.cs" />
     <Compile Include="Models\CommonRepository.cs" />
     <Compile Include="Models\Receipt.cs" />

@@ -352,7 +352,7 @@ namespace Appapi.Models
             decimal NotReceiptQty = (decimal)dt.Rows[0]["NeedReceiptQty"] - (sum is DBNull || sum == null ? 0 : (decimal)sum);
 
             if (NotReceiptQty <= 0)
-                return "可收数量不足" + NotReceiptQty + " ";
+                return "剩余可收数量：" + NotReceiptQty.ToString("N2") + " ";
             else if (batInfo.PartNum != dt.Rows[0]["PartNum"].ToString())
                 return "物料编码不正确";
             else if ((bool)dt.Rows[0]["OpenOrder"] == false)

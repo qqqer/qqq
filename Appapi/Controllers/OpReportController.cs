@@ -32,12 +32,8 @@ namespace Appapi.Controllers
         }
 
 
+       
 
-        /// <summary>
-        /// 作业完成报工申请
-        /// </summary>
-        /// <param name="ReportInfo">json</param>
-        /// <returns>处理成功或错误提示</returns>
         //Post:  /api/OpReport/ReporterCommit
         [System.Web.Http.HttpPost]
         public string ReporterCommit(OpReport ReportInfo) // ApiNum 102
@@ -46,10 +42,37 @@ namespace Appapi.Controllers
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
-            string res = OpReportRepository.ReporterCommit(ReportInfo);
+            string res = OpReportRepository.ReportCommit(ReportInfo);
 
             return res == "处理成功" ? res : "102|" + res;
         }
+
+
+
+        //Post:  /api/OpReport/SingleReport
+        [System.Web.Http.HttpPost]
+        public string SingleReport(OpReport ReportInfo) // ApiNum 103
+        {
+            return OpReportRepository.SingleReport(ReportInfo);
+        }
+
+
+        //Post:  /api/OpReport/BatchReport
+        [System.Web.Http.HttpPost]
+        public string BatchReport(OpReport ReportInfo) // ApiNum 104
+        {
+            return OpReportRepository.BatchReport(ReportInfo);
+        }
+
+
+        //Post:  /api/OpReport/AddCache
+        [System.Web.Http.HttpPost]
+        public string AddCache(OpReport ReportInfo) // ApiNum 105
+        {
+            return OpReportRepository.AddCache(ReportInfo);
+        }
+
+
 
 
         /// <summary>
@@ -305,12 +328,12 @@ namespace Appapi.Controllers
 
 
         /// <summary>
-        /// 强制清除该账号当前开始的工序
+        /// 强制清除该账号当前开始的工序的进程
         /// </summary>
         /// <returns></returns>
         [HttpGet]
         //Get:  /api/OpReport/ClearProcess
-        public string ClearProcess(int ProcessId) //ApiNum: 12 强制清空当前开始的工序
+        public string ClearProcess(int ProcessId) //ApiNum: 12 强制清空当前开始的进程
         {
             OpReportRepository.ClearProcess(ProcessId);
             return "取消成功";
@@ -385,6 +408,24 @@ namespace Appapi.Controllers
         public DataTable GetRelatedJobNum(string JobNum) //ApiNum: 17 所有返修工单
         {
             return OpReportRepository.GetRelatedJobNum(JobNum);
+        }
+
+
+
+        
+        [HttpGet]
+        //Get:  /api/OpReport/SetStartTime
+        public string SetStartTime() //ApiNum: 18
+        {
+            return OpReportRepository.SetStartTime(ReportInfo);
+        }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/ForceCleanStartTime
+        public string ForceCleanStartTime() //ApiNum: 19
+        {
+            return OpReportRepository.ForceCleanStartTime(ReportInfo);
         }
     }
 }
