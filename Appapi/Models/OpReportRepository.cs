@@ -652,7 +652,11 @@ namespace Appapi.Models
 
             SetAverageTime(CacheList);
 
+            WriteCacheListToBPM(CacheList);
+        }
 
+        public static string WriteCacheListToBPM(List<OpReport> CacheList)
+        {
             string error = "";
             for (int i = 0; i < CacheList.Count; i++)
             {
@@ -674,6 +678,7 @@ namespace Appapi.Models
             }
             else return error;
         }
+
 
         public static string GetExceedError(OpReport process)
         {
