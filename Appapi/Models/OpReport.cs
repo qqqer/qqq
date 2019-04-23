@@ -9,7 +9,7 @@ namespace Appapi.Models
     {
         public string CreateUser { get; set; }
         public string StartUser { get; set; }
-
+        public string UserID { get; set; }
         public string CheckUser { get; set; }
         public string TransformUser { get; set; }
         public string NextUser { get; set; }
@@ -28,6 +28,7 @@ namespace Appapi.Models
         public string OpCode { get; set; }
         public string OpDesc { get; set; }
         public decimal? FirstQty { get; set; }
+        public decimal? Qty { get; set; }
         public int? NextJobSeq { get; set; }
         public string NextOpCode { get; set; }
         public string NextOpDesc { get; set; }
@@ -35,8 +36,11 @@ namespace Appapi.Models
         public decimal? UnQualifiedQty { get; set; }
         public string UnQualifiedReason { get; set; }
         public DateTime StartDate { get; set; }
+        public DateTime AverageStartDate { get; set; }
         public DateTime EndDate { get; set; }
+        public DateTime AverageEndDate { get; set; }
         public decimal? LaborHrs { get; set; }
+        public decimal? AverageLaborHrs { get; set; }
         public bool? IsComplete { get; set; }
         public bool? IsDelete { get; set; }
         public int? Status { get; set; }
@@ -67,18 +71,19 @@ namespace Appapi.Models
         public decimal? CheckCounter { get; set; }
         public string UnQualifiedGroup { get; set; }
         public int? UnQualifiedType { get; set; } //1 报工不良 2 制程不良
-
         public int? MtlSeq { get; set; }
         public string LotNum { get; set; }
         public string Responsibility { get; set; }
+
+        public string ShareUserGroup { get; set; }
+
         public int? ProcessId { get; set; }
 
+        public int? ProcessType { get; set; }
 
         public int? ID { get; set; }
-        
-
-
-        public int? PrintQty { get; set; }
+       
+        public int PrintQty { get; set; }
         public string FromUser { get; set; }
     }
 }

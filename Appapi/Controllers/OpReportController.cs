@@ -42,7 +42,7 @@ namespace Appapi.Controllers
             if (HttpContext.Current.Session.Count == 0)
                 throw new HttpResponseException(HttpStatusCode.Forbidden);
 
-            string res = OpReportRepository.ReportCommit(ReportInfo);
+            string res = OpReportRepository.ReporterCommit(ReportInfo);
 
             return res == "处理成功" ? res : "102|" + res;
         }
@@ -67,9 +67,9 @@ namespace Appapi.Controllers
 
         //Post:  /api/OpReport/AddCache
         [System.Web.Http.HttpPost]
-        public string AddCache(OpReport ReportInfo) // ApiNum 105
+        public string AddCache(OpReport process) // ApiNum 105
         {
-            return OpReportRepository.AddCache(ReportInfo);
+            return OpReportRepository.AddCache(process);
         }
 
 
@@ -417,15 +417,22 @@ namespace Appapi.Controllers
         //Get:  /api/OpReport/SetStartTime
         public string SetStartTime() //ApiNum: 18
         {
-            return OpReportRepository.SetStartTime(ReportInfo);
+            return OpReportRepository.SetStartTime();
         }
+       
 
+        [HttpGet]
+        //Get:  /api/OpReport/SetStartTime
+        public string GetStartTime() //ApiNum: 20
+        {
+            return OpReportRepository.GetStartTime();
+        }
 
         [HttpGet]
         //Get:  /api/OpReport/ForceCleanStartTime
-        public string ForceCleanStartTime() //ApiNum: 19
+        public void ForceCleanStartTime() //ApiNum: 19
         {
-            return OpReportRepository.ForceCleanStartTime(ReportInfo);
+            OpReportRepository.ForceCleanStartTime();
         }
     }
 }
