@@ -223,7 +223,7 @@ namespace Appapi.Models
         private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility)
         {
             string sql = @"
-               insert into BPMSub   selectStartUser, [CreateUser]
+               insert into BPMSub   select StartUser, [CreateUser]
               ,'{8}'
               ,null
               ,null
