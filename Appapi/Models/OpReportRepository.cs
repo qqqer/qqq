@@ -927,9 +927,6 @@ namespace Appapi.Models
 
 
 
-
-
-
         public static string CheckerCommit(OpReport CheckInfo)
         {
             lock (lock_check)
