@@ -173,7 +173,7 @@ namespace Appapi.Models
 
 
 
-        public static string CheckJobHeadState(string jobnum)
+        public static string GetJobHeadState(string jobnum)
         {
             string sql = @"select jh.jobClosed,jh.jobComplete, jh.JobEngineered, jh.JobReleased from erp.JobHead jh where jh.JobNum = '" + jobnum + "'";
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);

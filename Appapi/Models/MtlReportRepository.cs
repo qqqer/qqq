@@ -309,7 +309,7 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string res = CommonRepository.CheckJobHeadState(ReportInfo.JobNum);
+            string res = CommonRepository.GetJobHeadState(ReportInfo.JobNum);
             if (res != "正常")
                 return "错误：" + res;
 

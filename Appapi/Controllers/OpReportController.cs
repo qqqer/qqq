@@ -30,9 +30,7 @@ namespace Appapi.Controllers
 
             return res;
         }
-
-
-       
+ 
 
         //Post:  /api/OpReport/ReporterCommit
         [System.Web.Http.HttpPost]
@@ -49,19 +47,14 @@ namespace Appapi.Controllers
 
 
 
-        //Post:  /api/OpReport/SingleReport
-        [System.Web.Http.HttpPost]
-        public string SingleReport(OpReport ReportInfo) // ApiNum 103
-        {
-            return OpReportRepository.SingleReport(ReportInfo);
-        }
 
 
-        //Post:  /api/OpReport/BatchReport
+
+        //Post:  /api/OpReport/CommitCacheList
         [System.Web.Http.HttpPost]
-        public string BatchReport(OpReport ReportInfo) // ApiNum 104
+        public string CommitCacheList() // ApiNum 104
         {
-            return OpReportRepository.BatchReport(ReportInfo);
+            return OpReportRepository.CommitCacheList();
         }
 
 
@@ -423,16 +416,48 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/OpReport/SetStartTime
-        public string GetStartTime() //ApiNum: 20
+        public string GetStartTime() //ApiNum: 19
         {
             return OpReportRepository.GetStartTime();
         }
 
         [HttpGet]
-        //Get:  /api/OpReport/ForceCleanStartTime
-        public void ForceCleanStartTime() //ApiNum: 19
+        //Get:  /api/OpReport/CleanStartTime
+        public void ForceCleanStartTime() //ApiNum: 20
         {
-            OpReportRepository.ForceCleanStartTime();
+            OpReportRepository.CleanStartTime();
         }
+
+
+        [HttpGet]
+        //Get:  /api/OpReport/DeleteCache
+        public void DeleteCache(int ProcessID) //ApiNum: 21
+        {
+            OpReportRepository.DeleteCache(ProcessID);
+        }
+
+        [HttpGet]
+        //HttpPost:  /api/OpReport/GetCacheList
+        public List<OpReport> GetCacheList() //ApiNum: 22
+        {
+           return OpReportRepository.GetCacheList();
+        }
+
+        [HttpPost]
+        //HttpPost:  /api/OpReport/GetCachePageDetailByOprInfo
+        public string GetCachePageDetailByOprInfo(OpReport process) //ApiNum: 23
+        {
+            return OpReportRepository.GetCachePageDetailByOprInfo(process);
+        }
+
+
+        [HttpPost]
+        //HttpPost:  /api/OpReport/ GetCachePageDetailByCacheID
+        public string GetCachePageDetailByCacheID(int processid) //ApiNum: 24
+        {
+            return OpReportRepository.GetCachePageDetailByCacheID(processid);
+        }
+
+
     }
 }

@@ -2047,7 +2047,7 @@ namespace Appapi.Models
 
             object sum = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-            if (sum == null || (decimal)sum < 1)
+            if (sum == null || (decimal)sum <= 0)
                 return null; //库存不存在   
 
             sql = @"select dimcode from erp.Partbin pb where pb.company = '" + arr[0] + "' and pb.partnum = '" + arr[1] + "' ";

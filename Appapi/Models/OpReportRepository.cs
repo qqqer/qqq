@@ -59,28 +59,6 @@ namespace Appapi.Models
         }
 
 
-
-        internal static string SingleReport(OpReport reportInfo)
-        {
-            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
-            string sql = @"select endtime from process where id = " + (int)reportInfo.ProcessId + "";
-            object endtime = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-
-            if (Convert.IsDBNull(endtime) || endtime == null) //还不是完结进程
-            {
-                //转为完结进程
-                sql = "update process set PrintQty = " + (reportInfo.PrintQty == null ? 0 : reportInfo.PrintQty) + ", EndDate='" + OpDate + "' ,Qty= " + reportInfo.FirstQty + " where id = " + (int)reportInfo.ProcessId + "";
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                AddOpLog(null, reportInfo.JobNum, (int)reportInfo.AssemblySeq, (int)reportInfo.JobSeq, 102, OpDate, "转为缓存|" + sql);
-            }
-
-            return ReportCommit((int)reportInfo.ProcessId);
-        }
-
-
         private static DataTable GetLatestOprInfo(string jobnum, int asmSeq, int oprseq)
         {
             string sql = @"select jh.Company, Plant,OpDesc, jo.OpCode from erp.JobHead jh left join erp.JobOper jo on jh.Company = jo.Company and jh.JobNum =jo.JobNum where jo.JobNum = '" + jobnum + "' and jo.AssemblySeq = " + asmSeq + " and  jo.OprSeq = " + oprseq + "";
@@ -391,7 +369,7 @@ namespace Appapi.Models
             string[] arr = values.Split(' '); //工单号~阶层号~工序序号~工序代码
 
 
-            string res = CommonRepository.CheckJobHeadState(arr[0]);
+            string res = CommonRepository.GetJobHeadState(arr[0]);
             if (res != "正常")
                 return "0|错误：" + res;
 
@@ -423,7 +401,7 @@ namespace Appapi.Models
 
             if (PreOpSeq != null && GetSumOfAcceptedQty(arr[0], int.Parse(arr[1]), (int)PreOpSeq) == 0)
             {
-                return "错误：该工序接收数量为0，无法开始当前工序";
+                return "0|错误：该工序接收数量为0，无法开始当前工序";
             }
 
             //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
@@ -454,7 +432,6 @@ namespace Appapi.Models
                     if (IsParallel == 0)
                         return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
 
-
                     foreach (DataRow dr in UserProcess.Rows)
                     {
                         if (dr["JobNum"].ToString().ToUpper() == arr[0].ToUpper() && dr["AssemblySeq"].ToString() == arr[1] && dr["JobSeq"].ToString() == arr[2])
@@ -466,7 +443,7 @@ namespace Appapi.Models
                 string ShareSwitch = ConfigurationManager.AppSettings["ShareSwitch"];
                 string ShareUserGroup = IsShare == 1 && ShareSwitch == "true" ? CreateUser : "";
 
-                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ", '" + ShareUserGroup + "', '"+dt.Rows[0]["Plant"].ToString()+"',1";
+                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ", '" + ShareUserGroup + "', '"+dt.Rows[0]["Plant"].ToString()+"',1,null,null)";
             }
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             sql = sql.Replace("'", "");
@@ -487,56 +464,49 @@ namespace Appapi.Models
             string sql = @"select * from process where processid = " + opReport.ProcessId + "";
             OpReport process = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First();
 
-            string ret;
-            if ((ret = CommonRepository.CheckJobHeadState(process.JobNum)) != "正常") return "错误：" + ret;
-
-            if (process.Qty <= 0) return "错误：报工数量需大于0";
-
-            if (process.CheckUserGroup == "") return "错误：下步接收人不能为空";
-
-            if ((ret = GetExceedError(process)).Contains("错误")) return ret;
-
-            if ((ret = GetDuplicateError(process)).Contains("错误")) return ret;
-
-            if ((ret = GetChemicalIssueError(process)).Contains("错误")) return ret;
-
-            if ((ret = GetConsistentError(process)).Contains("错误")) return ret;
-
 
             process.Qty = opReport.FirstQty;
             process.CheckUserGroup = opReport.CheckUserGroup;
             process.PrintQty = opReport.PrintQty;
             process.EndDate = DateTime.Now;
-            //至此process拥有process表中所有字段的值
+            //至此process拥有process表中所有字段的值,成为一个缓存
 
 
+            string ret;
+            if ((ret = CommonRepository.GetJobHeadState(process.JobNum)) != "正常") return "错误：" + ret;
+
+            if (Convert.ToDecimal(process.Qty) <= 0) return "错误：报工数量需大于0";
+
+            if (process.CheckUserGroup == "") return "错误：下步接收人不能为空";
+
+            if ((ret = GetExceedError(process)).Contains("错误")) return ret;
+
+            //if ((ret = GetDuplicateError(process)).Contains("错误")) return ret;
+
+            if ((ret = ChemicalIssue(process)).Contains("错误")) return ret;
+
+            if ((ret = GetConsistentError(process)).Contains("错误")) return ret;
+
+
+            
             List<OpReport> CacheList = new List<OpReport> { process };
             SetAverageTime(CacheList);
 
 
-            string error = "";      
-            if ((ret = WriteToBPM(CacheList[0])) != "true")
-                error += CacheList[0].JobNum + "," + CacheList[0].AssemblySeq + "," + CacheList[0].JobSeq + "|" + ret + "\n";
-            else //true
+            if ((ret = WriteCacheToBPM(CacheList[0])) == "true") //true
             {
                 //清除该完结缓存
                 DeleteCache((int)process.ProcessId);
                 AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 102, process.EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), "报工提交成功，自动清除process");
+                return "处理成功";
             }
-            
-
-            if (error == "")
-            {
-                CleanStartTime();
-                return "全部提交成功";
-            }
-            else return error;
+            else return ret;
         }
 
 
         internal static void SetAverageTime(List<OpReport> CacheList)
         {
-            decimal average_LaborHrs = Convert.ToDecimal((((CacheList[0].EndDate - Convert.ToDateTime(GetStartTime())).TotalHours) / CacheList.Count).ToString("N2"));
+            decimal average_LaborHrs = Convert.ToDecimal((((CacheList[0].EndDate - CacheList[0].StartDate).TotalHours) / CacheList.Count).ToString("N2"));
 
 
             for (int i = 0; i < CacheList.Count; i++)
@@ -594,16 +564,16 @@ namespace Appapi.Models
 
         public static void DeleteCache(int ProcessID)
         {
-            string sql = "delete from process where  id = " + ProcessID + "";
+            string sql = "delete from process where  processid = " + ProcessID + "";
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
 
         public static string AddCache(OpReport process)
         {
             string ret;
-            if ((ret = CommonRepository.CheckJobHeadState(process.JobNum)) != "正常") return "错误：" + ret;
+            if ((ret = CommonRepository.GetJobHeadState(process.JobNum)) != "正常") return "错误：" + ret;
 
-            if (process.Qty <= 0) return "错误：报工数量需大于0";
+            if (Convert.ToDecimal(process.Qty) <= 0) return "错误：报工数量需大于0";
 
             if (process.CheckUserGroup == "") return "错误：下步接收人不能为空";
 
@@ -611,7 +581,7 @@ namespace Appapi.Models
 
             if ((ret = GetDuplicateError(process)).Contains("错误")) return ret;
 
-            if ((ret = GetChemicalIssueError(process)).Contains("错误")) return ret;
+            if ((ret = ChemicalIssue(process)).Contains("错误")) return ret;
 
             try
             {
@@ -633,7 +603,7 @@ namespace Appapi.Models
                                "" + 2 + ")"; //ProcessType
 
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 9999 , DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), "添加缓存|"+sql);
+                AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 105 , DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), "添加缓存|"+sql);
 
                 return "添加成功";
             }
@@ -652,22 +622,17 @@ namespace Appapi.Models
 
             SetAverageTime(CacheList);
 
-            WriteCacheListToBPM(CacheList);
-        }
-
-        public static string WriteCacheListToBPM(List<OpReport> CacheList)
-        {
             string error = "";
             for (int i = 0; i < CacheList.Count; i++)
             {
-                string ret = WriteToBPM(CacheList[i]);
+                string ret = WriteCacheToBPM(CacheList[i]);
                 if (ret != "true")
                     error += CacheList[i].JobNum + "," + CacheList[i].AssemblySeq + "," + CacheList[i].JobSeq + "|" + ret + "\n";
                 else //true
                 {
                     //清除该完结缓存
                     DeleteCache((int)CacheList[i].ProcessId);
-                    AddOpLog(null, CacheList[i].JobNum, (int)CacheList[i].AssemblySeq, (int)CacheList[i].JobSeq, 102, CacheList[i].EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), "报工提交成功，自动清除process");
+                    AddOpLog(null, CacheList[i].JobNum, (int)CacheList[i].AssemblySeq, (int)CacheList[i].JobSeq, 104, CacheList[i].EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), "报工提交成功，自动清除process");
                 }
             }
 
@@ -679,6 +644,30 @@ namespace Appapi.Models
             else return error;
         }
 
+        public static string GetPartInfoError(OpReport process)
+        {
+            object PreOpSeq = CommonRepository.GetPreOpSeq(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
+            if (PreOpSeq == null)
+            {
+                decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(process.JobNum, (int)process.AssemblySeq);
+                decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
+
+                if (ReqQtyOfAssemblySeq < process.Qty + SumOfReportedQty)
+                    return "错误：累计已转数将超出该阶层的可生产数。该工序的累计已转数：" + SumOfReportedQty.ToString("N2") + "(+" + process.Qty + ")，该阶层的可生产数为：" + ReqQtyOfAssemblySeq.ToString("N2");
+                else
+                    return "";
+            }
+            else
+            {
+                decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
+                decimal SumOfAcceptedQty = GetSumOfAcceptedQty(process.JobNum, (int)process.AssemblySeq, (int)PreOpSeq);
+
+                if (SumOfAcceptedQty < SumOfReportedQty + process.Qty)
+                    return "错误：累计已转数将超出累计接收数。该工序的累计已转数：" + (SumOfReportedQty.ToString("N2") + "(+" + process.Qty) + ")，该工序的累计接收数：" + SumOfAcceptedQty.ToString("N2");
+                else
+                    return "";
+            }
+        }
 
         public static string GetExceedError(OpReport process)
         {
@@ -726,13 +715,13 @@ namespace Appapi.Models
         {
             DataTable LatestOprInfo = GetLatestOprInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
 
-            if (LatestOprInfo.Rows[0]["process.OpCode"].ToString() != process.OpCode)
-                return "0|错误：原工序编号" + process.OpCode + "， 现工序编号：" + LatestOprInfo.Rows[0]["process.OpCode"].ToString();
+            if (LatestOprInfo.Rows[0]["OpCode"].ToString() != process.OpCode)
+                return "0|错误：原工序编号" + process.OpCode + "， 现工序编号：" + LatestOprInfo.Rows[0]["OpCode"].ToString();
 
             return "";
         }
 
-        public static string GetChemicalIssueError(OpReport process)
+        public static string ChemicalIssue(OpReport process)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
@@ -803,8 +792,11 @@ namespace Appapi.Models
 
             if(NextOprInfo.Substring(0, 1).Trim() == "0") return "错误：获取下工序去向失败";
 
-            string detail = process.JobNum + "~" + process.AssemblySeq + "~" + process.JobSeq + "~" + LatestOprInfo.Rows[0]["OpCode"] + "~" +
-                LatestOprInfo.Rows[0]["OpDesc"] + "~" + NextOprInfo + "~" + startdate + "~" + SumOfReportedQty + "~" + process.Qty + "~" + LatestOprInfo.Rows[0]["Plant"];
+            string sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + process.JobNum + "' and AssemblySeq = " + (int)process.AssemblySeq + "";
+            string partnum = "|" + (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            string detail = process.JobNum + "~" + process.AssemblySeq+partnum + "~" + process.JobSeq + "~" + LatestOprInfo.Rows[0]["OpCode"] + "~" +
+                LatestOprInfo.Rows[0]["OpDesc"] + "~" + NextOprInfo + "~" + startdate + "~" + SumOfReportedQty + "~" + process.Qty + "~" + LatestOprInfo.Rows[0]["Plant"] + "~" + process.ProcessId;
 
             return detail;
         }
@@ -819,13 +811,13 @@ namespace Appapi.Models
             return detail;
         }
 
-        public static string WriteToBPM(OpReport process)
+        public static string WriteCacheToBPM(OpReport process)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             
-            //获取剩余待插数据
-            string sql = @" Select PartNum, Description from erp.JobAsmbl  where  process.JobNum = '" + process.JobNum + "' and process.AssemblySeq = " + process.AssemblySeq + "";
+            //获取其余数据
+            string sql = @" Select PartNum, Description from erp.JobAsmbl  where  JobNum = '" + process.JobNum + "' and AssemblySeq = " + process.AssemblySeq + "";
             DataTable PartInfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             string NextOprInfo = GetNextSetpInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, "001");
@@ -862,9 +854,9 @@ namespace Appapi.Models
                   ,[NextOpDesc]
                   ,[StartDate]
                   ,[EndDate]
-                    AverageEndDate,
+                    ,AverageEndDate
                   ,[LaborHrs]
-                    AverageLaborHrs,
+                    ,AverageLaborHrs
                   ,[IsComplete]
                   ,[IsDelete]
                   ,[Status]
@@ -968,7 +960,7 @@ namespace Appapi.Models
                 if (CheckInfo.QualifiedQty != 0 && CheckInfo.TransformUserGroup == "")
                     return "错误：下步接收人不能为空";
 
-                string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
+                string res = CommonRepository.GetJobHeadState(theReport.JobNum);
                 if (res != "正常")
                     return "0|错误：" + res;
 
@@ -1225,7 +1217,7 @@ namespace Appapi.Models
             //以下只会执行一个if
             if (theSubReport.DMRQualifiedQty != null)
             {
-                string res = CommonRepository.CheckJobHeadState(theSubReport.JobNum);
+                string res = CommonRepository.GetJobHeadState(theSubReport.JobNum);
                 if (res != "正常")
                     return "0|错误：" + res;
 
@@ -1362,7 +1354,7 @@ namespace Appapi.Models
             if (TransmitInfo.NextUserGroup == "")
                 return "错误：下步接收人不能为空";
 
-            string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
+            string res = CommonRepository.GetJobHeadState(theReport.JobNum);
             if (res != "正常")
                 return "0|错误：" + res;
 
@@ -1450,7 +1442,7 @@ namespace Appapi.Models
 
                 if ((theSubReport.DMRQualifiedQty) != null)
                 {
-                    string res = CommonRepository.CheckJobHeadState(theSubReport.JobNum);
+                    string res = CommonRepository.GetJobHeadState(theSubReport.JobNum);
                     if (res != "正常")
                         return "错误：" + res;
 
@@ -1580,7 +1572,7 @@ namespace Appapi.Models
                 if (theReport.Status != 4)
                     return "错误：流程未在当前节点上，在 " + theReport.Status + "节点";
 
-                string res = CommonRepository.CheckJobHeadState(theReport.JobNum);
+                string res = CommonRepository.GetJobHeadState(theReport.JobNum);
                 if (res != "正常")
                     return "错误：" + res;
 
