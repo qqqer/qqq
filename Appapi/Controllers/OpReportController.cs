@@ -415,7 +415,7 @@ namespace Appapi.Controllers
        
 
         [HttpGet]
-        //Get:  /api/OpReport/SetStartTime
+        //Get:  /api/OpReport/GetStartTime
         public string GetStartTime() //ApiNum: 19
         {
             return OpReportRepository.GetStartTime();
@@ -423,9 +423,9 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/OpReport/CleanStartTime
-        public void ForceCleanStartTime() //ApiNum: 20
+        public string CleanStartTime() //ApiNum: 20
         {
-            OpReportRepository.CleanStartTime();
+            return OpReportRepository.CleanStartTime();
         }
 
 

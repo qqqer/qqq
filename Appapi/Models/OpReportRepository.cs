@@ -517,17 +517,23 @@ namespace Appapi.Models
             }
         }
 
-        internal static void CleanStartTime()
+        internal static string CleanStartTime()
         {
-            string sql = @"delete from starttime where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
-            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            List<OpReport> CacheList = GetCacheList();
+            if (CacheList == null)
+            {
+                string sql = @"delete from starttime where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                return "取消开始时间成功";
+            }
+            return "错误：列表中存在未提交工单，取消开始时间失败";
         }
 
         internal static string SetStartTime()
         {
             try
             {
-                string sql = @"insert into StartTime(userid, date) values('" + HttpContext.Current.Session["UserId"].ToString() + "', getdate())";
+                string sql = @"insert into StartTime(userid, StartTime) values('" + HttpContext.Current.Session["UserId"].ToString() + "', getdate())";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 return GetStartTime();
             }
@@ -541,7 +547,7 @@ namespace Appapi.Models
         {
             try
             {
-                string sql = @"select date from starttime where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
+                string sql = @"select StartTime from starttime where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
                 object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 string start_date = o is DBNull || o == null ? "" : Convert.ToDateTime(o).ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -556,7 +562,7 @@ namespace Appapi.Models
         internal static List<OpReport> GetCacheList()
         {
             string startdate = GetStartTime();
-            string sql = @"select * from process where starttime = '" + startdate + "' and userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and mode = 2 order by Enddate desc";
+            string sql = @"select * from process where startdate = '" + startdate + "' and userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and processtype = 2 order by Enddate desc";
 
             List<OpReport> CacheList = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql));
             return CacheList;
@@ -1106,8 +1112,8 @@ namespace Appapi.Models
             if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum == "")
                 return "错误：返修工单号不能为空";
 
-            //if (DMRInfo.DMRRepairQty > 0 && CommonRepository.CheckJobHeadState(DMRInfo.DMRJobNum) != "工单不存在")
-            //    return "错误：返修工单号已存在";
+            if (DMRInfo.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(DMRInfo.DMRJobNum) != "工单不存在")
+                return "错误：返修工单号已存在";
 
             if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRUnQualifiedReason == ""))
                 return "错误：报废原因不能为空";
@@ -1760,7 +1766,7 @@ namespace Appapi.Models
                 sql = @"select * from process where id = " + processID + "";
 
             else //从报工界面调用， 获取该用户所有正在进行的记录
-                sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
+                sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and processtype = 1";
 
 
 
@@ -1794,10 +1800,10 @@ namespace Appapi.Models
 
         public static DataTable GetMultipleProcessOfUser()
         {
-            string sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and  IsParallel = 1";
+            string sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and  IsParallel = 1 and processtype = 1";
             DataTable dt1 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
-            sql = @"select * from process where userid != '" + HttpContext.Current.Session["UserId"].ToString() + "' and   CHARINDEX('" + HttpContext.Current.Session["UserId"].ToString() + "', ShareUserGroup) > 0";
+            sql = @"select * from process where userid != '" + HttpContext.Current.Session["UserId"].ToString() + "' and   CHARINDEX('" + HttpContext.Current.Session["UserId"].ToString() + "', ShareUserGroup) > 0 and processtype = 1";
             DataTable dt2 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
             DataTable dt = CommonRepository.UnionDataTable(dt1, dt2);
