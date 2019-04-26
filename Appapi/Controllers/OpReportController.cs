@@ -431,9 +431,10 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/OpReport/DeleteCache
-        public void DeleteCache(int ProcessID) //ApiNum: 21
+        public string DeleteCache(int ProcessID) //ApiNum: 21
         {
             OpReportRepository.DeleteCache(ProcessID);
+            return "取消成功";
         }
 
         [HttpGet]
@@ -451,11 +452,11 @@ namespace Appapi.Controllers
         }
 
 
-        [HttpPost]
+        [HttpGet]
         //HttpPost:  /api/OpReport/ GetCachePageDetailByCacheID
-        public string GetCachePageDetailByCacheID(int processid) //ApiNum: 24
+        public string GetCachePageDetailByCacheID(int ProcessId) //ApiNum: 24
         {
-            return OpReportRepository.GetCachePageDetailByCacheID(processid);
+            return OpReportRepository.GetCachePageDetailByCacheID(ProcessId);
         }
 
 
