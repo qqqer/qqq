@@ -459,6 +459,8 @@ namespace Appapi.Models
             return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + NextSetpInfo + "~" + OpDate + "~" + SumOfReportQty + "~" + UserProcess.Rows[0]["ID"] + "~" + Convert.ToInt32(UserProcess.Rows[0]["IsParallel"]);
         }
 
+
+
         internal static string ReporterCommit(OpReport opReport)
         {
             string sql = @"select * from process where processid = " + opReport.ProcessId + "";
@@ -502,7 +504,6 @@ namespace Appapi.Models
             }
             else return ret;
         }
-
 
         internal static void SetAverageTime(List<OpReport> CacheList)
         {
@@ -722,7 +723,7 @@ namespace Appapi.Models
             DataTable LatestOprInfo = GetLatestOprInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
 
             if (LatestOprInfo.Rows[0]["OpCode"].ToString() != process.OpCode)
-                return "0|错误：原工序编号" + process.OpCode + "， 现工序编号：" + LatestOprInfo.Rows[0]["OpCode"].ToString();
+                return "错误：原工序编号" + process.OpCode + "， 现工序编号：" + LatestOprInfo.Rows[0]["OpCode"].ToString();
 
             return "";
         }
@@ -789,7 +790,7 @@ namespace Appapi.Models
 
         }
 
-        public static string GetCachePageDetailByOprInfo(OpReport process) //工单号 ~阶层号~工序序号~工序代码~工序描述~NextJobSeq NextOpCode NextOpDesc startdate~累计已转~Qty~Plant
+        public static string GetCachePageDetailByOprInfo(OpReport process) //工单号 ~阶层号~工序序号~工序代码~工序描述~NextJobSeq NextOpCode NextOpDesc startdate~累计已转~Qty~Plant~processid
          {
             DataTable LatestOprInfo = GetLatestOprInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
             string NextOprInfo = GetNextSetpInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, "001");           
@@ -801,7 +802,7 @@ namespace Appapi.Models
             string sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + process.JobNum + "' and AssemblySeq = " + (int)process.AssemblySeq + "";
             string partnum = "|" + (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-            string detail = process.JobNum + "~" + process.AssemblySeq+partnum + "~" + process.JobSeq + "~" + LatestOprInfo.Rows[0]["OpCode"] + "~" +
+            string detail = "1|"+ process.JobNum + "~" + process.AssemblySeq+partnum + "~" + process.JobSeq + "~" + LatestOprInfo.Rows[0]["OpCode"] + "~" +
                 LatestOprInfo.Rows[0]["OpDesc"] + "~" + NextOprInfo + "~" + startdate + "~" + SumOfReportedQty + "~" + process.Qty + "~" + LatestOprInfo.Rows[0]["Plant"] + "~" + process.ProcessId;
 
             return detail;
@@ -929,6 +930,7 @@ namespace Appapi.Models
 
             return "true";
         }
+
 
 
 

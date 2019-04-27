@@ -414,12 +414,15 @@ namespace Appapi.Controllers
         }
        
 
+
         [HttpGet]
         //Get:  /api/OpReport/GetStartTime
         public string GetStartTime() //ApiNum: 19
         {
             return OpReportRepository.GetStartTime();
         }
+
+
 
         [HttpGet]
         //Get:  /api/OpReport/CleanStartTime
@@ -438,7 +441,7 @@ namespace Appapi.Controllers
         }
 
         [HttpGet]
-        //HttpPost:  /api/OpReport/GetCacheList
+        //HttpGet:  /api/OpReport/GetCacheList
         public List<OpReport> GetCacheList() //ApiNum: 22
         {
            return OpReportRepository.GetCacheList();
@@ -446,14 +449,16 @@ namespace Appapi.Controllers
 
         [HttpPost]
         //HttpPost:  /api/OpReport/GetCachePageDetailByOprInfo
-        public string GetCachePageDetailByOprInfo(OpReport process) //ApiNum: 23
+        public string GetCachePageDetailByOprInfo(string values) //ApiNum: 23
         {
-            return OpReportRepository.GetCachePageDetailByOprInfo(process);
+            string[] arr = values.Split('~');
+
+            return OpReportRepository.GetCachePageDetailByOprInfo(new OpReport {JobNum = arr[0], AssemblySeq = int.Parse(arr[1]), JobSeq = int.Parse(arr[2])});
         }
 
 
         [HttpGet]
-        //HttpPost:  /api/OpReport/ GetCachePageDetailByCacheID
+        //HttpGet:  /api/OpReport/ GetCachePageDetailByCacheID
         public string GetCachePageDetailByCacheID(int ProcessId) //ApiNum: 24
         {
             return OpReportRepository.GetCachePageDetailByCacheID(ProcessId);
