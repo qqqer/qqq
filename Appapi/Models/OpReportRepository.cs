@@ -1929,10 +1929,10 @@ namespace Appapi.Models
 
         public static IEnumerable<OpReport> GetRecordsForPrint(string JobNum, int? AssemblySeq, int? JobSeq)
         {
-            string sql = @"select * from BPM where isdelete != 1 and printid is not null and JobNum = '" + JobNum + "' and (iscomplete = 0 or DMRQualifiedQty > 0)";
+            string sql = @"select * from BPM where isdelete != 1 and printid is not null and JobNum = '" + JobNum + "' ";
 
             if (AssemblySeq != null)
-                sql += "and AssemblySeq = " + AssemblySeq + " ";
+                sql += " and AssemblySeq = " + AssemblySeq + " ";
             if (JobSeq != null)
                 sql += "and JobSeq = " + JobSeq + " ";
 
