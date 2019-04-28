@@ -286,6 +286,37 @@ namespace Appapi.Models
         }
 
 
+        public static DataTable WD_Handler(string jobnum, DataTable UserGroup)
+        {
+            if (UserGroup != null)
+            {
+                if (jobnum.ToUpper().Contains("WD") && UserGroup != null)
+                {
+                    for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
+                    {
+                        if (!Convert.ToBoolean(UserGroup.Rows[i]["OnlyWD"]) && ((Convert.ToInt32(UserGroup.Rows[i]["RoleID"]) & 16) == 0)) //排除不是专门处理npi的人
+                        {
+                            UserGroup.Rows.RemoveAt(i);
+                        }
+                    }
+                }
+                else if (!jobnum.ToUpper().Contains("WD") && UserGroup != null)
+                {
+                    for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
+                    {
+                        if (Convert.ToBoolean(UserGroup.Rows[i]["OnlyWD"])) //排除专门处理npi的人
+                        {
+                            UserGroup.Rows.RemoveAt(i);
+                        }
+                    }
+                }
+            }
+
+            return UserGroup;
+        }
+
+
+
 
         public static object GetPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
         {

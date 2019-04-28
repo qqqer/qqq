@@ -808,6 +808,7 @@ namespace Appapi.Models
             }
 
             dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
+            dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
 
 
             return dt == null || dt.Rows.Count == 0 ? null : dt;

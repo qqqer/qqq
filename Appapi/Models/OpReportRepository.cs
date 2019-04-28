@@ -311,8 +311,6 @@ namespace Appapi.Models
         }
 
 
-
-
         private static decimal GetSumOfAcceptedQty(string jobnum, int asmSeq, int PreOprSeq)  //该指定工序的累积接收数
         {
             decimal SumOfAcceptedQty = 0;
@@ -1042,7 +1040,7 @@ namespace Appapi.Models
                     AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, res);
 
 
-                    if (res.Substring(0, 1).Trim() == "0") //0表示时间费用未写前发生错误，1表示全部执行成功，2表示时间费用已写后发生错误
+                    if (res.Substring(0, 1).Trim() == "0" || res == "2|ErpAPI|This is a duplicate entry of an existing record") //0表示时间费用未写前发生错误，1表示全部执行成功，2表示时间费用已写后发生错误
                     {
                         return "错误：" + res;
                     }
@@ -1160,6 +1158,10 @@ namespace Appapi.Models
             if (theReport.DMRID is DBNull || theReport.DMRID == null)//产生dmrid前允许删除时间费用
             {
                 int DMRID = -1;
+
+                if(theReport.TranID is DBNull || theReport.TranID == null)
+                    return "错误：库位与仓库不匹配";
+
 
                 res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, out DMRID); //产品其它不良 D22  D
                 if (res.Substring(0, 1).Trim() != "1")
@@ -1925,10 +1927,13 @@ namespace Appapi.Models
             if (nextRole == 128 && !NextOpCode.Contains("JJ"))
             {
                 dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
+                dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
+
             }
             else if ((nextRole == 256 || nextRole == 512) && !OpCode.Contains("JJ"))
             {
                 dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
+                dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
             }
 
 
@@ -2024,6 +2029,7 @@ namespace Appapi.Models
             if (nextRole == 128 && !nextOpCode.Contains("JJ"))
             {
                 dt = CommonRepository.NPI_Handler(theSubReport.JobNum.ToUpper(), dt);
+                dt = CommonRepository.WD_Handler(theSubReport.JobNum.ToUpper(), dt);
             }
 
 
@@ -2048,6 +2054,7 @@ namespace Appapi.Models
             if (!OpCode.Contains("JJ"))
             {
                 dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
+                dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
             }
 
             return dt == null || dt.Rows.Count == 0 ? null : dt;
@@ -2231,10 +2238,10 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string sql = @"select * from process where id = " + ProcessId + "";
+            string sql = @"select * from process where processid = " + ProcessId + "";
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
-            sql = "delete  from  process  where id = " + ProcessId + "";
+            sql = "delete  from  process  where processid = " + ProcessId + "";
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
