@@ -54,6 +54,7 @@ namespace Appapi.Controllers
         [System.Web.Http.HttpPost]
         public string CommitCacheList() // ApiNum 104
         {
+            string ss = HttpContext.Current.Session["UserId"].ToString();
             return OpReportRepository.CommitCacheList();
         }
 
@@ -447,11 +448,11 @@ namespace Appapi.Controllers
            return OpReportRepository.GetCacheList();
         }
 
-        [HttpPost]
-        //HttpPost:  /api/OpReport/GetCachePageDetailByOprInfo
+        [HttpGet]
+        //HttpGet:  /api/OpReport/GetCachePageDetailByOprInfo
         public string GetCachePageDetailByOprInfo(string values) //ApiNum: 23
         {
-            string[] arr = values.Split('~');
+            string[] arr = values.Split(' ');
 
             return OpReportRepository.GetCachePageDetailByOprInfo(new OpReport {JobNum = arr[0], AssemblySeq = int.Parse(arr[1]), JobSeq = int.Parse(arr[2])});
         }

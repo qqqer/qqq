@@ -393,7 +393,7 @@ namespace Appapi.Models
 
 
             string CreateUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + arr[3] + "' ", null);
-            if (!CreateUser.Contains(HttpContext.Current.Session["UserId"].ToString()))
+            if (!CreateUser.ToUpper().Contains(HttpContext.Current.Session["UserId"].ToString()))
                 return "0|错误：该账号没有该工序操作权限";
 
 
@@ -456,7 +456,7 @@ namespace Appapi.Models
 
 
             arr[1] += "|" + (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, @" select PartNum from erp.JobAsmbl where JobNum = '" + arr[0] + "' and AssemblySeq = " + int.Parse(arr[1]) + "", null); //阶层号后追加物料编码
-            return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + NextSetpInfo + "~" + OpDate + "~" + SumOfReportQty + "~" + UserProcess.Rows[0]["ID"] + "~" + Convert.ToInt32(UserProcess.Rows[0]["IsParallel"]);
+            return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + NextSetpInfo + "~" + OpDate + "~" + SumOfReportQty + "~" + UserProcess.Rows[0]["ProcessId"] + "~" + Convert.ToInt32(UserProcess.Rows[0]["IsParallel"]);
         }
 
 
@@ -566,6 +566,13 @@ namespace Appapi.Models
             string sql = @"select * from process where startdate = '" + startdate + "' and userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and processtype = 2 order by Enddate desc";
 
             List<OpReport> CacheList = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql));
+
+            if(CacheList != null)
+            {
+                for (int i = 0; i < CacheList.Count; i++)
+                    CacheList[i].Company = "001";
+            }
+
             return CacheList;
         }
 
@@ -596,7 +603,7 @@ namespace Appapi.Models
                                "'" + HttpContext.Current.Session["UserId"].ToString() + "' ," +
                                "'" + process.StartDate.ToString("yyyy-MM-dd HH:mm:ss.fff") + "', " +
                                "getdate()," + //[EndDate]
-                               "" + process.FirstQty + "," +
+                               "" + process.Qty + "," +
                                "'" + process.JobNum + "'," +
                                "" + process.AssemblySeq + "," +
                                "" + process.JobSeq + "," +
@@ -605,9 +612,9 @@ namespace Appapi.Models
                                "1, " + //IsParallel
                                "'', " +//ShareUserGroup
                                "'"+process.Plant+"', " + //Plant    WriteToBPM中获取
+                               "" + 2 + "," +
                                "" + process.PrintQty + ", " + //前端获取
-                               "'" + process.CheckUserGroup + "'," +
-                               "" + 2 + ")"; //ProcessType
+                               "'" + process.CheckUserGroup + "')";
 
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 105 , DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), "添加缓存|"+sql);
@@ -639,7 +646,7 @@ namespace Appapi.Models
                 {
                     //清除该完结缓存
                     DeleteCache((int)CacheList[i].ProcessId);
-                    AddOpLog(null, CacheList[i].JobNum, (int)CacheList[i].AssemblySeq, (int)CacheList[i].JobSeq, 104, CacheList[i].EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), "报工提交成功，自动清除process");
+                    AddOpLog(null, CacheList[i].JobNum, (int)CacheList[i].AssemblySeq, (int)CacheList[i].JobSeq, 104, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), "报工提交成功，自动清除process");
                 }
             }
 
@@ -790,20 +797,37 @@ namespace Appapi.Models
 
         }
 
-        public static string GetCachePageDetailByOprInfo(OpReport process) //工单号 ~阶层号~工序序号~工序代码~工序描述~NextJobSeq NextOpCode NextOpDesc startdate~累计已转~Qty~Plant~processid
-         {
+        public static string GetCachePageDetailByOprInfo(OpReport process) //工单号 ~阶层号~工序序号~工序代码~工序描述~NextJobSeq NextOpCode NextOpDesc startdate~累计已转~Qty~Plant~processid~CheckUserGroup~EndDate;
+        {
             DataTable LatestOprInfo = GetLatestOprInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
             string NextOprInfo = GetNextSetpInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, "001");           
             string startdate = GetStartTime();
             decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
+            
 
             if(NextOprInfo.Substring(0, 1).Trim() == "0") return "错误：获取下工序去向失败";
+            
+
 
             string sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + process.JobNum + "' and AssemblySeq = " + (int)process.AssemblySeq + "";
             string partnum = "|" + (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
+
+
+
+            string userids = CommonRepository.GetValueAsString(process.CheckUserGroup);
+            string[] useridArry = userids.Split(',');
+            string usernames = "";
+            foreach(string s in useridArry)
+            {
+                if (s != "")
+                    usernames += CommonRepository.GetUserName(s.Trim()) + ",";
+            }
+
+
+
             string detail = "1|"+ process.JobNum + "~" + process.AssemblySeq+partnum + "~" + process.JobSeq + "~" + LatestOprInfo.Rows[0]["OpCode"] + "~" +
-                LatestOprInfo.Rows[0]["OpDesc"] + "~" + NextOprInfo + "~" + startdate + "~" + SumOfReportedQty + "~" + process.Qty + "~" + LatestOprInfo.Rows[0]["Plant"] + "~" + process.ProcessId;
+                LatestOprInfo.Rows[0]["OpDesc"] + "~" + NextOprInfo + "~" + startdate + "~" + SumOfReportedQty + "~" + process.Qty + "~" + LatestOprInfo.Rows[0]["Plant"] + "~" + process.ProcessId + "~" + usernames + "~" + process.EndDate;
 
             return detail;
         }
@@ -896,7 +920,7 @@ namespace Appapi.Models
                     process.OpCode,
                     process.OpDesc,
                     process.Qty,
-                    int.Parse(NextOprInfo.Split('~')[0]), //Nextprocess.JobSeq,
+                    NextOprInfo.Contains("仓库") ? process.JobSeq : int.Parse(NextOprInfo.Split('~')[0]), //Nextprocess.JobSeq,
                     NextOprInfo.Split('~')[1],             //Nextprocess.OpCode,
                     NextOprInfo.Split('~')[2],             //Nextprocess.OpDesc,
                     process.StartDate.ToString("yyyy-MM-dd HH:mm:ss.fff"),
@@ -926,7 +950,7 @@ namespace Appapi.Models
             sql = string.Format(sql, valueStr);
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 102, process.EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), sql);
+            AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 102, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), sql);
 
             return "true";
         }
@@ -1658,7 +1682,7 @@ namespace Appapi.Models
             if (NextUserGroup == null) return false;
             for (int i = 0; i < NextUserGroup.Rows.Count; i++)
             {
-                if (NextUserGroup.Rows[i]["UserID"].ToString() == CurrUserID)
+                if (NextUserGroup.Rows[i]["UserID"].ToString().ToUpper() == CurrUserID)
                     return true;
             }
             return false;
@@ -1765,7 +1789,7 @@ namespace Appapi.Models
         {
             string sql = "";
             if (processID > 0)//从待办事项调用，获取指定记录
-                sql = @"select * from process where id = " + processID + "";
+                sql = @"select * from process where processid = " + processID + "";
 
             else //从报工界面调用， 获取该用户所有正在进行的记录
                 sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' and processtype = 1";
@@ -1795,7 +1819,7 @@ namespace Appapi.Models
                 + "~" + ((DateTime)UserProcess.Rows[0]["StartDate"]).ToString("yyyy-MM-dd HH:mm:ss.fff")
                 + "~" + (UserProcess.Rows[0]["Qty"].ToString() == "" ? "0" : UserProcess.Rows[0]["Qty"].ToString())
                 + "~" + GetSumOfReportedQty(UserProcess.Rows[0]["JobNum"].ToString(), (int)UserProcess.Rows[0]["AssemblySeq"], (int)UserProcess.Rows[0]["JobSeq"]).ToString("N2")
-                + "~" + UserProcess.Rows[0]["ID"]
+                + "~" + UserProcess.Rows[0]["ProcessId"]
                 + "~" + Convert.ToInt32(UserProcess.Rows[0]["IsParallel"]);
         }
 
