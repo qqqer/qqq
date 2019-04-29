@@ -326,7 +326,7 @@ namespace Appapi.Models
             decimal MtlIssuedQty = GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq);
             decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq, ReportInfo.PartNum);
             if (MtlIssuedQty - SumOfReportQty < ReportInfo.UnQualifiedQty)
-                return "错误：累计上报数量："+ SumOfReportQty.ToString("N2") + "(+" + ((decimal)ReportInfo.UnQualifiedQty).ToString("N2") + ")，大于物料的已发料数量：" + MtlIssuedQty.ToString("N2") +"，或该物料未发料";
+                return "错误：累计上报数量："+ SumOfReportQty.ToString("N2") + "(+" + ((decimal)ReportInfo.UnQualifiedQty).ToString("N2") + ")，将大于物料的已发料数量：" + MtlIssuedQty.ToString("N2") +"，或该物料未发料";
 
 
             string sql = @"select jh.Company, Plant from erp.JobHead jh  where jh.JobNum = '" + ReportInfo.JobNum + "' ";

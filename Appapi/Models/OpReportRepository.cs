@@ -1165,7 +1165,7 @@ namespace Appapi.Models
                 int DMRID = -1;
 
                 if(theReport.TranID is DBNull || theReport.TranID == null)
-                    return "错误：库位与仓库不匹配";
+                    return "错误：TranID is NULL";
 
 
                 res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, out DMRID); //产品其它不良 D22  D
