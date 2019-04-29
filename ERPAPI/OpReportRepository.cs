@@ -212,7 +212,7 @@ namespace ErpAPI
                     EpicorSession.Dispose();
                 }
 
-                return "ErpAPI|TimeAndCost执行成功";
+                return "1|TimeAndCost执行成功";
             }
             catch (Exception ex)
             {

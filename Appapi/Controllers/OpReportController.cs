@@ -360,7 +360,7 @@ namespace Appapi.Controllers
         //Get:  /api/OpReport/PrintQR
         public string PrintQR(int id, int printqty) //ApiNum: 14 打印复制二维码
         {
-            return  OpReportRepository.PrintQR(id, printqty);
+            return  OpReportRepository.CopyQR(id, printqty);
         }
 
 

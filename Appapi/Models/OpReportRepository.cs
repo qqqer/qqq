@@ -187,7 +187,7 @@ namespace Appapi.Models
                     ,AverageEndDate
                   ,[EndDate]
                   ,[LaborHrs]
-                , AverageLaborHrs,
+                , AverageLaborHrs
                   ,0
                   ,0
                   ,3
@@ -849,6 +849,11 @@ namespace Appapi.Models
             string sql = @" Select PartNum, Description from erp.JobAsmbl  where  JobNum = '" + process.JobNum + "' and AssemblySeq = " + process.AssemblySeq + "";
             DataTable PartInfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
+
+            process.PartNum = PartInfo.Rows[0]["PartNum"].ToString();
+            process.PartDesc = PartInfo.Rows[0]["Description"].ToString();
+
+
             string NextOprInfo = GetNextSetpInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, "001");
             if (NextOprInfo.Substring(0, 1).Trim() == "0")
                 return "错误：无法获取工序最终去向，" + NextOprInfo;
@@ -856,7 +861,7 @@ namespace Appapi.Models
 
             //去向仓库打印
             if (NextOprInfo.Contains("仓库"))
-            {
+            {              
                 string ret = PrintReportQR(process);
 
                 if (ret.Contains("错误")) return ret;
@@ -910,8 +915,8 @@ namespace Appapi.Models
                     HttpContext.Current.Session["UserId"].ToString(),
                     OpDate,
                     process.CheckUserGroup,
-                    PartInfo.Rows[0]["PartNum"].ToString(),
-                    PartInfo.Rows[0]["Description"].ToString(),
+                    process.PartNum,
+                    process.PartDesc,
                     process.JobNum.ToUpperInvariant(),
                     process.AssemblySeq,
                     process.JobSeq,
@@ -1040,7 +1045,7 @@ namespace Appapi.Models
                     AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, res);
 
 
-                    if (res.Substring(0, 1).Trim() == "0" || res == "2|ErpAPI|This is a duplicate entry of an existing record") //0表示时间费用未写前发生错误，1表示全部执行成功，2表示时间费用已写后发生错误
+                    if (res.Substring(0, 1).Trim() != "1" && res != "ErpAPI|This is a duplicate entry of an existing record") 
                     {
                         return "错误：" + res;
                     }
@@ -2271,7 +2276,7 @@ namespace Appapi.Models
         }
 
 
-        public static string PrintQR(int id, int printqty)
+        public static string CopyQR(int id, int printqty)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
