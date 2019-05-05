@@ -352,7 +352,7 @@ namespace Appapi.Models
             decimal NotReceiptQty = (decimal)dt.Rows[0]["NeedReceiptQty"] - (sum is DBNull || sum == null ? 0 : (decimal)sum);
 
             if (NotReceiptQty <= 0)
-                return "剩余可收数量：" + NotReceiptQty.ToString("N2") + " ";
+                return "剩余可收数量：" + NotReceiptQty.ToString("N3") + " ";
             else if (batInfo.PartNum != dt.Rows[0]["PartNum"].ToString())
                 return "物料编码不正确";
             else if ((bool)dt.Rows[0]["OpenOrder"] == false)
@@ -542,7 +542,7 @@ namespace Appapi.Models
                     return "错误：数量需大于0";
 
                 if (batInfo.ReceiveQty1 > RB.NotReceiptQty)//若超收
-                    return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(batInfo.ReceiveQty1 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
+                    return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(batInfo.ReceiveQty1 - RB.NotReceiptQty), 3), Math.Round((double)RB.NotReceiptQty));
 
                 //临时取消完成数判断，财务上线 +
                 if (RB.TranType == "PUR-SUB")
@@ -753,7 +753,7 @@ namespace Appapi.Models
                 return "错误：数量需大于0";
 
             if (batInfo.ReceiveQty1 > RB.NotReceiptQty)//若超收
-                return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(batInfo.ReceiveQty1 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
+                return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(batInfo.ReceiveQty1 - RB.NotReceiptQty), 3), Math.Round((double)RB.NotReceiptQty));
 
 
             //临时取消完成数判断，财务上线 +
@@ -958,7 +958,7 @@ namespace Appapi.Models
                 return "错误：我方不合格数需小于等于不合格数";
 
             else if (IQCInfo.ReceiveQty2 > RB.NotReceiptQty)//若超收
-                return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(IQCInfo.ReceiveQty2 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
+                return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(IQCInfo.ReceiveQty2 - RB.NotReceiptQty), 3), Math.Round((double)RB.NotReceiptQty));
 
             else if (theBatch.IsDelete == true)
                 return "错误：该批次的流程已删除";
@@ -1086,7 +1086,7 @@ namespace Appapi.Models
                 return "错误：物料信息已被更改，请联系采购部";
 
             else if (TransferInfo.ReceiveQty2 > RB.NotReceiptQty)//若超收
-                return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(TransferInfo.ReceiveQty2 - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
+                return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(TransferInfo.ReceiveQty2 - RB.NotReceiptQty), 3), Math.Round((double)RB.NotReceiptQty));
 
             else if (theBatch.IsDelete == true)
                 return "错误：该批次的流程已删除";
@@ -1155,7 +1155,7 @@ namespace Appapi.Models
                     return "错误：数量需大于0";
 
                 else if (AcceptInfo.ArrivedQty > RB.NotReceiptQty)//若超收
-                    return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(AcceptInfo.ArrivedQty - RB.NotReceiptQty), 2), Math.Round((double)RB.NotReceiptQty));
+                    return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(AcceptInfo.ArrivedQty - RB.NotReceiptQty), 3), Math.Round((double)RB.NotReceiptQty));
 
                 else if (theBatch.IsDelete == true)
                     return "错误：该批次的流程已删除";

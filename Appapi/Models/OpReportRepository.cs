@@ -421,21 +421,20 @@ namespace Appapi.Models
             {
                 sql = "select IsParallel from BPMOpCode where OpCode = '" + arr[3] + "'";
                 int IsParallel = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
-
-                sql = "select IsShare from BPMOpCode where OpCode = '" + arr[3] + "'";
-                int IsShare = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
-
-                if (UserProcess != null)
+               
+                if (UserProcess != null)//有工序在进行且都是并发
                 {
                     if (IsParallel == 0)
                         return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
 
-                    foreach (DataRow dr in UserProcess.Rows)
-                    {
-                        if (dr["JobNum"].ToString().ToUpper() == arr[0].ToUpper() && dr["AssemblySeq"].ToString() == arr[1] && dr["JobSeq"].ToString() == arr[2])
-                            return "0|错误：不能重复发起同一工单、阶层、工序的作业申请";
-                    }
+                    string ret = "";
+                    if ((ret = GetDuplicateError(new OpReport { JobNum = arr[0], AssemblySeq = int.Parse(arr[1]), JobSeq= int.Parse(arr[2])})).Contains("错误"))
+                        return "0|" + ret;
                 }
+
+
+                sql = "select IsShare from BPMOpCode where OpCode = '" + arr[3] + "'";
+                int IsShare = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
 
                 //多可见开关
                 string ShareSwitch = ConfigurationManager.AppSettings["ShareSwitch"];
@@ -444,7 +443,6 @@ namespace Appapi.Models
                 sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ", '" + ShareUserGroup + "', '"+dt.Rows[0]["Plant"].ToString()+"',1,null,null)";
             }
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            sql = sql.Replace("'", "");
             AddOpLog(null, arr[0].ToUpperInvariant(), int.Parse(arr[1]), int.Parse(arr[2]), 101, OpDate, sql);
 
 
@@ -465,7 +463,7 @@ namespace Appapi.Models
             OpReport process = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First();
 
 
-            process.Qty = opReport.FirstQty;
+            process.Qty = Convert.ToDecimal(opReport.FirstQty);
             process.CheckUserGroup = opReport.CheckUserGroup;
             process.PrintQty = opReport.PrintQty;
             process.EndDate = DateTime.Now;
@@ -475,7 +473,7 @@ namespace Appapi.Models
             string ret;
             if ((ret = CommonRepository.GetJobHeadState(process.JobNum)) != "正常") return "错误：" + ret;
 
-            if (Convert.ToDecimal(process.Qty) <= 0) return "错误：报工数量需大于0";
+            if (process.Qty <= 0) return "错误：报工数量需大于0";
 
             if (process.CheckUserGroup == "") return "错误：下步接收人不能为空";
 
@@ -716,7 +714,7 @@ namespace Appapi.Models
                 foreach (DataRow dr in UserProcess.Rows)
                 {
                     if (dr["JobNum"].ToString().ToUpper() == process.JobNum.ToUpper() && (int)dr["AssemblySeq"] == process.AssemblySeq && (int)dr["JobSeq"] == process.JobSeq)
-                        return "错误：不能重复发起同一工单、阶层、工序的作业申请";
+                        return "错误：工序重复发起或重复添加";
                 }
             }
 
@@ -854,6 +852,13 @@ namespace Appapi.Models
             process.PartDesc = PartInfo.Rows[0]["Description"].ToString();
 
 
+            sql = "select  Character05 from OpMaster where Company = '001' and OpCode = '"+process.OpCode+"'";
+            string Character05 = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+
+
+            process.Character05 = Character05;
+
+
             string NextOprInfo = GetNextSetpInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, "001");
             if (NextOprInfo.Substring(0, 1).Trim() == "0")
                 return "错误：无法获取工序最终去向，" + NextOprInfo;
@@ -888,9 +893,9 @@ namespace Appapi.Models
                   ,[NextOpDesc]
                   ,[StartDate]
                   ,[EndDate]
-                    ,AverageEndDate
+                  ,AverageEndDate
                   ,[LaborHrs]
-                    ,AverageLaborHrs
+                  ,AverageLaborHrs
                   ,[IsComplete]
                   ,[IsDelete]
                   ,[Status]
@@ -908,7 +913,8 @@ namespace Appapi.Models
                   ,[CheckCounter]
                   ,[DMRQualifiedQty]
                   ,[DMRRepairQty]
-                  ,[DMRUnQualifiedQty]) values({0}) ";
+                  ,[DMRUnQualifiedQty]
+                  ,Character05) values({0}) ";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
                 {
                     process.UserID,
@@ -948,7 +954,8 @@ namespace Appapi.Models
                     0,
                     0,
                     0,
-                    0
+                    0,
+                    process.Character05
                 });
             sql = string.Format(sql, valueStr);
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -1162,16 +1169,27 @@ namespace Appapi.Models
 
             if (theReport.DMRID is DBNull || theReport.DMRID == null)//产生dmrid前允许删除时间费用
             {
-                int DMRID = -1;
+                int DMRID;
 
                 if(theReport.TranID is DBNull || theReport.TranID == null)
                     return "错误：TranID is NULL";
 
 
-                res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, out DMRID); //产品其它不良 D22  D
-                if (res.Substring(0, 1).Trim() != "1")
-                    return "错误：" + res;
-                sql = " update bpm set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
+                sql = "select DMRNum from erp.NonConf where TranID = " + theReport.TranID + "";
+                object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                DMRID = o == null || o is DBNull ? 0 : Convert.ToInt32( o);
+
+                if (DMRID == 0)
+                {
+                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, out DMRID); //产品其它不良 D22  D
+                    if (res.Substring(0, 1).Trim() != "1")
+                    {
+                        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "检验处理返回结果|" + res);
+                        return "错误：" + res;
+                    }
+                }
+
+                sql = " update bpm set ErpCounter = 2, DMRID = " + (DMRID == 0 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 theReport.DMRID = DMRID;
@@ -1247,7 +1265,7 @@ namespace Appapi.Models
             if (theSubReport.Status != 3)
                 return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
-            if (!(theSubReport.DMRUnQualifiedQty != null) && TransmitInfo.NextUserGroup == "")
+            if (theSubReport.DMRQualifiedQty != null  && TransmitInfo.NextUserGroup == "")
                 return "错误：下步接收人不能为空";
 
             //以下只会执行一个if

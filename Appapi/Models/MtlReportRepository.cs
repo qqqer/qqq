@@ -269,6 +269,7 @@ namespace Appapi.Models
             string sql = "select IssuedQty from erp.JobMtl where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and MtlSeq = " + MtlSeq + "";
 
             decimal IssuedQty = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+           
             return IssuedQty;
         }
 
@@ -295,7 +296,7 @@ namespace Appapi.Models
 
         private static decimal GetSumOfReportQty(string JobNum, int AssemblySeq, int MtlSeq,  string PartNum)
         {
-            string sql = " select sum(UnQualifiedQty) from  MtlReport where JobNum='" + JobNum + "' and MtlSeq = " + MtlSeq + " and PartNum = '" + PartNum + "' and AssemblySeq = " + AssemblySeq + "";
+            string sql = " select sum(UnQualifiedQty) from  MtlReport where isdelete = 0 and JobNum='" + JobNum + "' and MtlSeq = " + MtlSeq + " and PartNum = '" + PartNum + "' and AssemblySeq = " + AssemblySeq + "";
 
             object o = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -325,7 +326,7 @@ namespace Appapi.Models
 
             decimal MtlIssuedQty = GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq);
             decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq, ReportInfo.PartNum);
-            if (MtlIssuedQty - SumOfReportQty < ReportInfo.UnQualifiedQty)
+            if (MtlIssuedQty < ReportInfo.UnQualifiedQty)
                 return "错误：累计上报数量："+ SumOfReportQty.ToString("N2") + "(+" + ((decimal)ReportInfo.UnQualifiedQty).ToString("N2") + ")，将大于物料的已发料数量：" + MtlIssuedQty.ToString("N2") +"，或该物料未发料";
 
 
