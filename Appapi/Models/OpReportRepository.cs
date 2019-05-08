@@ -11,6 +11,9 @@ namespace Appapi.Models
 {
     public static class OpReportRepository
     {
+        private static readonly object lock_report = new object();
+        private static List<int> report_IDs = new List<int>();
+
         private static readonly object lock_check = new object();
         private static List<int> check_IDs = new List<int>();
 
@@ -459,46 +462,68 @@ namespace Appapi.Models
 
         internal static string ReporterCommit(OpReport opReport)
         {
-            string sql = @"select * from process where processid = " + opReport.ProcessId + "";
-            OpReport process = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First();
-
-
-            process.Qty = Convert.ToDecimal(opReport.FirstQty);
-            process.CheckUserGroup = opReport.CheckUserGroup;
-            process.PrintQty = opReport.PrintQty;
-            process.EndDate = DateTime.Now;
-            //至此process拥有process表中所有字段的值,成为一个缓存
-
-
-            string ret;
-            if ((ret = CommonRepository.GetJobHeadState(process.JobNum)) != "正常") return "错误：" + ret;
-
-            if (process.Qty <= 0) return "错误：报工数量需大于0";
-
-            if (process.CheckUserGroup == "") return "错误：下步接收人不能为空";
-
-            if ((ret = GetExceedError(process)).Contains("错误")) return ret;
-
-            //if ((ret = GetDuplicateError(process)).Contains("错误")) return ret;
-
-            if ((ret = ChemicalIssue(process)).Contains("错误")) return ret;
-
-            if ((ret = GetConsistentError(process)).Contains("错误")) return ret;
-
-
-            
-            List<OpReport> CacheList = new List<OpReport> { process };
-            SetAverageTime(CacheList);
-
-
-            if ((ret = WriteCacheToBPM(CacheList[0])) == "true") //true
+            lock (lock_report)
             {
-                //清除该完结缓存
-                DeleteCache((int)process.ProcessId);
-                AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 102, process.EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), "报工提交成功，自动清除process");
-                return "处理成功";
+                if (report_IDs.Contains((int)opReport.ProcessId))
+                    return "错误：其他账号正在提交该待办事项";
+                report_IDs.Add((int)opReport.ProcessId);
             }
-            else return ret;
+
+            try
+            {
+
+                string sql = @"select * from process where processid = " + opReport.ProcessId + "";
+                OpReport process = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First();
+
+
+                if (process == null) return "错误：记录不存在";
+
+
+                process.Qty = Convert.ToDecimal(opReport.FirstQty);
+                process.CheckUserGroup = opReport.CheckUserGroup;
+                process.PrintQty = opReport.PrintQty;
+                process.EndDate = DateTime.Now;
+                //至此process拥有process表中所有字段的值,成为一个缓存
+
+
+                string ret;
+                if ((ret = CommonRepository.GetJobHeadState(process.JobNum)) != "正常") return "错误：" + ret;
+
+                if (process.Qty <= 0) return "错误：报工数量需大于0";
+
+                if (process.CheckUserGroup == "") return "错误：下步接收人不能为空";
+
+                if ((ret = GetExceedError(process)).Contains("错误")) return ret;
+
+                //if ((ret = GetDuplicateError(process)).Contains("错误")) return ret;
+
+                if ((ret = ChemicalIssue(process)).Contains("错误")) return ret;
+
+                if ((ret = GetConsistentError(process)).Contains("错误")) return ret;
+
+
+
+                List<OpReport> CacheList = new List<OpReport> { process };
+                SetAverageTime(CacheList);
+
+
+                if ((ret = WriteCacheToBPM(CacheList[0])) == "true") //true
+                {
+                    //清除该完结缓存
+                    DeleteCache((int)process.ProcessId);
+                    AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 102, process.EndDate.ToString("yyyy-MM-dd HH:mm:ss.fff"), "报工提交成功，自动清除process");
+                    return "处理成功";
+                }
+                else return ret;
+            }
+            catch(Exception ex)
+            {
+                return ex.Message;
+            }
+            finally
+            {
+                report_IDs.Remove((int)opReport.ProcessId);
+            }
         }
 
         internal static void SetAverageTime(List<OpReport> CacheList)

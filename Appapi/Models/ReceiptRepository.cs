@@ -2118,7 +2118,14 @@ namespace Appapi.Models
             string Warehouse = Convert.ToString(para.Warehouse);
 
 
-            string res = ErpAPI.ReceiptRepository.tranStk(tranJson, System.Convert.ToString(para.Company), Warehouse.Contains("RR") ? "RRSite" : "MfgSys");
+
+            string plant = "";
+            if (Warehouse.Contains("RR")) plant = "RRSite";
+            if (Warehouse.Contains("Mfg")) plant = "MfgSys";
+            if (Warehouse.Contains("HD")) plant = "HDSite";
+
+
+            string res = ErpAPI.ReceiptRepository.tranStk(tranJson, System.Convert.ToString(para.Company), plant);
 
             if (res.Substring(0, 1) == "1")
             {

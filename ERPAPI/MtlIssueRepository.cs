@@ -23,13 +23,12 @@ namespace ErpAPI
         private static string IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId, string plantId)
         {
             Session EpicorSession = CommonRepository.GetEpicorSession();
-            try
+            if (EpicorSession == null)
             {
-                
-                if (EpicorSession == null)
-                {
-                    return "0|Get EpicorSession failed";
-                }
+                return "0|Get EpicorSession failed|IssueReturnSTKMTLbak";
+            }
+            try
+            {              
                 EpicorSession.PlantID = plantId;
                 EpicorSession.CompanyID = companyId;
                 IssueReturnImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<IssueReturnImpl>(EpicorSession, ImplBase<Erp.Contracts.IssueReturnSvcContract>.UriPath);
@@ -85,15 +84,17 @@ namespace ErpAPI
                 adapter.PerformMaterialMovement(true, ds, out legalNumberMessage, out partTranPKs);
                 adapter.Dispose();
 
-                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
                 string message = "工单：" + jobNum + "/" + assemblySeq + "/" + oprSeq + ",扣料时系统报错。物料：" + partNum + ",来源仓:" + fromWarehouseCode + "/" + fromBinNum + ",目标仓:" + toWarehouseCode + "/" + toBinNum + ",批次:" + lotNum + ",数量:" + tranQty + ".原因:" + ex.Message;
                 //WriteTxt(message);
-                EpicorSession.Dispose();
                 return "0|" + ex.Message;
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
 
