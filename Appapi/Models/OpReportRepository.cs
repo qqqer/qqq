@@ -831,7 +831,7 @@ namespace Appapi.Models
 
 
             string sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + process.JobNum + "' and AssemblySeq = " + (int)process.AssemblySeq + "";
-            string partnum = "|" + (string)Common.SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            string partnum = "|" + (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
 
@@ -1857,7 +1857,7 @@ namespace Appapi.Models
                 return "0|错误：无法获取工序最终去向，" + NextOprInfo;
 
             sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + UserProcess.Rows[0]["JobNum"].ToString() + "' and AssemblySeq = " + (int)UserProcess.Rows[0]["AssemblySeq"] + "";
-            string partnum = "|" + (string)Common.SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            string partnum = "|" + (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
             return "1|" + (string)UserProcess.Rows[0]["JobNum"]

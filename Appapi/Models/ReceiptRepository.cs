@@ -567,7 +567,7 @@ namespace Appapi.Models
                 #region 计算批次号
                 lock (PrintSeriesNumLock)
                 {
-                    DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(SQLRepository.APP_strConn, sql);
+                    DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
 
                     string OriDay = ((DateTime)dt.Rows[0]["time"]).ToString("yyyy-MM-dd");//截取从数据库获得的时间的年月日部分
@@ -1626,7 +1626,7 @@ namespace Appapi.Models
         public static DataTable GetWarehouse(string partnum)
         {
             string sql = @"select erp.Warehse.WarehouseCode,  Description  from erp.PartBin left join erp.Warehse on erp.PartBin.WarehouseCode = erp.Warehse.WarehouseCode  where PartNum = '" + partnum+"'";
-            return Common.SQLRepository.ExecuteQueryToDataTable(SQLRepository.ERP_strConn, sql);
+            return Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
         }
 
 
