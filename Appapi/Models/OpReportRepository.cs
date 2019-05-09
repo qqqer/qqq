@@ -320,14 +320,14 @@ namespace Appapi.Models
 
 
             string sql = @"select sum(QualifiedQty) from bpm where IsComplete = 0 and status > 2 and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
-            object BPMNotAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object BPMNotAcceptQty = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             BPMNotAcceptQty = Convert.IsDBNull(BPMNotAcceptQty) || BPMNotAcceptQty == null ? 0 : BPMNotAcceptQty;
             decimal ERPCompletedQty = CommonRepository.GetOpSeqCompleteQty(jobnum, asmSeq, PreOprSeq);
             decimal UnionAcceptQty = ERPCompletedQty - Convert.ToDecimal(BPMNotAcceptQty);
 
 
             sql = @"select sum(DMRQualifiedQty) from bpmsub where IsComplete = 1 and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
-            object BPMSubAcceptQty = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object BPMSubAcceptQty = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMSubAcceptQty == null ? 0 : BPMSubAcceptQty;
 
             SumOfAcceptedQty += Convert.ToDecimal(UnionAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
@@ -340,18 +340,18 @@ namespace Appapi.Models
         private static decimal GetSumOfReportedQty(string jobnum, int asmSeq, int oprseq) //该指定工序的累积报工数
         {
             string sql = @"select sum(FirstQty) from bpm where isdelete != 1  and status < 3 and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
-            object SumOfReportQtyBefore3 = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object SumOfReportQtyBefore3 = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             SumOfReportQtyBefore3 = Convert.IsDBNull(SumOfReportQtyBefore3) || SumOfReportQtyBefore3 == null ? 0 : SumOfReportQtyBefore3;
 
 
 
             sql = @"select sum(UnQualifiedQty) - sum(DMRQualifiedQty) from bpm where isdelete != 1  and status > 2 and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
-            object SumOfReportQtyAfter2 = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object SumOfReportQtyAfter2 = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             SumOfReportQtyAfter2 = Convert.IsDBNull(SumOfReportQtyAfter2) || SumOfReportQtyAfter2 == null ? 0 : SumOfReportQtyAfter2;
 
 
             sql = @"select sum(ISNULL(Qty,0))  from process where  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + "";
-            object SumOfReportQtyInProcess = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object SumOfReportQtyInProcess = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             SumOfReportQtyInProcess = Convert.IsDBNull(SumOfReportQtyInProcess) || SumOfReportQtyInProcess == null ? 0 : SumOfReportQtyInProcess;
 
 
@@ -831,7 +831,7 @@ namespace Appapi.Models
 
 
             string sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + process.JobNum + "' and AssemblySeq = " + (int)process.AssemblySeq + "";
-            string partnum = "|" + (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            string partnum = "|" + (string)Common.SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
 
@@ -1857,7 +1857,7 @@ namespace Appapi.Models
                 return "0|错误：无法获取工序最终去向，" + NextOprInfo;
 
             sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + UserProcess.Rows[0]["JobNum"].ToString() + "' and AssemblySeq = " + (int)UserProcess.Rows[0]["AssemblySeq"] + "";
-            string partnum = "|" + (string)SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            string partnum = "|" + (string)Common.SQLRepository.ExecuteScalarToObject(SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
             return "1|" + (string)UserProcess.Rows[0]["JobNum"]

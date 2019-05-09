@@ -298,7 +298,7 @@ namespace Appapi.Models
         {
             string sql = " select sum(UnQualifiedQty) from  MtlReport where isdelete = 0 and JobNum='" + JobNum + "' and MtlSeq = " + MtlSeq + " and PartNum = '" + PartNum + "' and AssemblySeq = " + AssemblySeq + "";
 
-            object o = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object o = Common.SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             decimal SumOfReportQty = o is DBNull ? 0 : Convert.ToDecimal(o);
             return SumOfReportQty;
