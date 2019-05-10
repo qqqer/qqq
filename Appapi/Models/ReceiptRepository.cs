@@ -1642,7 +1642,18 @@ namespace Appapi.Models
 
             if (arr.Length == 14) //刚好13个波浪线， 扫码收货时解析
             {
-                
+                string sql = @"select 
+                pr.plant,
+                vd.Name,
+                pr.JobNum,
+                pd.IUM,
+                pd.LineDesc as  PartDesc
+                from erp.PORel pr    
+                left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
+                left join erp.POHeader ph   on ph.Company = pr.Company   and   ph.PONum = pr.PONUM                 
+                left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum   and   ph.company = vd.company             
+                where pr.Company = '" + arr[0] + "'   and   pr.ponum = " + int.Parse(arr[8]) + "   and   pr.poline = " + int.Parse(arr[9]) + "  and pr.porelnum = " + int.Parse(arr[11]) + " ";
+
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
                 arr[2] = Convert.ToString(dt.Rows[0]["PartDesc"]);
                 arr[4] = Convert.ToString(dt.Rows[0]["JobNum"]);
