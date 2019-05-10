@@ -795,7 +795,7 @@ namespace Appapi.Models
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
-            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
+            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '"+process.Plant+"', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
             jsonStr = string.Format(jsonStr, process.PartNum, process.JobNum, process.JobNum, process.AssemblySeq.ToString(), PrintID.ToString(), "", "", process.Qty.ToString(), "", "001", process.JobSeq.ToString(), "", process.PartDesc);
             jsonStr = "[{" + jsonStr + "}]";
 
@@ -2324,11 +2324,11 @@ namespace Appapi.Models
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
             string sql = @"select * from bpm where Id = " + id + "";
-            OpReport theSubReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
+            OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
 
-            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
-            jsonStr = string.Format(jsonStr, theSubReport.PartNum, theSubReport.JobNum, theSubReport.JobNum, theSubReport.AssemblySeq.ToString(), theSubReport.PrintID.ToString(), "", "", theSubReport.FirstQty.ToString(), "", theSubReport.Company, theSubReport.JobSeq.ToString(), "", theSubReport.PartDesc);
+            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '"+theReport.Plant+"', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
+            jsonStr = string.Format(jsonStr, theReport.PartNum, theReport.JobNum, theReport.JobNum, theReport.AssemblySeq.ToString(), theReport.PrintID.ToString(), "", "", theReport.FirstQty.ToString(), "", theReport.Company, theReport.JobSeq.ToString(), "", theReport.PartDesc);
             jsonStr = "[{" + jsonStr + "}]";
 
 
@@ -2339,7 +2339,7 @@ namespace Appapi.Models
             if ((res = client.Print(@"C:\D0201.btw", printer, printqty, jsonStr)) == "1|处理成功")
             {
                 client.Close();
-                AddOpLog(id, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 14, OpDate, "复制二维码");
+                AddOpLog(id, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 14, OpDate, "复制二维码");
                 return "处理成功";
             }
             else

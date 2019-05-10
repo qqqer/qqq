@@ -593,7 +593,7 @@ namespace Appapi.Models
 
                 #region 调用现有接口打印
 
-                string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
+                string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '"+batInfo.Plant+"', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
                 jsonStr = string.Format(jsonStr, batInfo.PartNum, batInfo.BatchNo, CommonRepository.GetValueAsString(batInfo.JobNum), CommonRepository.GetValueAsString(batInfo.AssemblySeq), batInfo.SupplierNo, batInfo.PoNum, batInfo.PoLine, batInfo.ReceiveQty1, batInfo.PORelNum, batInfo.Company, CommonRepository.GetValueAsString(batInfo.JobSeq), batInfo.HeatNum, batInfo.PartDesc);
                 jsonStr = "[{" + jsonStr + "}]";
 
@@ -1642,18 +1642,7 @@ namespace Appapi.Models
 
             if (arr.Length == 14) //刚好13个波浪线， 扫码收货时解析
             {
-                string sql = @"select 
-                pr.plant,
-                vd.Name,
-                pr.JobNum,
-                pd.IUM,
-                pd.LineDesc as  PartDesc
-                from erp.PORel pr    
-                left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
-                left join erp.POHeader ph   on ph.Company = pr.Company   and   ph.PONum = pr.PONUM                 
-                left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum   and   ph.company = vd.company             
-                where pr.Company = '" + arr[0] + "'   and   pr.ponum = " + int.Parse(arr[8]) + "   and   pr.poline = " + int.Parse(arr[9]) + "  and pr.porelnum = " + int.Parse(arr[11]) + " ";
-
+                
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
                 arr[2] = Convert.ToString(dt.Rows[0]["PartDesc"]);
                 arr[4] = Convert.ToString(dt.Rows[0]["JobNum"]);
@@ -1834,7 +1823,7 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string sql = @"update Receipt set SecondUserID = '"+ HttpContext.Current.Session["UserId"].ToString() + "', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, isComplete = 1, IQCRemark = '" + IQCInfo.IQCRemark + "' where ID = {4}";
+            string sql = @"update Receipt set Result = '"+ IQCInfo.Result +"', SecondUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, isComplete = 1, IQCRemark = '" + IQCInfo.IQCRemark + "' where ID = {4}";
             sql = string.Format(sql, Convert.ToInt32(IQCInfo.IsAllCheck), (IQCInfo.InspectionQty) == -1 ? "null" : IQCInfo.InspectionQty.ToString(), IQCInfo.PassedQty, IQCInfo.FailedQty, IQCInfo.ID);
 
 
@@ -1885,12 +1874,19 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
+            string sql = @"select 
+                pr.plant
+                from erp.PORel pr             
+                where pr.Company = '" + info.Company + "'   and   pr.ponum = " + info.PoNum + "   and   pr.poline = " + info.PoLine + "  and pr.porelnum = " + info.PORelNum + " ";
+            string plant = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+
+            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '"+plant+"', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
             jsonStr = string.Format(jsonStr, info.PartNum, info.BatchNo, CommonRepository.GetValueAsString(info.JobNum), CommonRepository.GetValueAsString(info.AssemblySeq), info.SupplierNo, info.PoNum, info.PoLine, info.ReceiveQty1, info.PORelNum, info.Company, CommonRepository.GetValueAsString(info.JobSeq), info.HeatNum, info.PartDesc);
             jsonStr = "[{" + jsonStr + "}]";
 
 
-            string sql = "select Printer from Userprinter where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' ";
+            sql = "select Printer from Userprinter where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "' ";
             string printer = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             string res = "";
             ServiceReference_Print.WebServiceSoapClient client = new ServiceReference_Print.WebServiceSoapClient();

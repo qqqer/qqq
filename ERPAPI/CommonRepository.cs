@@ -608,7 +608,7 @@ namespace ErpAPI
 
                     if (plant.Contains("RR")) dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "引擎零部件工厂";
                     if (plant.Contains("Mfg")) dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "Main Site";
-                    if (plant.Contains("HD")) dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "Avionics Site";
+                    if (plant.Contains("HD")) dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "航电工厂";
 
 
 
