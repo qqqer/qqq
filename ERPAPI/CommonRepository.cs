@@ -445,7 +445,14 @@ namespace ErpAPI
                 //选仓库
                 adapter.OnChangeWarehouseCode(WarehouseCode, false, ds);
                 ds.Tables["NonConf"].Rows[0]["ToWarehouseCode"] = WarehouseCode;
-                ds.Tables["NonConf"].Rows[0]["WarehouseCode"] = "WIP";
+
+                string whc = "WIP";
+                if (plant.Substring(0, 2) == "RR") whc = "RRWIP";
+                if (plant.Substring(0, 2) == "HD") whc = "HDWIP";
+
+                ds.Tables["NonConf"].Rows[0]["WarehouseCode"] = whc;
+
+
                 //填库位
                 adapter.OnChangeBinNum(BinNum, false, ds);
                 ds.Tables["NonConf"].Rows[0]["ToBinNum"] = BinNum;
@@ -748,7 +755,11 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["TranUOM"] = "PCS";
                 adapter.DefaultIssueComplete(ds);
 
-                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
+                string whc = "WIP";
+                if (plant.Substring(0, 2) == "RR") whc = "RRWIP";
+                if (plant.Substring(0, 2) == "HD") whc = "HDWIP";
+
+                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = whc;
                 
                 adapter.ChangeWarehouse(ds);
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";

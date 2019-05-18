@@ -1253,7 +1253,7 @@ namespace Appapi.Models
                                     {
                                         if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
                                         {
-                                            res = ErpAPI.MtlIssueRepository.CheckIssue(mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"]);
+                                            res = ErpAPI.MtlIssueRepository.CheckIssue(mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"],theBatch.Plant);
                                             if (res.Substring(0, 1).Trim() == "0")
                                                 return "工单：" + theBatch.JobNum + "，阶层：" + theBatch.AssemblySeq.ToString() + "，工序：" + dt.Rows[i]["jobseq"].ToString() + "， 物料编码：" + mtls.Rows[j]["partnum"].ToString() + "  " + res.Substring(2);
                                         }
