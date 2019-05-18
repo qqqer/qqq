@@ -56,6 +56,8 @@ namespace Appapi.Models
         public string FourthUserID { get; set; }
         public DateTime StockDate { get; set; }
         public DateTime ChooseDate { get; set; }
+        public DateTime ReceiptCommitDate { get; set; }
+      
         public decimal? ArrivedQty { get; set; }
         public string Warehouse { get; set; }
         public string BinNum { get; set; }

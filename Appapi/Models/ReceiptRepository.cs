@@ -661,7 +661,8 @@ namespace Appapi.Models
                             isComplete,
                             PackSlip,
                             ReceiptDate,
-                            POType
+                            POType,
+                            ReceiptCommitDate
                             ) values({0}) ";
                     string values = CommonRepository.ConstructInsertValues(new ArrayList
                     {
@@ -705,7 +706,8 @@ namespace Appapi.Models
                         0,
                         RB.SupplierNo + batInfo.BatchNo,
                         OpDate,
-                        RB.POType
+                        RB.POType,
+                        OpDate
                     });
                     sql = string.Format(sql, values);
                     #endregion
@@ -826,7 +828,8 @@ namespace Appapi.Models
                         isComplete,
                         PackSlip,
                         ReceiptDate,
-                        POType
+                        POType,
+                        ReceiptCommitDate
                         ) values({0}) ";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
                 {
@@ -870,7 +873,8 @@ namespace Appapi.Models
                     0,
                     RB.SupplierNo + batInfo.BatchNo,
                     OpDate,
-                    RB.POType
+                    RB.POType,
+                    OpDate
                 });
                 sql = string.Format(sql, values);
                 #endregion
@@ -904,7 +908,8 @@ namespace Appapi.Models
                         Status = {3},
                         AtRole = {4},
                         PreStatus = {5},
-                        HeatNum = '{6}'
+                        HeatNum = '{6}',
+                        ReceiptDate = '{7}'
                         where BatchNo = '" + batInfo.BatchNo + "'";
                 sql = string.Format(sql,
                     batInfo.ReceiveQty1,
@@ -913,7 +918,8 @@ namespace Appapi.Models
                     2,
                     2, 
                     (int)theBatch.Rows[0]["status"],
-                    batInfo.HeatNum);
+                    batInfo.HeatNum,
+                    OpDate);
                 #endregion
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -977,7 +983,7 @@ namespace Appapi.Models
                 string PassedQty = IQCInfo.PassedQty != null ? IQCInfo.PassedQty.ToString() : "null";
                 string FailedQty = IQCInfo.FailedQty != null ? IQCInfo.FailedQty.ToString() : "null";
                 string OurFailedQty = IQCInfo.OurFailedQty != null ? IQCInfo.OurFailedQty.ToString() : "null";
-                string InspectionQty = IQCInfo.InspectionQty != -1 ? IQCInfo.InspectionQty.ToString() : "null";
+                string InspectionQty = IQCInfo.InspectionQty != -1 ? IQCInfo.InspectionQty.ToString() : IQCInfo.ReceiveQty2.ToString();
                 string ThirdUserGroup = IQCInfo.ThirdUserGroup ?? "";
                 string ReceiptNo = IQCInfo.ReceiptNo ?? "";
 
@@ -1292,6 +1298,7 @@ namespace Appapi.Models
                                         "'" + theBatch.SupplierName + "'," +
                                         "'" + ErpAPI.ReceiptRepository.poDes((int)theBatch.PoNum, (int)dt.Rows[i]["PoLine"], (int)dt.Rows[i]["PORelNum"], theBatch.Company) + "'," +
                                         "'" + theBatch.ReceiptDate.ToString("yyyy-MM-dd HH:mm:ss.fff") + "'," +
+                                        "'" + theBatch.ReceiptCommitDate.ToString("yyyy-MM-dd HH:mm:ss.fff") + "'," +
                                         "'" + theBatch.IQCDate.ToString("yyyy-MM-dd HH:mm:ss.fff") + "'," +
                                         "'" + theBatch.ChooseDate.ToString("yyyy-MM-dd HH:mm:ss.fff") + "'," +
                                         "'" + OpDate + "'," +
@@ -1566,19 +1573,19 @@ namespace Appapi.Models
 
             if (oristatus == 4)
             {
-                sql = "update receipt set fourthusergroup=null where id = " + ID + "";
+                sql = "update receipt set fourthusergroup=null,ChooseDate = null where id = " + ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 Return(3, "ReturnThree", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, remark, 4);
             }
             else if (oristatus == 3)
             {
-                sql = "update receipt set  thirdusergroup=null, thirduserid=null, choosedate=null where id = " + ID + "";
+                sql = "update receipt set  thirdusergroup=null, thirduserid=null, IQCDate=null where id = " + ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 Return(2, "ReturnTwo", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, remark, 2);
             }
             else if (oristatus == 2)
             {
-                sql = "update receipt set ReceiveQty2 =null, NBBatchNo = null,  InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, iqcdate=null where id = " + ID + "";
+                sql = "update receipt set ReceiveQty2 =null, NBBatchNo = null,  InspectionQty = null, passedqty=null, failedqty=null, isallcheck=null, result=null, secondusergroup=null, seconduserid=null, ReceiptDate=null where id = " + ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 Return(1, "ReturnOne", (string)theBatch.Rows[0]["batchno"], OpDate, ReasonID, remark, 1);
             }
@@ -1734,7 +1741,7 @@ namespace Appapi.Models
         /// <returns></returns>
         public static IEnumerable<Receipt> GetRemainsOfUser()
         {
-            string sql = @"select * from Receipt where AtRole & {0} != 0 and isdelete != 1 and isComplete != 1 and CHARINDEX(Company, '{1}') > 0   and   CHARINDEX(Plant, '{2}') > 0 order by ReceiptDate desc";
+            string sql = @"select * from Receipt where AtRole & {0} != 0 and isdelete != 1 and isComplete != 1 and CHARINDEX(Company, '{1}') > 0   and   CHARINDEX(Plant, '{2}') > 0 order by ReceiptCommitDate desc";
             sql = string.Format(sql, (int)HttpContext.Current.Session["RoleId"], HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
 
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
@@ -1809,7 +1816,7 @@ namespace Appapi.Models
             if (Condition.IsRestrictRcv == true)
                 sql += "and (IsPrintRcv is null or IsPrintRcv = 0)  ";
 
-            sql += " order by ReceiptDate desc";
+            sql += " order by ReceiptCommitDate desc";
 
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
@@ -2126,10 +2133,9 @@ namespace Appapi.Models
 
 
 
-            string plant = "";
-            if (Warehouse.Contains("RR")) plant = "RRSite";
-            if (Warehouse.Contains("Mfg")) plant = "MfgSys";
-            if (Warehouse.Contains("HD")) plant = "HDSite";
+            string plant = "MfgSys";
+            if (Warehouse.Substring(0,2) == "RR") plant = "RRSite";
+            if (Warehouse.Substring(0, 2) == "HD") plant = "HDSite";
 
 
             string res = ErpAPI.ReceiptRepository.tranStk(tranJson, System.Convert.ToString(para.Company), plant);

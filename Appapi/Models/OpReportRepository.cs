@@ -149,6 +149,8 @@ namespace Appapi.Models
                   ,null
                   ,null
                   ,'{9}'
+                  ,[DefectNO]
+                  ,[CheckRemark]
              from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRQualifiedQty, Id, 1, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), dmrid, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, Responsibility);
@@ -221,6 +223,8 @@ namespace Appapi.Models
                   ,null
                   ,null
                   ,'{10}'
+                  ,[DefectNO]
+                  ,[CheckRemark]
              from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRRepairQty, Id, 1, DMRJobNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, Responsibility);
@@ -293,6 +297,8 @@ namespace Appapi.Models
               ,null
               ,null
               ,'{9}'
+              ,[DefectNO]
+              ,[CheckRemark]
          from bpm where id = " + Id + "";
 
             sql = string.Format(sql, DMRUnQualifiedQty, Id, 1, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), Responsibility);
@@ -322,15 +328,17 @@ namespace Appapi.Models
             string sql = @"select sum(QualifiedQty) from bpm where IsComplete = 0 and status > 2 and isdelete != 1  and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
             object BPMNotAcceptQty = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             BPMNotAcceptQty = Convert.IsDBNull(BPMNotAcceptQty) || BPMNotAcceptQty == null ? 0 : BPMNotAcceptQty;
+
+
+            sql = @"select sum(DMRQualifiedQty) from bpmsub where IsComplete = 0 and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
+            object BPMSubNotAcceptQty = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            BPMSubNotAcceptQty = Convert.IsDBNull(BPMSubNotAcceptQty) || BPMSubNotAcceptQty == null ? 0 : BPMSubNotAcceptQty;
+
+
             decimal ERPCompletedQty = CommonRepository.GetOpSeqCompleteQty(jobnum, asmSeq, PreOprSeq);
-            decimal UnionAcceptQty = ERPCompletedQty - Convert.ToDecimal(BPMNotAcceptQty);
 
 
-            sql = @"select sum(DMRQualifiedQty) from bpmsub where IsComplete = 1 and isdelete != 1 and UnQualifiedType = 1 and DMRQualifiedQty is not null   and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + PreOprSeq + "";
-            object BPMSubAcceptQty = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            BPMSubAcceptQty = Convert.IsDBNull(BPMSubAcceptQty) || BPMSubAcceptQty == null ? 0 : BPMSubAcceptQty;
-
-            SumOfAcceptedQty += Convert.ToDecimal(UnionAcceptQty) + Convert.ToDecimal(BPMSubAcceptQty);
+            SumOfAcceptedQty = ERPCompletedQty - Convert.ToDecimal(BPMNotAcceptQty) - Convert.ToDecimal(BPMSubNotAcceptQty);
 
 
             return SumOfAcceptedQty;
@@ -1097,8 +1105,11 @@ namespace Appapi.Models
                             "UnQualifiedReason = '" + (CheckInfo.UnQualifiedQty > 0 ? CommonRepository.GetValueAsString(CheckInfo.UnQualifiedReason) : "") + "'," +
                             "Character05 = '" + Character05 + "'," +
                             "CheckCounter = " + (CheckInfo.UnQualifiedQty > 0 ? CheckInfo.UnQualifiedQty : 0) + ", " +
-                            "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + " " +
-                            "where id = " + CheckInfo.ID + "";
+                            "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + ", " +
+                            "DefectNO = '" + CheckInfo.DefectNO + "', " +
+                            "CheckRemark = '" + CheckInfo.CheckRemark + "' " +
+
+                            " where id = " + CheckInfo.ID + "";
 
 
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -2228,7 +2239,7 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string table = IsSubProcess ? "bpmsub" : "bpm", processtype = IsSubProcess ? "主流程" : "子流程";
+            string table = IsSubProcess ? "bpmsub" : "bpm", processtype = IsSubProcess ? "子流程" : "主流程";
             string sql = "select * from " + table + " where ID = " + ID + " ";
             OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
