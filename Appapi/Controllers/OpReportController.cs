@@ -31,7 +31,11 @@ namespace Appapi.Controllers
             return res;
         }
  
-
+        /// <summary>
+        /// 普通模式报工提交
+        /// </summary>
+        /// <param name="ReportInfo"></param>
+        /// <returns></returns>
         //Post:  /api/OpReport/ReporterCommit
         [System.Web.Http.HttpPost]
         public string ReporterCommit(OpReport ReportInfo) // ApiNum 102
@@ -49,7 +53,10 @@ namespace Appapi.Controllers
 
 
 
-
+        /// <summary>
+        /// 计时模式报工批量提交
+        /// </summary>
+        /// <returns></returns>
         //Post:  /api/OpReport/CommitCacheList
         [System.Web.Http.HttpPost]
         public string CommitCacheList() // ApiNum 104
@@ -59,6 +66,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 计时模式添加结束作业
+        /// </summary>
+        /// <param name="process"></param>
+        /// <returns></returns>
         //Post:  /api/OpReport/AddCache
         [System.Web.Http.HttpPost]
         public string AddCache(OpReport process) // ApiNum 105
@@ -198,6 +210,7 @@ namespace Appapi.Controllers
 
 
         /// <summary>
+        /// 获取工序详细信息
         /// 获取参数锁定的工序的信息OprSeq,OpDesc,OpCode, erp.joboper.QtyCompleted
         /// </summary>
         /// <param name="JobNum"></param>
@@ -406,7 +419,10 @@ namespace Appapi.Controllers
 
 
 
-        
+        /// <summary>
+        /// 设置作业开始时间
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         //Get:  /api/OpReport/SetStartTime
         public string SetStartTime() //ApiNum: 18
@@ -415,7 +431,10 @@ namespace Appapi.Controllers
         }
        
 
-
+        /// <summary>
+        /// 获取作业的开始时间
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         //Get:  /api/OpReport/GetStartTime
         public string GetStartTime() //ApiNum: 19
@@ -424,7 +443,10 @@ namespace Appapi.Controllers
         }
 
 
-
+        /// <summary>
+        /// 清除作业的开始时间
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         //Get:  /api/OpReport/CleanStartTime
         public string CleanStartTime() //ApiNum: 20
@@ -433,6 +455,11 @@ namespace Appapi.Controllers
         }
 
 
+        /// <summary>
+        /// 取消已完成的作业缓存
+        /// </summary>
+        /// <param name="ProcessID"></param>
+        /// <returns></returns>
         [HttpGet]
         //Get:  /api/OpReport/DeleteCache
         public string DeleteCache(int ProcessID) //ApiNum: 21
@@ -441,6 +468,11 @@ namespace Appapi.Controllers
             return "取消成功";
         }
 
+
+        /// <summary>
+        /// 获取缓存列表
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         //HttpGet:  /api/OpReport/GetCacheList
         public List<OpReport> GetCacheList() //ApiNum: 22
@@ -448,6 +480,12 @@ namespace Appapi.Controllers
            return OpReportRepository.GetCacheList();
         }
 
+
+        /// <summary>
+        /// 获取缓存详情1
+        /// </summary>
+        /// <param name="values"></param>
+        /// <returns></returns>
         [HttpGet]
         //HttpGet:  /api/OpReport/GetCachePageDetailByOprInfo
         public string GetCachePageDetailByOprInfo(string values) //ApiNum: 23
@@ -457,7 +495,11 @@ namespace Appapi.Controllers
             return OpReportRepository.GetCachePageDetailByOprInfo(new OpReport {JobNum = arr[0], AssemblySeq = int.Parse(arr[1]), JobSeq = int.Parse(arr[2])});
         }
 
-
+        /// <summary>
+        /// 获取缓存详情2
+        /// </summary>
+        /// <param name="ProcessId"></param>
+        /// <returns></returns>
         [HttpGet]
         //HttpGet:  /api/OpReport/ GetCachePageDetailByCacheID
         public string GetCachePageDetailByCacheID(int ProcessId) //ApiNum: 24
