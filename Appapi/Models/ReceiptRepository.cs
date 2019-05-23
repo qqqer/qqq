@@ -1108,6 +1108,30 @@ namespace Appapi.Models
                 TransferInfo.AtRole = GetNextRole(theBatch.ID);
                 if (TransferInfo.AtRole == 1152921504606846976) //2^60
                     return "错误：无法确定去向";
+
+                if (theBatch.TranType == "PUR-UKN")
+                {
+                    DataTable dt = GetNextUserGroup(TransferInfo.AtRole, theBatch.Company, theBatch.Plant, theBatch.ID);
+                    if (dt == null)
+                    {
+                        sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
+                        sql = string.Format(sql, theBatch.Company,theBatch.PoNum,theBatch.PoLine);
+
+                        var RcvPerson_c = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                        return "错误：未找到" + RcvPerson_c + "的临时物料接收人";
+                    }
+                    theBatch.DepartmentUKN = dt.Rows[0]["Department"].ToString();
+                    string XML = OA_XML_Template.Create2162XML(theBatch);
+
+                    OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+
+                    string res = client.doCreateWorkflowRequest(XML, 1012);
+                    if (Convert.ToInt32(res) <= 0)
+                        return "错误：转发OA失败:" + res;
+
+                    TransferInfo.FourthUserGroup = HttpContext.Current.Session["UserId"].ToString(); //4节点接收人 还是转序人
+                    TransferInfo.AtRole = 4; //下节点转序角色
+                }
                 
                 sql = @"update Receipt set PreStatus = " + theBatch.Status + " , ChooseDate = '" + OpDate + "', Status = 4, FourthUserGroup = '{0}', ThirdUserID = '{1}', AtRole = {2} where ID = " + TransferInfo.ID + "";
                 sql = string.Format(sql, TransferInfo.FourthUserGroup, HttpContext.Current.Session["UserId"].ToString(), TransferInfo.AtRole);
@@ -1156,6 +1180,15 @@ namespace Appapi.Models
 
                 else if (theBatch.AtRole == 8 && (res = CheckBinNum(AcceptInfo)) != "ok") //去向仓库，则需检查库位
                     return res;
+
+                else if (theBatch.TranType == "PUR-UKN" && !theBatch.OA_UKN_Confirm)
+                {
+                    sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
+                    sql = string.Format(sql, theBatch.Company, theBatch.PoNum, theBatch.PoLine);
+
+                    var RcvPerson_c = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                    return "错误：该收货的OA流程还未被"+RcvPerson_c+"确认";
+                }
 
                 else if (AcceptInfo.ArrivedQty == null || AcceptInfo.ArrivedQty <= 0)
                     return "错误：数量需大于0";
@@ -1253,7 +1286,7 @@ namespace Appapi.Models
                                     {
                                         if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
                                         {
-                                            res = ErpAPI.MtlIssueRepository.CheckIssue(mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"],theBatch.Plant);
+                                            res = ErpAPI.MtlIssueRepository.CheckIssue(mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"], theBatch.Plant);
                                             if (res.Substring(0, 1).Trim() == "0")
                                                 return "工单：" + theBatch.JobNum + "，阶层：" + theBatch.AssemblySeq.ToString() + "，工序：" + dt.Rows[i]["jobseq"].ToString() + "， 物料编码：" + mtls.Rows[j]["partnum"].ToString() + "  " + res.Substring(2);
                                         }
@@ -1262,7 +1295,7 @@ namespace Appapi.Models
                             }
 
 
-                                rcvdtlStr = "[";
+                            rcvdtlStr = "[";
                             for (int i = 0; i < dt.Rows.Count; i++)
                             {
                                 rcvdtlStr += ConstructRcvdtlStr(
@@ -1356,7 +1389,8 @@ namespace Appapi.Models
                                         "'" + theBatch.IQCRemark + "'," +
                                         "" + (Convert.ToBoolean(theBatch.IsPrintRcv) == true ? 1 : 0) + "," +
                                         " '" + theBatch.PackSlip + "'," +
-                                        " '" + theBatch.POType + "')";
+                                        " '" + theBatch.POType + "'," +
+                                        " null)";
                                         ponum = (int)theBatch.PoNum; poline = (int)dt.Rows[i]["PoLine"]; porel = (int)dt.Rows[i]["PORelNum"];
                                     }
                                     else
@@ -1378,7 +1412,7 @@ namespace Appapi.Models
                                         {
                                             if (mtls.Rows[j]["partnum"].ToString().Substring(0, 1).Trim().ToLower() == "c")
                                             {
-                                                res = ErpAPI.MtlIssueRepository.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"], DateTime.Parse(OpDate),theBatch.Company,theBatch.Plant);
+                                                res = ErpAPI.MtlIssueRepository.Issue(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], (int)mtls.Rows[j]["mtlseq"], mtls.Rows[j]["partnum"].ToString(), (decimal)mtls.Rows[j]["RequiredQty"], DateTime.Parse(OpDate), theBatch.Company, theBatch.Plant);
                                                 issue_res += mtls.Rows[j]["partnum"].ToString() + "：";
                                                 issue_res += (res == "true") ? (decimal)mtls.Rows[j]["qtyper"] * (decimal)AcceptInfo.ArrivedQty + ", " : res + ", ";
                                             }
@@ -1399,12 +1433,12 @@ namespace Appapi.Models
 
 
                             int a, b;//凑个数，无意义
-                            string c ,d;//凑个数，无意义
+                            string c, d;//凑个数，无意义
                             res = ErpAPI.CommonRepository.getJobNextOprTypes(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[dt.Rows.Count - 1]["jobseq"], out a, out b, out c, out d, theBatch.Company);
 
                             if (res.Substring(0, 1).Trim().ToLower() == "p") //工序完成，收货至仓库
                             {
-                                res = ErpAPI.CommonRepository.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company,theBatch.Plant);
+                                res = ErpAPI.CommonRepository.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company, theBatch.Plant);
                                 if (res != "1|处理成功")
                                     return "错误：" + res;
                             }
