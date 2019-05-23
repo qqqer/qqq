@@ -80,7 +80,7 @@ namespace Appapi.Models
         public string POType { get; set; }
         public string DepartmentUKN { get; set; }
 
-        public bool OA_UKN_Confirm { get; set; }
+        public bool OAConfirmUKN { get; set; }
 
         public string WarehouseName { get; set; } 
         public bool IsRestrictRcv { get; set; }

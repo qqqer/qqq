@@ -1115,7 +1115,7 @@ namespace Appapi.Models
                     if (dt == null)
                     {
                         sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
-                        sql = string.Format(sql, theBatch.Company,theBatch.PoNum,theBatch.PoLine);
+                        sql = string.Format(sql, theBatch.Company, theBatch.PoNum, theBatch.PoLine);
 
                         var RcvPerson_c = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
                         return "错误：未找到" + RcvPerson_c + "的临时物料接收人";
@@ -1181,7 +1181,7 @@ namespace Appapi.Models
                 else if (theBatch.AtRole == 8 && (res = CheckBinNum(AcceptInfo)) != "ok") //去向仓库，则需检查库位
                     return res;
 
-                else if (theBatch.TranType == "PUR-UKN" && !theBatch.OA_UKN_Confirm)
+                else if (theBatch.TranType == "PUR-UKN" && !theBatch.OAConfirmUKN)
                 {
                     sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
                     sql = string.Format(sql, theBatch.Company, theBatch.PoNum, theBatch.PoLine);

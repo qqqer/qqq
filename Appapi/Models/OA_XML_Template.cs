@@ -12,7 +12,7 @@ namespace Appapi.Models
             string u = @"
                 <WorkflowRequestInfo>
                     <creatorId>1012</creatorId>
-                    <requestName>收料测试</requestName>     
+                    <requestName>临时物料</requestName>     
             
                     <workflowBaseInfo>
                         <workflowId>2162</workflowId>
@@ -118,8 +118,8 @@ namespace Appapi.Models
                     </workflowMainTableInfo>
                 </WorkflowRequestInfo>";
 
-            u = string.Format(receipt.DepartmentUKN, receipt.Company, receipt.SupplierNo, receipt.SupplierName, receipt.PoNum,
-                receipt.PoLine, receipt.PORelNum, receipt.PartNum, receipt.PartDesc, receipt.BatchNo, receipt.ReceiveQty2, receipt.Plant,receipt.ID);
+            u = string.Format(u,receipt.DepartmentUKN, receipt.Company, receipt.SupplierNo, receipt.SupplierName, receipt.PoNum,
+                receipt.PoLine, receipt.PORelNum, receipt.PartNum, receipt.PartDesc, receipt.BatchNo, ((decimal)(receipt.ReceiveQty2)).ToString("N2"), receipt.Plant,receipt.ID);
 
             return u;
         }
