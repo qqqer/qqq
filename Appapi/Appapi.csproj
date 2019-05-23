@@ -194,6 +194,11 @@
     <Compile Include="Areas\HelpPage\SampleGeneration\SampleDirection.cs" />
     <Compile Include="Areas\HelpPage\SampleGeneration\TextSample.cs" />
     <Compile Include="Areas\HelpPage\XmlDocumentationProvider.cs" />
+    <Compile Include="Connected Services\OAServiceReference\Reference.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Compile>
     <Compile Include="Connected Services\ServiceReference_Print\Reference.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -207,6 +212,7 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\MtlReportRepository.cs" />
+    <Compile Include="Models\OA_XML_Template.cs" />
     <Compile Include="Models\OpReport.cs" />
     <Compile Include="Models\OpReportRepository.cs" />
     <Compile Include="Models\FTPRepository.cs" />
@@ -215,15 +221,27 @@
     <Compile Include="Models\Receipt.cs" />
     <Compile Include="Models\ReceiptRepository.cs" />
     <Compile Include="Models\ScanResult.cs" />
-    <Compile Include="Models\SQLRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Areas\HelpPage\HelpPage.css" />
+    <Content Include="Connected Services\OAServiceReference\Appapi.OAServiceReference.ArrayOfString.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Content>
+    <Content Include="Connected Services\OAServiceReference\Appapi.OAServiceReference.WorkflowRequestLog.datasource">
+      <DependentUpon>Reference.svcmap</DependentUpon>
+    </Content>
+    <None Include="Connected Services\OAServiceReference\WorkflowServiceXml.wsdl" />
     <None Include="Connected Services\ServiceReference_Print\WebService.disco" />
     <None Include="Connected Services\ServiceReference_Print\configuration91.svcinfo" />
     <None Include="Connected Services\ServiceReference_Print\configuration.svcinfo" />
     <None Include="Connected Services\ServiceReference_Print\Reference.svcmap">
+      <Generator>WCF Proxy Generator</Generator>
+      <LastGenOutput>Reference.cs</LastGenOutput>
+    </None>
+    <None Include="Connected Services\OAServiceReference\configuration91.svcinfo" />
+    <None Include="Connected Services\OAServiceReference\configuration.svcinfo" />
+    <None Include="Connected Services\OAServiceReference\Reference.svcmap">
       <Generator>WCF Proxy Generator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
     </None>
@@ -319,6 +337,7 @@
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
   <ItemGroup>
+    <WCFMetadataStorage Include="Connected Services\OAServiceReference\" />
     <WCFMetadataStorage Include="Connected Services\ServiceReference_Print\" />
   </ItemGroup>
   <ItemGroup>

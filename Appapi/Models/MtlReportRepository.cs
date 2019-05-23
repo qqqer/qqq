@@ -269,6 +269,7 @@ namespace Appapi.Models
             string sql = "select IssuedQty from erp.JobMtl where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and MtlSeq = " + MtlSeq + "";
 
             decimal IssuedQty = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+           
             return IssuedQty;
         }
 
@@ -295,9 +296,9 @@ namespace Appapi.Models
 
         private static decimal GetSumOfReportQty(string JobNum, int AssemblySeq, int MtlSeq,  string PartNum)
         {
-            string sql = " select sum(UnQualifiedQty) from  MtlReport where JobNum='" + JobNum + "' and MtlSeq = " + MtlSeq + " and PartNum = '" + PartNum + "' and AssemblySeq = " + AssemblySeq + "";
+            string sql = " select sum(UnQualifiedQty) from  MtlReport where isdelete = 0 and JobNum='" + JobNum + "' and MtlSeq = " + MtlSeq + " and PartNum = '" + PartNum + "' and AssemblySeq = " + AssemblySeq + "";
 
-            object o = SQLRepository.ExecuteScalarToObject(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
             decimal SumOfReportQty = o is DBNull ? 0 : Convert.ToDecimal(o);
             return SumOfReportQty;
@@ -325,8 +326,8 @@ namespace Appapi.Models
 
             decimal MtlIssuedQty = GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq);
             decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq, ReportInfo.PartNum);
-            if (MtlIssuedQty - SumOfReportQty < ReportInfo.UnQualifiedQty)
-                return "错误：累计上报数量："+ SumOfReportQty.ToString("N2") + "(+" + ((decimal)ReportInfo.UnQualifiedQty).ToString("N2") + ")，大于物料的已发料数量：" + MtlIssuedQty.ToString("N2") +"，或该物料未发料";
+            if (MtlIssuedQty < ReportInfo.UnQualifiedQty)
+                return "错误：累计上报数量："+ SumOfReportQty.ToString("N2") + "(+" + ((decimal)ReportInfo.UnQualifiedQty).ToString("N2") + ")，将大于物料的已发料数量：" + MtlIssuedQty.ToString("N2") +"，或该物料未发料";
 
 
             string sql = @"select jh.Company, Plant from erp.JobHead jh  where jh.JobNum = '" + ReportInfo.JobNum + "' ";
@@ -433,8 +434,8 @@ namespace Appapi.Models
             if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum == "")
                 return "错误：返修工单号不能为空";
 
-            //if (DMRInfo.DMRRepairQty > 0 && CommonRepository.CheckJobHeadState(DMRInfo.DMRJobNum) != "工单不存在")
-            //    return "错误：返修工单号已存在";
+            if (DMRInfo.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(DMRInfo.DMRJobNum) != "工单不存在")
+                return "错误：返修工单号已存在";
 
             if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRUnQualifiedReason == ""))
                 return "错误：报废原因不能为空";
@@ -509,7 +510,7 @@ namespace Appapi.Models
                 InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason,DMRInfo.Responsibility);
 
                 sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRQualifiedQty + ",DMRQualifiedQty = ISNULL(DMRQualifiedQty,0) + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
-                Common.SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(DMRInfo.ID, 201, OpDate, "让步接收子流程生成");
             }

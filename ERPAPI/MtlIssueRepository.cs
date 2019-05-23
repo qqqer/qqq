@@ -23,13 +23,12 @@ namespace ErpAPI
         private static string IssueReturnSTKMTLbak(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string ium, string fromWarehouseCode, string fromBinNum, string toWarehouseCode, string toBinNum, string lotNum, string tranReference, string companyId, string plantId)
         {
             Session EpicorSession = CommonRepository.GetEpicorSession();
-            try
+            if (EpicorSession == null)
             {
-                
-                if (EpicorSession == null)
-                {
-                    return "0|Get EpicorSession failed";
-                }
+                return "0|Get EpicorSession failed|IssueReturnSTKMTLbak";
+            }
+            try
+            {              
                 EpicorSession.PlantID = plantId;
                 EpicorSession.CompanyID = companyId;
                 IssueReturnImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<IssueReturnImpl>(EpicorSession, ImplBase<Erp.Contracts.IssueReturnSvcContract>.UriPath);
@@ -85,27 +84,33 @@ namespace ErpAPI
                 adapter.PerformMaterialMovement(true, ds, out legalNumberMessage, out partTranPKs);
                 adapter.Dispose();
 
-                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
                 string message = "工单：" + jobNum + "/" + assemblySeq + "/" + oprSeq + ",扣料时系统报错。物料：" + partNum + ",来源仓:" + fromWarehouseCode + "/" + fromBinNum + ",目标仓:" + toWarehouseCode + "/" + toBinNum + ",批次:" + lotNum + ",数量:" + tranQty + ".原因:" + ex.Message;
                 //WriteTxt(message);
-                EpicorSession.Dispose();
                 return "0|" + ex.Message;
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
 
 
         public static string Issue(string jobNum, int assemblySeq, int oprSeq, int mtlSeq, string partNum, decimal tranQty, DateTime tranDate, string companyId, string plantId)
         {
-            string res = CheckIssue(partNum, tranQty);
+            string res = CheckIssue(partNum, tranQty,plantId);
+
+            string whc = "WIP";
+            if (plantId.Substring(0, 2) == "RR") whc = "RRWIP";
+            if (plantId.Substring(0, 2) == "HD") whc = "HDWIP";
 
             if (res.Substring(0, 1).Trim() == "1")
             {
                 string [] arr = res.Substring(2).Split('~');
-                string ss = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, arr[2], "WIP", arr[1], "WIP", arr[1], arr[0], "工单发料", companyId,plantId);
+                string ss = IssueReturnSTKMTLbak(jobNum, assemblySeq, oprSeq, mtlSeq, partNum, tranQty, tranDate, arr[2], whc, arr[1], whc, arr[1], arr[0], "工单发料", companyId,plantId);
                 if (ss.Substring(0, 1).Trim() == "1")
                      res = "true";
                 else
@@ -116,16 +121,19 @@ namespace ErpAPI
         }
 
 
-        public static string CheckIssue(string partNum, decimal tranQty)
+        public static string CheckIssue(string partNum, decimal tranQty, string plantId)
         {
+            string whc = "WIP";
+            if (plantId.Substring(0, 2) == "RR") whc = "RRWIP";
+            if (plantId.Substring(0, 2) == "HD") whc = "HDWIP";
             string sql = @"select  [PartBin].[LotNum] as [PartBin_LotNum] ,OnhandQty, BinNum,IUM
                     from Erp.PartBin as PartBin
                     inner join Erp.Warehse as Warehse on PartBin.Company = Warehse.Company and PartBin.WarehouseCode = Warehse.WarehouseCode
                     inner join Erp.Part as Part       on  PartBin.Company = Part.Company and PartBin.PartNum = Part.PartNum
-                    where Warehse.WarehouseCode = 'wip' and  PartBin.PartNum = '" + partNum + "' and  not (TrackLots = 1 and LotNum = '')";
+                    where Warehse.WarehouseCode = '"+whc+"' and  PartBin.PartNum = '" + partNum + "' and  not (TrackLots = 1 and LotNum = '')";
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
-            if (dt == null || dt.Rows.Count == 0) return "0|wip仓中没有该物料 或 追踪的批次号为空";
+            if (dt == null || dt.Rows.Count == 0) return "0|"+whc+"仓中没有该物料 或 追踪的批次号为空";
 
             for (int i = 0; dt != null && i < dt.Rows.Count; i++) //遍历wip仓中，该物料的所有批次
             {

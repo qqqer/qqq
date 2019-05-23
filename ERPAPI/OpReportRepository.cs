@@ -21,10 +21,14 @@ namespace ErpAPI
     public static class OpReportRepository
     {
         public static string TimeAndCost(int BPMID, string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, string plantId, out string Character05, out int tranid)
-
         { //JobNum as string ,jobQty as decimal,partNum as string
             Character05 = "";
             tranid = -1;
+            Session EpicorSession = CommonRepository.GetEpicorSession();
+            if (EpicorSession == null)
+            {
+                return "ErpAPI|Get EpicorSession failed|TimeAndCost";
+            }
             try
             {
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, @"select [JobOper].[JobNum] as [JobOper_JobNum],
@@ -76,11 +80,7 @@ namespace ErpAPI
                 if (empid.Trim() == "") { Character05 = empid = "DB"; }
 
 
-                Session EpicorSession = CommonRepository.GetEpicorSession();
-                if (EpicorSession == null)
-                {
-                    return "ErpAPI|erp用户数不够，请稍候再试.接口：TimeAndCost";
-                }
+
                 EpicorSession.CompanyID = companyId;
                 EpicorSession.PlantID = plantId;
                 WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionidd", "");
@@ -165,58 +165,30 @@ namespace ErpAPI
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["OpComplete"] = "1";
                 //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Complete"] = "1";
                 labAd.DefaultDtlTime(dsLabHed);
-                string cMessageText = ""; 
-                try
+
+                labAd.Update(dsLabHed);
+
+
+                string LaborDtlSeq = "";
+                if (disQty > 0)
                 {
-                    labAd.CheckWarnings(dsLabHed, out cMessageText); //cMessageText返回空串表示正常
+                    LaborDtlSeq = dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborDtlSeq"].ToString();
 
+                    sql = "select tranid from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " ";
+                    object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-                    if (cMessageText != "")
-                    {
-                        sql = "insert into warning values('" + cMessageText + "', " + BPMID + ")";
-                        Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                        //return "0|" + cMessageText;
-                    }
-
-                    labAd.Update(dsLabHed);
-                }
-                catch (Exception ex)
-                {            
-                    return "ErpAPI|" + ex.Message.ToString();
-                }
-                finally
-                {
-                    EpicorSession.Dispose();
+                    tranid = int.Parse(o == null ? "-1" : o.ToString());
                 }
 
-                
-                string LaborDtlSeq="";
-                try
-                {
-                    if (disQty > 0)
-                    {
-                        LaborDtlSeq = dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborDtlSeq"].ToString();
-
-                        sql = "select tranid from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " ";
-                        object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-
-                        tranid = int.Parse(o == null ? "-1" : o.ToString());
-                    }
-                }
-                catch (Exception ex)
-                {
-                    return "ErpAPI|时间费用写入成功. 获取tranid时异常：" + ex.Message.ToString() + "    LaborDtlSeq " + LaborDtlSeq;
-                }
-                finally
-                {
-                    EpicorSession.Dispose();
-                }
-
-                return "ErpAPI|TimeAndCost执行成功";
+                return "1|TimeAndCost执行成功";
             }
             catch (Exception ex)
             {
                 return "ErpAPI|" + ex.Message.ToString();
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
 

@@ -176,9 +176,14 @@ namespace ErpAPI
         public static string D0506_01(string rqr, string JobNum, int asmSeq, decimal jobQty, string lotnum, string wh, string bin, string companyId, string plantId)
         { //JobNum as string ,jobQty as decimal,partNum as string
             Session EpicorSession = CommonRepository.GetEpicorSession();
-            EpicorSession.PlantID = plantId;
+            if (EpicorSession == null)
+            {
+                return "0|GetEpicorSession失败，请稍候再试|工单收货至库存接口";
+            }
             try
             {
+                EpicorSession.CompanyID = companyId;
+                EpicorSession.PlantID = plantId;
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, "select [JobOper].[JobNum] as [JobOper_JobNum],[JobOper].[AssemblySeq] as [JobOper_AssemblySeq],[JobOper].[OprSeq] as [JobOper_OprSeq],[JobOper].[RunQty] as [JobOper_RunQty],[JobOper].[QtyCompleted] as [JobOper_QtyCompleted],[JobAsmbl].[PartNum] as [JobAsmbl_PartNum],[JobAsmbl].[RequiredQty] as [JobAsmbl_RequiredQty],[JobPart].[ReceivedQty] as [JobPart_ReceivedQty],[JobHead].[JobComplete] as [JobHead_JobComplete],[JobHead].[JobReleased] as [JobHead_JobReleased] from Erp.JobOper as JobOper left outer join Erp.JobAsmbl as JobAsmbl on JobOper.Company = JobAsmbl.Company and JobOper.JobNum = JobAsmbl.JobNum and JobOper.AssemblySeq = JobAsmbl.AssemblySeq left outer join Erp.JobPart as JobPart on JobAsmbl.Company = JobPart.Company and JobAsmbl.JobNum = JobPart.JobNum and JobAsmbl.PartNum = JobPart.PartNum left outer join Erp.JobHead as JobHead on JobOper.Company = JobHead.Company and JobOper.JobNum = JobHead.JobNum where(JobOper.Company = '" + companyId + "'  and JobOper.JobNum = '" + JobNum + "'  and JobOper.AssemblySeq ='" + asmSeq.ToString() + "') order by JobOper.OprSeq Desc");
                 for (int i = 0; dt != null && i < dt.Columns.Count; i++)
                 {
@@ -206,17 +211,6 @@ namespace ErpAPI
 
                     return "0|工单未发放，不能收货。";
                 }
-                //if ((recdQty + jobQty) > compQty)
-                //{
-
-                //    return "0|以前收货数量" + recdQty + "+ 本次收货数量" + jobQty + ",>完成数量" + compQty + "，不能收货。";
-                //}
-
-                //if ((recdQty + jobQty) > requQty)
-                //{
-
-                //    return "0|以前收货数量" + recdQty + "+ 本次收货数量" + jobQty + ",>生产数量" + requQty + "，不能收货。";
-                //}
 
                 string[] w = GetPartWB(partNum, companyId);
                 string tlot = w[2].ToString().Trim().ToLower();
@@ -232,34 +226,15 @@ namespace ErpAPI
                 { bin2 = chkbinInfo.Substring(2); }
                 else
                 {
-
                     return chkbinInfo;
                 }
-                try
-                {
 
-                }
-                catch
-                { }
-                //string resultdata = ErpLogin/();
-                //if (resultdata != "true")
-                //{
-                //    return "0|" + resultdata;
-                //}
-                //EpicorSession = GetEpicorSession();
-                if (EpicorSession == null)
-                {
-                    return "0|erp用户数不够，请稍候再试.错误代码：D0506_01";
-                }
-                EpicorSession.CompanyID = companyId;
-                //WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionidb", "");
                 ReceiptsFromMfgImpl recAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<ReceiptsFromMfgImpl>(EpicorSession, ImplBase<Erp.Contracts.ReceiptsFromMfgSvcContract>.UriPath);
                 ReceiptsFromMfgDataSet recDs = new ReceiptsFromMfgDataSet();
                 string pcTranType = "MFG-STK";
 
                 int piAssemblySeq = 0;
                 recAD.GetNewReceiptsFromMfgJobAsm(JobNum, piAssemblySeq, pcTranType, Guid.NewGuid().ToString(), recDs);
-                //recAD.ReceiptsFromMfgData.Tables["PartTran"].Rows[0]["PartNum"] = partNum;
                 recDs.Tables["PartTran"].Rows[0]["PartNum"] = partNum;
                 string opMessage = "";
                 recAD.OnChangePartNum(recDs, partNum, out opMessage, false);
@@ -281,17 +256,16 @@ namespace ErpAPI
                 string pcProcessID = "RcptToInvEntry";
                 recAD.ReceiveMfgPartToInventory(recDs, pdSerialNoQty, plNegQtyAction, out pcMessage, out pks, pcProcessID);
 
-
-                EpicorSession.Dispose();
-
                 return "1|处理成功";
             }
             catch (Exception ex)
             {
-                EpicorSession.Dispose();
                 return "0|" + ex.Message.ToString();
             }
-
+            finally
+            {
+                EpicorSession.Dispose();
+            }
         }
 
 
@@ -300,20 +274,10 @@ namespace ErpAPI
         {
             string[] pp = new string[3];
             pp[0] = ""; pp[1] = ""; pp[2] = "";
-            //if (EpicorSessionManager.EpicorSession == null || !EpicorSessionManager.EpicorSession.IsValidSession(EpicorSessionManager.EpicorSession.SessionID, "manager"))
-            //{
-            //    EpicorSessionManager.EpicorSession = CommonClass.Authentication.GetEpicorSession();
-            //}
-            //EpicorSessionManager.EpicorSession.CompanyID = companyId;
-            //PartImpl partAD = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<PartImpl>(EpicorSessionManager.EpicorSession, ImplBase<Erp.Contracts.PartSvcContract>.UriPath);
             try
             {
                 bool tlot = false;
-                //PartDataSet ds = new PartDataSet();
-                //ds = partAD.GetByID(partnum);
-                //PartDataSet.PartDataTable partDT = ds.Part;
-                //PartDataSet.PartPlantDataTable plantDT = ds.PartPlant;
-                //PartDataSet.PartWhseDataTable pwDT = ds.PartWhse;
+
                 DataTable partDT = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, "select * from erp.Part where Company='" + companyId + "' and PartNum='" + partnum + "'");
                 DataTable plantDT = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, "select * from erp.PartPlant where Company='" + companyId + "' and PartNum='" + partnum + "'");
                 DataTable pwDT = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, "select * from erp.PartWhse where Company='" + companyId + "' and PartNum='" + partnum + "'");
@@ -344,9 +308,7 @@ namespace ErpAPI
             }
             catch (Exception ex)
             {
-
                 return pp;
-
             }
 
         }
@@ -456,7 +418,6 @@ namespace ErpAPI
             {
                 return "0|GetEpicorSession失败，请稍候再试|Startnonconf";
             }
-            EpicorSession.PlantID = plant;
             try
             {
                 EpicorSession.PlantID = plant;
@@ -484,7 +445,14 @@ namespace ErpAPI
                 //选仓库
                 adapter.OnChangeWarehouseCode(WarehouseCode, false, ds);
                 ds.Tables["NonConf"].Rows[0]["ToWarehouseCode"] = WarehouseCode;
-                ds.Tables["NonConf"].Rows[0]["WarehouseCode"] = "WIP";
+
+                string whc = "WIP";
+                if (plant.Substring(0, 2) == "RR") whc = "RRWIP";
+                if (plant.Substring(0, 2) == "HD") whc = "HDWIP";
+
+                ds.Tables["NonConf"].Rows[0]["WarehouseCode"] = whc;
+
+
                 //填库位
                 adapter.OnChangeBinNum(BinNum, false, ds);
                 ds.Tables["NonConf"].Rows[0]["ToBinNum"] = BinNum;
@@ -497,13 +465,16 @@ namespace ErpAPI
                 //保存
                 adapter.Update(ds);
                 tranid = int.Parse(ds.Tables["NonConf"].Rows[0]["TranID"].ToString());
-                EpicorSession.Dispose();
+
                 return "1";
             }
             catch (Exception ex)
             {
-                EpicorSession.Dispose();
                 return "0|" + ex.Message;
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
 
@@ -528,12 +499,17 @@ namespace ErpAPI
                 return "0|GetEpicorSession失败，请稍候再试|StartInspProcessing";
             }
 
-            EpicorSession.PlantID = plant;
-            FailedWarehouseCode = plant == "MfgSys" ? FailedWarehouseCode : "RR" + FailedWarehouseCode;
+            
 
             try
             {
                 EpicorSession.PlantID = plant;
+
+               
+                if (plant.Contains("RR")) FailedWarehouseCode = "RR" + FailedWarehouseCode;
+                if (plant.Contains("HD")) FailedWarehouseCode = "HD" + FailedWarehouseCode;
+
+
                 string infoMsg = "";
                 string legalNumberMessage = "";
                 int iDMRNum = 0;
@@ -570,14 +546,15 @@ namespace ErpAPI
 
 
                 dmrid = iDMRNum;
-                EpicorSession.Dispose();
-
                 return "1";
             }
             catch (Exception ex)
             {
-                EpicorSession.Dispose();
                 return "0|" + ex.Message;
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
 
@@ -597,7 +574,6 @@ namespace ErpAPI
             {
                 return "0|GetEpicorSession失败，请稍候再试|RepairDMRProcessing";
             }
-            EpicorSession.PlantID = plant;
             try
             {
                 EpicorSession.PlantID = plant;
@@ -636,7 +612,12 @@ namespace ErpAPI
                     dsJ.Tables["JobHead"].Rows[0]["PlantMaintPlant"] = plant;
                     dsJ.Tables["JobHead"].Rows[0]["Plant"] = plant;
 
-                    dsJ.Tables["JobHead"].Rows[0]["PlantName"] = plant == "MfgSys" ? "Main Site" : "引擎零部件工厂";
+
+                    if (plant.Contains("RR")) dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "引擎零部件工厂";
+                    if (plant.Contains("Mfg")) dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "Main Site";
+                    if (plant.Contains("HD")) dsJ.Tables["JobHead"].Rows[0]["PlantName"] = "航电工厂";
+
+
 
                     adapter1.Update(dsJ);
                     //物料
@@ -681,7 +662,12 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["TranUOM"] =IUM;
                 adapter.DefaultIssueComplete(ds);
 
-                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = plant == "MfgSys" ? "WIP" : "RRWIP";              
+
+                if (plant.Contains("RR")) ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "RRWIP";
+                if (plant.Contains("Mfg")) ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
+                if (plant.Contains("HD")) ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "HDWIP";
+
+
                 adapter.ChangeWarehouse(ds);
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
 
@@ -691,13 +677,15 @@ namespace ErpAPI
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
 
-                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
-                EpicorSession.Dispose();
                 return "0|" + ex.Message;
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
 
@@ -722,7 +710,6 @@ namespace ErpAPI
             {
                 return "0|GetEpicorSession失败，请稍候再试|RepairDMRProcessing";
             }
-            EpicorSession.PlantID = plant;
             try
             {
                 EpicorSession.PlantID = plant;
@@ -768,7 +755,11 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["TranUOM"] = "PCS";
                 adapter.DefaultIssueComplete(ds);
 
-                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = "WIP";
+                string whc = "WIP";
+                if (plant.Substring(0, 2) == "RR") whc = "RRWIP";
+                if (plant.Substring(0, 2) == "HD") whc = "HDWIP";
+
+                ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = whc;
                 
                 adapter.ChangeWarehouse(ds);
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
@@ -777,13 +768,15 @@ namespace ErpAPI
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
 
-                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
-                EpicorSession.Dispose();
                 return "0|" + ex.Message;
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
 
@@ -806,7 +799,6 @@ namespace ErpAPI
             {
                 return "0|GetEpicorSession失败，请稍候再试|RepairDMRProcessing";
             }
-            EpicorSession.PlantID = plant;
             try
             {
                 EpicorSession.PlantID = plant;
@@ -831,13 +823,15 @@ namespace ErpAPI
 
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
-                EpicorSession.Dispose();
                 return "1";
             }
             catch (Exception ex)
             {
-                EpicorSession.Dispose();
                 return "0|" + ex.Message;
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
     }

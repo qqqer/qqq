@@ -56,6 +56,8 @@ namespace Appapi.Models
         public string Character05 { get; set; }
         public int? ReturnThree { get; set; }
 
+        public string DefectNO { get; set; }
+        public string CheckRemark { get; set; }
 
         public int? TranID { get; set; }
         public int? DMRID { get; set; }

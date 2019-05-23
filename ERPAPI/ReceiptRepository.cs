@@ -410,10 +410,14 @@ namespace ErpAPI
             int rcnt = 0, i = 0, j = 0;
             string partnum;
 
+            Session EpicorSession = CommonRepository.GetEpicorSession();
 
+            if (EpicorSession == null)
+            {
+                return "-1|erp用户数不够，请稍候再试.ERR:tranStk";
+            }
             try
             {
-
                 DataTable tranDT = JsonConvert.DeserializeObject<DataTable>(jsonStr);
                 rcnt = tranDT.Rows.Count;
 
@@ -504,12 +508,7 @@ namespace ErpAPI
 
 
                 
-                Session EpicorSession = CommonRepository.GetEpicorSession();
-
-                if (EpicorSession == null)
-                {
-                    return "-1|erp用户数不够，请稍候再试.ERR:tranStk";
-                }
+               
                 EpicorSession.CompanyID = companyId;
                 EpicorSession.PlantID = plantId;
                 //WriteGetNewLaborInERPTxt("", EpicorSession.SessionID.ToString(), "", "sessionidc", "");
@@ -578,8 +577,6 @@ namespace ErpAPI
                     invAD.CommitTransfer(dsInvTransfer, out legalNumberMessage, out partTranPKs);
                 }
 
-
-                EpicorSession.Dispose();
                 return "1|处理成功.";
 
             }
@@ -587,6 +584,10 @@ namespace ErpAPI
             catch (Exception ex)
             {
                 return "0|" + ex.Message.ToString();
+            }
+            finally
+            {
+                EpicorSession.Dispose();
             }
         }
       
