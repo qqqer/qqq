@@ -119,7 +119,8 @@ namespace Appapi.Models
                 </WorkflowRequestInfo>";
 
             u = string.Format(u,receipt.DepartmentUKN, receipt.Company, receipt.SupplierNo, receipt.SupplierName, receipt.PoNum,
-                receipt.PoLine, receipt.PORelNum, receipt.PartNum, receipt.PartDesc, receipt.BatchNo, ((decimal)(receipt.ReceiveQty2)).ToString("N2"), receipt.Plant,receipt.ID);
+                receipt.PoLine, receipt.PORelNum, receipt.PartNum, receipt.PartDesc, receipt.BatchNo, 
+                ((decimal)(receipt.ReceiveQty2)).ToString("N2"), receipt.Plant,receipt.ID);
 
             return u;
         }

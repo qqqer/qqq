@@ -1091,9 +1091,6 @@ namespace Appapi.Models
             else if (theBatch.PartNum != RB.PartNum || (!theBatch.PartDesc.Contains("?") && theBatch.PartDesc != RB.PartDesc))
                 return "错误：物料信息已被更改，请联系采购部";
 
-            else if (TransferInfo.ReceiveQty2 > RB.NotReceiptQty)//若超收
-                return string.Format("超收数量：{0}， 可收数量：{1}", Math.Round((double)(TransferInfo.ReceiveQty2 - RB.NotReceiptQty), 3), Math.Round((double)RB.NotReceiptQty));
-
             else if (theBatch.IsDelete == true)
                 return "错误：该批次的流程已删除";
 
