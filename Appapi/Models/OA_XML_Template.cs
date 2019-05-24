@@ -9,6 +9,9 @@ namespace Appapi.Models
     {
         public static string Create2162XML(Receipt receipt)
         {
+            string users = receipt.FourthUserGroup;
+            users = users.Substring(0, users.Length-1);
+
             string u = @"
                 <WorkflowRequestInfo>
                     <creatorId>1012</creatorId>
@@ -23,7 +26,7 @@ namespace Appapi.Models
                             <weaver.workflow.webservices.WorkflowRequestTableRecord>   
                                 <workflowRequestTableFields>
                                 <weaver.workflow.webservices.WorkflowRequestTableField>     
-                                    <fieldName>ReceivePart</fieldName>
+                                    <fieldName>Receivers</fieldName>
                                     <fieldValue>{0}</fieldValue>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
@@ -118,7 +121,7 @@ namespace Appapi.Models
                     </workflowMainTableInfo>
                 </WorkflowRequestInfo>";
 
-            u = string.Format(u,receipt.DepartmentUKN, receipt.Company, receipt.SupplierNo, receipt.SupplierName, receipt.PoNum,
+            u = string.Format(u,users, receipt.Company, receipt.SupplierNo, receipt.SupplierName, receipt.PoNum,
                 receipt.PoLine, receipt.PORelNum, receipt.PartNum, receipt.PartDesc, receipt.BatchNo, 
                 ((decimal)(receipt.ReceiveQty2)).ToString("N2"), receipt.Plant,receipt.ID);
 

@@ -1108,16 +1108,25 @@ namespace Appapi.Models
 
                 if (theBatch.TranType == "PUR-UKN")
                 {
-                    DataTable dt = GetNextUserGroup(TransferInfo.AtRole, theBatch.Company, theBatch.Plant, theBatch.ID);
-                    if (dt == null)
-                    {
-                        sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
-                        sql = string.Format(sql, theBatch.Company, theBatch.PoNum, theBatch.PoLine);
+                    //DataTable dt = GetNextUserGroup(TransferInfo.AtRole, theBatch.Company, theBatch.Plant, theBatch.ID);
+                    //if (dt == null)
+                    //{
+                    //    sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
+                    //    sql = string.Format(sql, theBatch.Company, theBatch.PoNum, theBatch.PoLine);
 
-                        var RcvPerson_c = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-                        return "错误：未找到" + RcvPerson_c + "的临时物料接收人";
+                    //    var RcvPerson_c = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                    //    return "错误：未找到" + RcvPerson_c + "的临时物料接收人";
+                    //}
+
+                    sql = @"SELECT id FROM[HrmResource] where CHARINDEX(loginid, '"+ TransferInfo.FourthUserGroup + "') > 0 ";
+                    DataTable userid = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.OA_strConn, sql);
+
+                    theBatch.FourthUserGroup = ""; //OA接收人id
+                    for (int i = 0; i < userid.Rows.Count; i++)
+                    {
+                        theBatch.FourthUserGroup = userid.Rows[i]["id"].ToString() + ",";
                     }
-                    theBatch.DepartmentUKN = dt.Rows[0]["Department"].ToString();
+
                     string XML = OA_XML_Template.Create2162XML(theBatch);
 
                     OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
