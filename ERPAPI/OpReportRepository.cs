@@ -169,22 +169,45 @@ namespace ErpAPI
                 labAd.Update(dsLabHed);
 
 
-                string LaborDtlSeq = "";
+
+               
+
                 if (disQty > 0)
                 {
-                    LaborDtlSeq = dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborDtlSeq"].ToString();
-
-                    sql = "select tranid from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " ";
+                    sql = "select tranid from erp.NonConf where LaborHedSeq = "+ dt3.Rows[0]["LaborHedSeq"].ToString() + " and LaborDtlSeq = " + dt3.Rows[0]["LaborDtlSeq"].ToString() + " ";
                     object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                     tranid = int.Parse(o == null ? "-1" : o.ToString());
                 }
 
-                return "1|TimeAndCost执行成功";
+                sql = "insert into BPMID_LabrSeq values(" + BPMID + "," + LaborHedSeq + ", " + LaborDtlSeq + ")";
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+
+                return "1|TimeAndCost执行成功1";
             }
-            catch (Exception ex)
+            catch
             {
-                return "ErpAPI|" + ex.Message.ToString();
+                string sql = @"select * from erp.LaborDtl where compnay = '001' and JobNum = '{0}' and AssemblySeq = {1} and OprSeq = {2} and ClockinTime = {3}";
+                sql = string.Format(sql, JobNum, asmSeq, oprSeq, Convert.ToDecimal(StartDate.TimeOfDay.TotalHours.ToString("N2")));
+
+                DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+                if (dt == null)
+                    return "ErpAPI|时间费用写入失败，请重新提交";
+
+                if (disQty > 0)
+                {
+                    sql = "select tranid from erp.NonConf where LaborDtlSeq = " + dt.Rows[0]["LaborDtlSeq"].ToString() + " ";
+                    object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+                    tranid = int.Parse(o == null ? "-1" : o.ToString());
+                }
+
+                sql = "insert into BPMID_LabrSeq values(" + BPMID + "," + dt.Rows[0]["LaborHedSeq"].ToString() + ", " + dt.Rows[0]["LaborDtlSeq"].ToString() + ")";
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                return "1|TimeAndCost执行成功2";
             }
             finally
             {

@@ -401,6 +401,13 @@ namespace Appapi.Models
                 return "0|错误：当前工序 " + arr[3] + " 未添加，请联系管理员";
 
 
+            string sql = @"SELECT count(*) FROM [JobLimit] where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4} and OpCode ='{5}' and disabled = 0";
+            sql = string.Format(sql, dt.Rows[0]["Company"].ToString(), dt.Rows[0]["Plant"].ToString(), arr[0], arr[1], arr[2], arr[3]);
+
+            int IsValid = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            //if (!Convert.ToBoolean(IsValid))
+            //    return "0|错误：当前工序 " + arr[3] + " 未在计划中，请联系计划部";
+
             string CreateUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, @" Select CreateUser  from BPMOpCode where  OpCode = '" + arr[3] + "' ", null);
             if (!CreateUser.ToUpper().Contains(HttpContext.Current.Session["UserId"].ToString()))
                 return "0|错误：该账号没有该工序操作权限";
@@ -422,7 +429,7 @@ namespace Appapi.Models
                 return "0|错误：无法获取工序最终去向，" + NextSetpInfo;
 
 
-            string sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
+            sql = @"select * from process where userid = '" + HttpContext.Current.Session["UserId"].ToString() + "'";
             DataTable UserProcess = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
             if (UserProcess != null && !Convert.ToBoolean(UserProcess.Rows[0]["IsParallel"])) //只有一道工序在进行且该工序非并发
             {
@@ -1085,7 +1092,7 @@ namespace Appapi.Models
                     AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, res);
 
 
-                    if (res.Substring(0, 1).Trim() != "1" && res != "ErpAPI|This is a duplicate entry of an existing record") 
+                    if (res.Substring(0, 1).Trim() != "1")
                     {
                         return "错误：" + res;
                     }
@@ -2378,8 +2385,8 @@ namespace Appapi.Models
 
         private static void AddOpLog(int? id, string JobNum, int AssemblySeq, int JobSeq, int ApiNum, string OpDate, string OpDetail)
         {
-            string sql = @"insert into BPMLog(JobNum, AssemblySeq, UserId, Opdate, ApiNum, JobSeq, OpDetail,bpmid) Values('{0}', {1}, '{2}', '{3}', {4}, {5}, @OpDetail,{7}) ";
-            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), OpDate, ApiNum, JobSeq, OpDetail, id == null ? "null" : id.ToString());
+            string sql = @"insert into BPMLog(JobNum, AssemblySeq, UserId, Opdate, ApiNum, JobSeq, OpDetail,bpmid) Values('{0}', {1}, '{2}', '{3}', {4}, {5}, @OpDetail,{6}) ";
+            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), OpDate, ApiNum, JobSeq, id == null ? "null" : id.ToString());
 
             SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);

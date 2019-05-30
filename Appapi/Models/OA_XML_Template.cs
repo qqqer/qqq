@@ -114,7 +114,28 @@ namespace Appapi.Models
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{12}</fieldValue>
-                                </weaver.workflow.webservices.WorkflowRequestTableField>                     
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>zjr</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{13}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>remark</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{14}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>remark</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{15}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
                                 </workflowRequestTableFields>
                             </weaver.workflow.webservices.WorkflowRequestTableRecord>
                         </requestRecords>
@@ -123,7 +144,7 @@ namespace Appapi.Models
 
             u = string.Format(u,users, receipt.Company, receipt.SupplierNo, receipt.SupplierName, receipt.PoNum,
                 receipt.PoLine, receipt.PORelNum, receipt.PartNum, receipt.PartDesc, receipt.BatchNo, 
-                ((decimal)(receipt.ReceiveQty2)).ToString("N2"), receipt.Plant,receipt.ID);
+                ((decimal)(receipt.ReceiveQty2)).ToString("N2"), receipt.Plant,receipt.ID, users,receipt.CommentText,receipt.RequestIDD);
 
             return u;
         }

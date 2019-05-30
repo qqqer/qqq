@@ -1106,26 +1106,24 @@ namespace Appapi.Models
                 if (TransferInfo.AtRole == 1152921504606846976) //2^60
                     return "错误：无法确定去向";
 
+                TransferInfo.Status = 4;
+                string OAReceiverGroup1 = "null";
+
+
                 if (theBatch.TranType == "PUR-UKN")
                 {
-                    //DataTable dt = GetNextUserGroup(TransferInfo.AtRole, theBatch.Company, theBatch.Plant, theBatch.ID);
-                    //if (dt == null)
-                    //{
-                    //    sql = "select RcvPerson_c from PODetail where company = '{0}' and ponum = {1} and poline = {2}";
-                    //    sql = string.Format(sql, theBatch.Company, theBatch.PoNum, theBatch.PoLine);
-
-                    //    var RcvPerson_c = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-                    //    return "错误：未找到" + RcvPerson_c + "的临时物料接收人";
-                    //}
-
-                    sql = @"SELECT id FROM[HrmResource] where CHARINDEX(loginid, '"+ TransferInfo.FourthUserGroup + "') > 0 ";
+                    sql = @"SELECT id,lastname FROM[HrmResource] where CHARINDEX(loginid, '" + TransferInfo.FourthUserGroup + "') > 0 ";
                     DataTable userid = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.OA_strConn, sql);
 
                     theBatch.FourthUserGroup = ""; //OA接收人id
+                    OAReceiverGroup1 = "";
                     for (int i = 0; i < userid.Rows.Count; i++)
                     {
                         theBatch.FourthUserGroup = userid.Rows[i]["id"].ToString() + ",";
+                        OAReceiverGroup1 += userid.Rows[i]["lastname"].ToString() + ",";                
                     }
+
+                    OAReceiverGroup1 = "'" + OAReceiverGroup1 + "'";
 
                     string XML = OA_XML_Template.Create2162XML(theBatch);
 
@@ -1135,16 +1133,21 @@ namespace Appapi.Models
                     if (Convert.ToInt32(res) <= 0)
                         return "错误：转发OA失败:" + res;
 
+                    AddOpLog(TransferInfo.ID, theBatch.BatchNo, 301, "update", OpDate, "转发OA成功，OA流程id：" + res);
+
+                    sql = "insert into Requestid_Receiptid values(" + res + "," + theBatch.ID + ")";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
                     TransferInfo.FourthUserGroup = HttpContext.Current.Session["UserId"].ToString(); //4节点接收人 还是转序人
                     TransferInfo.AtRole = 4; //下节点转序角色
+                    TransferInfo.Status = -1; //OA确认中
+
                 }
-                
-                sql = @"update Receipt set PreStatus = " + theBatch.Status + " , ChooseDate = '" + OpDate + "', Status = 4, FourthUserGroup = '{0}', ThirdUserID = '{1}', AtRole = {2} where ID = " + TransferInfo.ID + "";
+
+                sql = @"update Receipt set OAReceiverGroup1 = " + OAReceiverGroup1+", PreStatus = " + theBatch.Status + " , ChooseDate = '" + OpDate + "', Status = "+TransferInfo.Status+", FourthUserGroup = '{0}', ThirdUserID = '{1}', AtRole = {2} where ID = " + TransferInfo.ID + "";
                 sql = string.Format(sql, TransferInfo.FourthUserGroup, HttpContext.Current.Session["UserId"].ToString(), TransferInfo.AtRole);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-
-                sql = sql.Replace("'", "");
                 AddOpLog(TransferInfo.ID, theBatch.BatchNo, 301, "update", OpDate, sql);
 
                 return "处理成功";
@@ -1396,6 +1399,12 @@ namespace Appapi.Models
                                         "" + (Convert.ToBoolean(theBatch.IsPrintRcv) == true ? 1 : 0) + "," +
                                         " '" + theBatch.PackSlip + "'," +
                                         " '" + theBatch.POType + "'," +
+                                        " null," +
+                                        " null," +
+                                        " null," +
+                                        " null," +
+                                        " null," +
+                                        " null," +
                                         " null)";
                                         ponum = (int)theBatch.PoNum; poline = (int)dt.Rows[i]["PoLine"]; porel = (int)dt.Rows[i]["PORelNum"];
                                     }
@@ -2196,10 +2205,11 @@ namespace Appapi.Models
 
         public static void AddOpLog(int? ReceiptId, string batchno, int ApiNum, string OpType, string OpDate, string OpDetail)
         {
-            string sql = @"insert into OpLog(ReceiptId,  UserId, Opdate, ApiNum, OpType, OpDetail,batchno) Values({0}, '{1}', '{2}', {3}, '{4}', '{5}', {6}) ";
-            sql = string.Format(sql, ReceiptId == null ? "null" : ReceiptId.ToString(), ApiNum != 12 ? Convert.ToString(HttpContext.Current.Session["UserId"]) : "102543", OpDate, ApiNum, OpType, OpDetail, batchno != null ? "'" + batchno + "'" : "null");
+            string sql = @"insert into OpLog(ReceiptId,  UserId, Opdate, ApiNum, OpType, OpDetail,batchno) Values({0}, '{1}', '{2}', {3}, '{4}', @OpDetail, {5}) ";
+            sql = string.Format(sql, ReceiptId == null ? "null" : ReceiptId.ToString(), ApiNum != 12 ? Convert.ToString(HttpContext.Current.Session["UserId"]) : "102543", OpDate, ApiNum, OpType, batchno != null ? "'"+batchno+"'" : "null");
 
-            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
+            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
         }//添加操作记录
 
 

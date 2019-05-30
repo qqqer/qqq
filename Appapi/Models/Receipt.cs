@@ -79,7 +79,7 @@ namespace Appapi.Models
         public decimal? OurFailedQty { get; set; }
         public string POType { get; set; }
         public string DepartmentUKN { get; set; }
-
+        public string RequestIDD { get; set; }
         public bool OAConfirmUKN { get; set; }
 
         public string WarehouseName { get; set; } 
