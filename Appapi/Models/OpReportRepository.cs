@@ -1407,7 +1407,7 @@ namespace Appapi.Models
                 sql = @"select count(*) from erp.JobOper  where JobNum = '" + theSubReport.DMRJobNum + "'";
                 bool IsExistOprSeq = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
-                if (!IsExistOprSeq) return "错误：返修工单工序为空";
+                if (!IsExistOprSeq) return "错误：返修工单工序为空，请联系计划部";
 
 
                 sql = " update bpmsub set " +

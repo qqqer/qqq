@@ -416,6 +416,9 @@ namespace Appapi.Models
             decimal determinedQty = Convert.ToDecimal(theReport.DMRQualifiedQty) + Convert.ToDecimal(theReport.DMRRepairQty) + Convert.ToDecimal(theReport.DMRUnQualifiedQty);
 
 
+            if(DMRInfo.TransformUserGroup == null || DMRInfo.TransformUserGroup == "")
+                return "错误：下步接收人为空";
+
             if (DMRInfo.DMRQualifiedQty < 0)
                 return "错误：让步数量不能为负";
 

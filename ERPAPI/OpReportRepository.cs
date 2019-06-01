@@ -56,7 +56,6 @@ namespace ErpAPI
                 if (dt != null && dt.Rows.Count > 0)
                 {
                     decimal.TryParse(dt.Rows[0]["Calculated.prodqty"].ToString().Trim(), out runQty);
-                    //decimal.TryParse(dt.Rows[0]["JobOper.RunQty"].ToString().Trim(), out runQty);
                     decimal.TryParse(dt.Rows[0]["JobOper.QtyCompleted"].ToString().Trim(), out compQty);
                     bool.TryParse(dt.Rows[0]["JobHead.JobComplete"].ToString().Trim(), out jobCom);
                     bool.TryParse(dt.Rows[0]["JobHead.JobReleased"].ToString().Trim(), out jobRes);
@@ -69,12 +68,10 @@ namespace ErpAPI
                 }
                 if (jobRes == false)
                 {
-                    // EpicorSessionManager.DisposeSession();
                     return "ErpAPI|工单未发放，不能报工。";
                 }
                 if ((compQty + LQty + disQty) > runQty)
                 {
-                    // EpicorSessionManager.DisposeSession();
                     return "ErpAPI|以前报工数量" + compQty + "+ 本次报工数量" + (LQty + disQty) + "  >  工序数量" + runQty + "，不能报工。";
                 }
                 if (empid.Trim() == "") { Character05 = empid = "DB"; }
@@ -136,7 +133,6 @@ namespace ErpAPI
 
                 labAd.DefaultLaborType(dsLabHed, "P");
                 labAd.DefaultJobNum(dsLabHed, JobNum);
-                /// labAd.defaultjo
                 labAd.DefaultAssemblySeq(dsLabHed, asmSeq);
                 string msg;
                 labAd.DefaultOprSeq(dsLabHed, oprSeq, out msg);
@@ -146,10 +142,6 @@ namespace ErpAPI
                 if (LQty > 0)
                     labAd.DefaultLaborQty(dsLabHed, LQty, out msg);
 
-                //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborQty"] = LQty;
-                //disQty = disQty;  //先不回写不合格数量
-                //disCode = disCode;
-
                 TimeSpan timeSpan = EndDate - StartDate;
 
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["DiscrepQty"] = disQty;
@@ -157,24 +149,18 @@ namespace ErpAPI
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["TimeStatus"] = "A";
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockinTime"] = Convert.ToDecimal(StartDate.TimeOfDay.TotalHours.ToString("N2"));
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ClockOutTime"] = timeSpan.TotalMinutes < 1 ? Convert.ToDecimal(EndDate.AddMinutes(1).TimeOfDay.TotalHours.ToString("N2")) : Convert.ToDecimal(EndDate.TimeOfDay.TotalHours.ToString("N2"));
-                //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborHrs"] = labh;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Date01"] = System.DateTime.Today;
                 dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["ShortChar01"] = System.DateTime.Now.ToString("hh:mm:ss");
 
-
-                //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["OpComplete"] = "1";
-                //dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["Complete"] = "1";
                 labAd.DefaultDtlTime(dsLabHed);
-
                 labAd.Update(dsLabHed);
 
 
 
-               
-
+                string LaborDtlSeq = dtLabDtl.Rows[dtLabDtl.Rows.Count - 1]["LaborDtlSeq"].ToString();
                 if (disQty > 0)
                 {
-                    sql = "select tranid from erp.NonConf where LaborHedSeq = "+ dt3.Rows[0]["LaborHedSeq"].ToString() + " and LaborDtlSeq = " + dt3.Rows[0]["LaborDtlSeq"].ToString() + " ";
+                    sql = "select tranid from erp.NonConf where LaborDtlSeq = " + LaborDtlSeq + " ";
                     object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                     tranid = int.Parse(o == null ? "-1" : o.ToString());
@@ -186,15 +172,15 @@ namespace ErpAPI
 
                 return "1|TimeAndCost执行成功1";
             }
-            catch
+            catch(Exception ex)
             {
-                string sql = @"select * from erp.LaborDtl where compnay = '001' and JobNum = '{0}' and AssemblySeq = {1} and OprSeq = {2} and ClockinTime = {3}";
+                string sql = @"select * from erp.LaborDtl where company = '001' and JobNum = '{0}' and AssemblySeq = {1} and OprSeq = {2} and ClockinTime = {3}";
                 sql = string.Format(sql, JobNum, asmSeq, oprSeq, Convert.ToDecimal(StartDate.TimeOfDay.TotalHours.ToString("N2")));
 
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
                 if (dt == null)
-                    return "ErpAPI|时间费用写入失败，请重新提交";
+                    return "ErpAPI|"+ex.Message+"，请尝试重新提交";
 
                 if (disQty > 0)
                 {
