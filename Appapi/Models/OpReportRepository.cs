@@ -455,7 +455,7 @@ namespace Appapi.Models
                 if (UserProcess != null)//有工序在进行且都是并发
                 {
                     if (IsParallel == 0)
-                        return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
+                        return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序。请检查待办事项中已开始的工序";
 
                     string ret = "";
                     if ((ret = GetDuplicateError(new OpReport { JobNum = arr[0], AssemblySeq = int.Parse(arr[1]), JobSeq= int.Parse(arr[2])})).Contains("错误"))
@@ -1215,7 +1215,7 @@ namespace Appapi.Models
             if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum == "")
                 return "错误：返修工单号不能为空";
 
-            if (DMRInfo.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(DMRInfo.DMRJobNum) != "工单不存在")
+            if (DMRInfo.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(DMRInfo.DMRJobNum) != "工单不存在,请联系计划部")
                 return "错误：返修工单号已存在";
 
             if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRUnQualifiedReason == ""))
