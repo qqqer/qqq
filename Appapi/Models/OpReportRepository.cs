@@ -455,7 +455,7 @@ namespace Appapi.Models
                 if (UserProcess != null)//有工序在进行且都是并发
                 {
                     if (IsParallel == 0)
-                        return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序";
+                        return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序。请检查待办事项中已开始的工序";
 
                     string ret = "";
                     if ((ret = GetDuplicateError(new OpReport { JobNum = arr[0], AssemblySeq = int.Parse(arr[1]), JobSeq= int.Parse(arr[2])})).Contains("错误"))
