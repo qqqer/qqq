@@ -413,11 +413,23 @@ namespace Appapi.Models
                 return "0|错误：该账号没有该工序操作权限";
 
 
-            object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
+            sql = "select count(*) from BPMsub where DMRJobNum = '" + arr[0] + "'";
+            bool IsDMRJobNum = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
 
-            if (PreOpSeq != null && GetSumOfAcceptedQty(arr[0], int.Parse(arr[1]), (int)PreOpSeq) == 0)
+            if (!IsDMRJobNum)
             {
-                return "0|错误：该工序接收数量为0，无法开始当前工序";
+                object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
+                if (PreOpSeq != null && GetSumOfAcceptedQty(arr[0], int.Parse(arr[1]), (int)PreOpSeq) == 0)
+                {
+                    return "0|错误：该工序接收数量为0，无法开始当前工序";
+                }
+            }
+            else
+            {
+                sql = "select iscomplete from BPMsub where DMRJobNum = '" + arr[0] + "'";
+                bool isSubComplete = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+                if(!isSubComplete)
+                    return "0|错误：该返修工单所属的返修流程未结束";
             }
 
             //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
@@ -620,6 +632,18 @@ namespace Appapi.Models
 
         public static string AddCache(OpReport process)
         {
+            string sql = "select count(*) from BPMsub where DMRJobNum = '" + process.JobNum + "'";
+            bool IsDMRJobNum = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
+            if (IsDMRJobNum)
+            {
+                sql = "select iscomplete from BPMsub where DMRJobNum = '" + process.JobNum + "'";
+                bool isSubComplete = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+                if (!isSubComplete)
+                    return "错误：该返修工单所属的返修流程未结束";
+            }
+
+
             string ret;
             if ((ret = CommonRepository.GetJobHeadState(process.JobNum)) != "正常") return "错误：" + ret;
 
@@ -635,7 +659,7 @@ namespace Appapi.Models
 
             try
             {
-                string sql = @"insert into process values( " +
+               sql = @"insert into process values( " +
                                "'" + HttpContext.Current.Session["UserId"].ToString() + "' ," +
                                "'" + process.StartDate.ToString("yyyy-MM-dd HH:mm:ss.fff") + "', " +
                                "getdate()," + //[EndDate]
