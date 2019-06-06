@@ -179,15 +179,15 @@ namespace Appapi.Models
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             if (dt == null)
-                return "工单不存在";
+                return "工单不存在,请联系计划部";
             else if ((bool)dt.Rows[0]["jobClosed"] == true)
-                return "该工单已关闭";
+                return "该工单已关闭,请联系计划部";
             else if ((bool)dt.Rows[0]["jobComplete"] == true)
-                return "该工单已完成";
+                return "该工单已完成,请联系计划部";
             else if ((bool)dt.Rows[0]["JobEngineered"] == false)
-                return "该工单未设计";
+                return "该工单未设计,请联系计划部";
             else if ((bool)dt.Rows[0]["JobReleased"] == false)
-                return "该工单未发放";
+                return "该工单未发放,请联系计划部";
 
             return "正常";
         }

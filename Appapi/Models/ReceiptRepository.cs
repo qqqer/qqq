@@ -356,27 +356,27 @@ namespace Appapi.Models
             else if (batInfo.PartNum != dt.Rows[0]["PartNum"].ToString())
                 return "物料编码不正确";
             else if ((bool)dt.Rows[0]["OpenOrder"] == false)
-                return "订单已关闭";
+                return "订单已关闭,请联系采购部";
             else if ((bool)dt.Rows[0]["orderHeld"] == true)
-                return "订单已冻结";
+                return "订单已冻结,请联系采购部";
             else if ((bool)dt.Rows[0]["Approve"] == false)
-                return "订单未同意";
+                return "订单未同意,请联系采购部";
             else if ((bool)dt.Rows[0]["Confirmed"] == false)
-                return "订单未确认";
+                return "订单未确认,请联系采购部";
             else if ((bool)dt.Rows[0]["openLine"] == false)
-                return "订单行已关闭";
+                return "订单行已关闭,请联系采购部";
             else if ((bool)dt.Rows[0]["openRelease"] == false)
-                return "发货行已关闭";
+                return "发货行已关闭,请联系采购部";
             else if ((string)dt.Rows[0]["TranType"] != "PUR-UKN" && (string)dt.Rows[0]["TranType"] != "PUR-STK") //是外协或工单物料， 需要判断与之关联的工单状态
             {
                 if ((bool)dt.Rows[0]["jobClosed"] == true)
-                    return "该工单已关闭";
+                    return "该工单已关闭,请联系计划部";
                 else if ((bool)dt.Rows[0]["jobComplete"] == true)
-                    return "该工单已完成";
+                    return "该工单已完成,请联系计划部";
                 else if ((bool)dt.Rows[0]["JobEngineered"] == false)
-                    return "该工单未设计";
+                    return "该工单未设计,请联系计划部";
                 else if ((bool)dt.Rows[0]["JobReleased"] == false)
-                    return "该工单未发放";
+                    return "该工单未发放,请联系计划部";
             }
 
             return "其他错误，请联系管理员";
@@ -1453,7 +1453,12 @@ namespace Appapi.Models
 
                             if (res.Substring(0, 1).Trim().ToLower() == "p") //工序完成，收货至仓库
                             {
-                                res = ErpAPI.CommonRepository.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company, theBatch.Plant);
+
+                                // res = ErpAPI.CommonRepository.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.BatchNo, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company, theBatch.Plant);
+
+
+                                //尝试更改erp.PartTran.LotNum的值，由原来的批次号变为工单号 19.6.4  13:17 
+                                res = ErpAPI.CommonRepository.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.JobNum, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company, theBatch.Plant);
                                 if (res != "1|处理成功")
                                     return "错误：" + res;
                             }

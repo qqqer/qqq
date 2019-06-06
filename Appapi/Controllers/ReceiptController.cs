@@ -542,7 +542,13 @@ namespace Appapi.Controllers
 
 
         #region test
-       
+        [HttpPost]
+        //Post:  /api/Receipt/uuu
+        public Receipt uuu(Receipt info)//ApiNum: 11   打印二维码
+        {
+            //string res = ReceiptRepository.PrintQR(info);
+            return info;
+        }
         #endregion
 
     }
