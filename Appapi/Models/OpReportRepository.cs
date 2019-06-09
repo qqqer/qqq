@@ -115,10 +115,8 @@ namespace Appapi.Models
                   ,[StartDate]
                   ,[EndDate]
                   ,AverageEndDate
-
                   ,[LaborHrs]
                   ,AverageLaborHrs
-
                   ,0
                   ,0
                   ,3
@@ -428,7 +426,7 @@ namespace Appapi.Models
             {
                 sql = "select iscomplete from BPMsub where DMRJobNum = '" + arr[0] + "'";
                 bool isSubComplete = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
-                if(!isSubComplete)
+                if (!isSubComplete)
                     return "0|错误：该返修工单所属的返修流程未结束";
             }
 
@@ -451,14 +449,14 @@ namespace Appapi.Models
             {
                 sql = "select IsParallel from BPMOpCode where OpCode = '" + arr[3] + "'";
                 int IsParallel = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
-               
+
                 if (UserProcess != null)//有工序在进行且都是并发
                 {
                     if (IsParallel == 0)
                         return "0|错误：该账号已有正在进行的作业，当前申请开始的工序为独立工序。请检查待办事项中已开始的工序";
 
                     string ret = "";
-                    if ((ret = GetDuplicateError(new OpReport { JobNum = arr[0], AssemblySeq = int.Parse(arr[1]), JobSeq= int.Parse(arr[2])})).Contains("错误"))
+                    if ((ret = GetDuplicateError(new OpReport { JobNum = arr[0], AssemblySeq = int.Parse(arr[1]), JobSeq = int.Parse(arr[2]) })).Contains("错误"))
                         return "0|" + ret;
                 }
 
@@ -470,7 +468,7 @@ namespace Appapi.Models
                 string ShareSwitch = ConfigurationManager.AppSettings["ShareSwitch"];
                 string ShareUserGroup = IsShare == 1 && ShareSwitch == "true" ? CreateUser : "";
 
-                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ", '" + ShareUserGroup + "', '"+dt.Rows[0]["Plant"].ToString()+"',1,null,null)";
+                sql = "insert into process values('" + HttpContext.Current.Session["UserId"].ToString() + "', '" + OpDate + "', null, null, '" + arr[0].ToUpperInvariant() + "', " + int.Parse(arr[1]) + ", " + int.Parse(arr[2]) + ",  '" + arr[3] + "', '" + OpDesc + "', " + IsParallel + ", '" + ShareUserGroup + "', '" + dt.Rows[0]["Plant"].ToString() + "',1,null,null)";
             }
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             AddOpLog(null, arr[0].ToUpperInvariant(), int.Parse(arr[1]), int.Parse(arr[2]), 101, OpDate, sql);
@@ -543,7 +541,7 @@ namespace Appapi.Models
                 }
                 else return ret;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return ex.Message;
             }
@@ -615,7 +613,7 @@ namespace Appapi.Models
 
             List<OpReport> CacheList = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql));
 
-            if(CacheList != null)
+            if (CacheList != null)
             {
                 for (int i = 0; i < CacheList.Count; i++)
                     CacheList[i].Company = "001";
@@ -659,25 +657,25 @@ namespace Appapi.Models
 
             try
             {
-               sql = @"insert into process values( " +
-                               "'" + HttpContext.Current.Session["UserId"].ToString() + "' ," +
-                               "'" + process.StartDate.ToString("yyyy-MM-dd HH:mm:ss.fff") + "', " +
-                               "getdate()," + //[EndDate]
-                               "" + process.Qty + "," +
-                               "'" + process.JobNum + "'," +
-                               "" + process.AssemblySeq + "," +
-                               "" + process.JobSeq + "," +
-                               "'" + process.OpCode + "', " +
-                               "'" + process.OpDesc + "', " +
-                               "1, " + //IsParallel
-                               "'', " +//ShareUserGroup
-                               "'"+process.Plant+"', " + //Plant    WriteToBPM中获取
-                               "" + 2 + "," +
-                               "" + process.PrintQty + ", " + //前端获取
-                               "'" + process.CheckUserGroup + "')";
+                sql = @"insert into process values( " +
+                                "'" + HttpContext.Current.Session["UserId"].ToString() + "' ," +
+                                "'" + process.StartDate.ToString("yyyy-MM-dd HH:mm:ss.fff") + "', " +
+                                "getdate()," + //[EndDate]
+                                "" + process.Qty + "," +
+                                "'" + process.JobNum + "'," +
+                                "" + process.AssemblySeq + "," +
+                                "" + process.JobSeq + "," +
+                                "'" + process.OpCode + "', " +
+                                "'" + process.OpDesc + "', " +
+                                "1, " + //IsParallel
+                                "'', " +//ShareUserGroup
+                                "'" + process.Plant + "', " + //Plant    WriteToBPM中获取
+                                "" + 2 + "," +
+                                "" + process.PrintQty + ", " + //前端获取
+                                "'" + process.CheckUserGroup + "')";
 
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 105 , DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), "添加缓存|"+sql);
+                AddOpLog(null, process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, 105, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"), "添加缓存|" + sql);
 
                 return "添加成功";
             }
@@ -834,7 +832,7 @@ namespace Appapi.Models
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
-            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '"+process.Plant+"', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
+            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '" + process.Plant + "', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
             jsonStr = string.Format(jsonStr, process.PartNum, process.JobNum, process.JobNum, process.AssemblySeq.ToString(), PrintID.ToString(), "", "", process.Qty.ToString(), "", "001", process.JobSeq.ToString(), "", process.PartDesc);
             jsonStr = "[{" + jsonStr + "}]";
 
@@ -845,7 +843,7 @@ namespace Appapi.Models
 
             string res;
             if ((res = client.Print(@"C:\D0201.btw", printer, (int)process.PrintQty, jsonStr)) == "1|处理成功")
-            {             
+            {
                 client.Close();
                 return PrintID.ToString();
             }
@@ -860,13 +858,13 @@ namespace Appapi.Models
         public static string GetCachePageDetailByOprInfo(OpReport process) //工单号 ~阶层号~工序序号~工序代码~工序描述~NextJobSeq NextOpCode NextOpDesc startdate~累计已转~Qty~Plant~processid~CheckUserGroup~EndDate;
         {
             DataTable LatestOprInfo = GetLatestOprInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
-            string NextOprInfo = GetNextSetpInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, "001");           
+            string NextOprInfo = GetNextSetpInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq, "001");
             string startdate = GetStartTime();
             decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
-            
 
-            if(NextOprInfo.Substring(0, 1).Trim() == "0") return "错误：获取下工序去向失败";
-            
+
+            if (NextOprInfo.Substring(0, 1).Trim() == "0") return "错误：获取下工序去向失败";
+
 
 
             string sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + process.JobNum + "' and AssemblySeq = " + (int)process.AssemblySeq + "";
@@ -878,7 +876,7 @@ namespace Appapi.Models
             string userids = CommonRepository.GetValueAsString(process.CheckUserGroup);
             string[] useridArry = userids.Split(',');
             string usernames = "";
-            foreach(string s in useridArry)
+            foreach (string s in useridArry)
             {
                 if (s != "")
                     usernames += CommonRepository.GetUserName(s.Trim()) + ",";
@@ -886,7 +884,7 @@ namespace Appapi.Models
 
 
 
-            string detail = "1|"+ process.JobNum + "~" + process.AssemblySeq+partnum + "~" + process.JobSeq + "~" + LatestOprInfo.Rows[0]["OpCode"] + "~" +
+            string detail = "1|" + process.JobNum + "~" + process.AssemblySeq + partnum + "~" + process.JobSeq + "~" + LatestOprInfo.Rows[0]["OpCode"] + "~" +
                 LatestOprInfo.Rows[0]["OpDesc"] + "~" + NextOprInfo + "~" + startdate + "~" + SumOfReportedQty + "~" + process.Qty + "~" + LatestOprInfo.Rows[0]["Plant"] + "~" + process.ProcessId + "~" + usernames + "~" + process.EndDate;
 
             return detail;
@@ -894,8 +892,8 @@ namespace Appapi.Models
 
         public static string GetCachePageDetailByCacheID(int processid)
         {
-            string sql = @"select * from process where processid = "+ processid +"";
-            OpReport process = CommonRepository.DataTableToList < OpReport > (Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First();
+            string sql = @"select * from process where processid = " + processid + "";
+            OpReport process = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First();
 
             string detail = GetCachePageDetailByOprInfo(process);
 
@@ -906,7 +904,7 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            
+
             //获取其余数据
             string sql = @" Select PartNum, Description from erp.JobAsmbl  where  JobNum = '" + process.JobNum + "' and AssemblySeq = " + process.AssemblySeq + "";
             DataTable PartInfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
@@ -916,7 +914,7 @@ namespace Appapi.Models
             process.PartDesc = PartInfo.Rows[0]["Description"].ToString();
 
 
-            sql = "select  Character05 from OpMaster where Company = '001' and OpCode = '"+process.OpCode+"'";
+            sql = "select  Character05 from OpMaster where Company = '001' and OpCode = '" + process.OpCode + "'";
             string Character05 = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
 
@@ -930,7 +928,7 @@ namespace Appapi.Models
 
             //去向仓库打印
             if (NextOprInfo.Contains("仓库"))
-            {              
+            {
                 string ret = PrintReportQR(process);
 
                 if (ret.Contains("错误")) return ret;
@@ -1164,7 +1162,27 @@ namespace Appapi.Models
             catch (Exception ex)
             {
                 AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "0|AppApi|" + ex.Message);
-                return "错误：" + ex.Message;
+
+                string ss = @"select *  from  BPMID_LabrSeq where BPMID = " + theReport.ID + " order by DtlSeq desc ";
+                DataTable seq = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, ss);
+
+                if (seq != null)
+                {
+                    string ret = ErpAPI.OpReportRepository.deleteTimeAndCost((int)seq.Rows[0]["HedSeq"], (int)seq.Rows[0]["DtlSeq"], theReport.Plant);
+
+                    if (ret == "true")
+                    {
+                        ss = "delete from BPMID_LabrSeq where BPMID = " + theReport.ID + "";
+                        Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "时间费用撤销成功");
+                    }
+                    else
+                    {
+                        AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "时间费用撤销失败，" + ret);
+                    }
+
+                }
+                return "错误：提交失败，请尝试重新提交";
             }
             finally
             {
@@ -1238,13 +1256,13 @@ namespace Appapi.Models
             {
                 int DMRID;
 
-                if(theReport.TranID is DBNull || theReport.TranID == null)
+                if (theReport.TranID is DBNull || theReport.TranID == null)
                     return "错误：TranID is NULL";
 
 
                 sql = "select DMRNum from erp.NonConf where TranID = " + theReport.TranID + "";
                 object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-                DMRID = o == null || o is DBNull ? 0 : Convert.ToInt32( o);
+                DMRID = o == null || o is DBNull ? 0 : Convert.ToInt32(o);
 
                 if (DMRID == 0)
                 {
@@ -1332,7 +1350,7 @@ namespace Appapi.Models
             if (theSubReport.Status != 3)
                 return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
-            if (theSubReport.DMRQualifiedQty != null  && TransmitInfo.NextUserGroup == "")
+            if (theSubReport.DMRQualifiedQty != null && TransmitInfo.NextUserGroup == "")
                 return "错误：下步接收人不能为空";
 
             //以下只会执行一个if
@@ -2369,7 +2387,7 @@ namespace Appapi.Models
             OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
 
-            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '"+theReport.Plant+"', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
+            string jsonStr = " text1: '{0}', text2: '{12}', text3: '{1}', text4: '{2}', text5: '{3}', text6: '" + theReport.Plant + "', text7: '{4}', text8: '{5}', text9: '{6}', text10: '{7}', text11: '{8}', text12: '{9}', text13: '', text14: '{10}', text15: '{11}', text16: '', text17: '', text18: '', text19: '', text20: '', text21: '', text22: '', text23: '', text24: '', text25: '', text26: '', text27: '', text28: '', text29: '', text30: '' ";
             jsonStr = string.Format(jsonStr, theReport.PartNum, theReport.JobNum, theReport.JobNum, theReport.AssemblySeq.ToString(), theReport.PrintID.ToString(), "", "", theReport.FirstQty.ToString(), "", theReport.Company, theReport.JobSeq.ToString(), "", theReport.PartDesc);
             jsonStr = "[{" + jsonStr + "}]";
 
