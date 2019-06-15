@@ -204,6 +204,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Reference.svcmap</DependentUpon>
     </Compile>
+    <Compile Include="Controllers\SubcontractDisController.cs" />
     <Compile Include="Controllers\MtlReportController.cs" />
     <Compile Include="Controllers\OpReportController.cs" />
     <Compile Include="Controllers\HomeController.cs" />
@@ -220,6 +221,8 @@
     <Compile Include="Models\CommonRepository.cs" />
     <Compile Include="Models\Receipt.cs" />
     <Compile Include="Models\ReceiptRepository.cs" />
+    <Compile Include="Models\SubcontractDis.cs" />
+    <Compile Include="Models\SubcontractDisRepository.cs" />
     <Compile Include="Models\ScanResult.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -21,7 +21,7 @@ namespace Appapi.Models
 
         #region  重用函数（非接口）
 
-        private static string ConstructRcvdtlStr(string[] array)//生成RcvdtlStr中的单个 json串 {...}
+        public static string ConstructRcvdtlStr(string[] array)//生成RcvdtlStr中的单个 json串 {...}
         {
             string rcvdtlStr = "'ponum':'{0}', " +
                              "'poline':'{1}', " +
@@ -1245,7 +1245,7 @@ namespace Appapi.Models
                         rcvdtlStr = "[" + rcvdtlStr + "]";
 
 
-                        if ((res = ErpAPI.ReceiptRepository.porcv(packnum, recdate.Split(' ')[0], vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//erp回写成功，更新对应的Receipt记录
+                        if ((res = ErpAPI.ReceiptRepository.porcv(packnum, recdate.Split(' ')[0], vendorid, rcvdtlStr, "", companyId,false)) == "1|处理成功.")//erp回写成功，更新对应的Receipt记录
                         {
                             string Location = ErpAPI.ReceiptRepository.poDes((int)theBatch.PoNum, (int)theBatch.PoLine, (int)theBatch.PORelNum, theBatch.Company);
                             Location = Location == "R|物料接收人:" ? Location + (string)HttpContext.Current.Session["UserId"] : Location;
@@ -1327,7 +1327,7 @@ namespace Appapi.Models
                             }
 
                             //(res = ErpApi.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功."
-                            if ((res = ErpAPI.ReceiptRepository.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId)) == "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
+                            if ((res = ErpAPI.ReceiptRepository.porcv(packnum, recdate, vendorid, rcvdtlStr, "", companyId,false)) == "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
                             {
                                 for (int i = 0; i < dt.Rows.Count; i++)
                                 {

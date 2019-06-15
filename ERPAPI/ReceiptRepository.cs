@@ -131,7 +131,7 @@ namespace ErpAPI
 
 
 
-        public static string porcv(string packNum, string recdate, string vendorid, string rcvdtlStr, string c10, string companyId)
+        public static string porcv(string packNum, string recdate, string vendorid, string rcvdtlStr, string c10, string companyId, bool reqIns)
         {
             if (packNum.Trim() == "") { return "0|收货单号不可为空"; }
             DateTime recdateD;
@@ -207,7 +207,7 @@ namespace ErpAPI
                 ReceiptDataSet ds = new ReceiptDataSet();
                 int vendornum = 0;
                 string purPoint = "";
-                recAD.GetNewRcvHead(ds, vendornum, purPoint);
+                //recAD.GetNewRcvHead(ds, vendornum, purPoint);
                 u = 3;
                 recAD.GetPOInfo(ds, poNum, false, out vendornum, out purPoint);
                 u = 4;
@@ -256,6 +256,13 @@ namespace ErpAPI
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PONum"] = poNum;
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["POLine"] = poline;
 
+
+
+                        if (reqIns)
+                        {
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["InspectionReq"] = "true";
+                            recAD.OnChangeInspReq(ds, vendornum,purPoint, packNum, ds.Tables["RcvDtl"].Rows.Count - 1);
+                        }
 
 
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
