@@ -30,8 +30,8 @@ namespace Appapi.Models
         public bool M_IsDelete { get; set; }
         public string UnQualifiedReason { get; set; }
         public string PackSlip { get; set; }
-        public int? TranID { get; set; }
-        public int? DMRID { get; set; }
+        public int TranID { get; set; }
+        public int DMRID { get; set; }
         public decimal? TotalDMRQualifiedQty { get; set; }
         public decimal? TotalDMRRepairQty { get; set; }
         public decimal? TotalDMRUnQualifiedQty { get; set; }
@@ -52,6 +52,7 @@ namespace Appapi.Models
         public long AtRole { get; set; }
         public int? RelatedID { get; set; }
         public string S_Remark { get; set; }
+        public string LotNum { get; set; }
         public decimal? DMRQualifiedQty { get; set; }
         public decimal? DMRRepairQty { get; set; }
         public decimal? DMRUnQualifiedQty { get; set; }
@@ -60,5 +61,7 @@ namespace Appapi.Models
         public string DMRWarehouseCode { get; set; }
         public string DMRBinNum { get; set; }
         public int? S_ID { get; set; }
+
+        public string FromUser { get; set; }
     }
 }

@@ -412,7 +412,7 @@ namespace ErpAPI
                 out int tranid)
         {
 
-            tranid = -1;
+            tranid = 0;
             Session EpicorSession = CommonRepository.GetEpicorSession();
             if (EpicorSession == null)
             {
@@ -514,9 +514,22 @@ namespace ErpAPI
                 string legalNumberMessage = "";
                 int iDMRNum = 0;
                 string InspectorID = "Q01";
+                int iNonConfID = 0;
 
                 InspProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<InspProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.InspProcessingSvcContract>.UriPath);
-                InspProcessingDataSet ds = adapter.GetByID(TranID);
+                InspProcessingDataSet ds = new InspProcessingDataSet();
+
+
+                if (type == "外协不良2")
+                {
+                     ds = adapter.GetReceiptByID(778, "", "342355", 1);
+                }
+                else
+                {
+                     ds = adapter.GetByID(TranID);
+                }
+
+
                 //检验员
                 ds.Tables["InspNonConf"].Rows[0]["InspectorID"] = InspectorID;
                 adapter.AssignInspectorNonConf(InspectorID, ds, out infoMsg);
@@ -543,6 +556,8 @@ namespace ErpAPI
                     adapter.InspectMaterial(out legalNumberMessage, out iDMRNum, ds);
                 if (type == "报工")
                     adapter.InspectOperation(out legalNumberMessage, out iDMRNum, ds);
+                if (type == "外协不良2")
+                    adapter.InspectReceipt(out legalNumberMessage, out iDMRNum, out iNonConfID, ds);
 
 
                 dmrid = iDMRNum;
@@ -726,10 +741,12 @@ namespace ErpAPI
                 int i = ds.Tables["DMRActn"].Rows.Count;
 
 
-                if(type == "报工")
+                if (type == "报工")
                     adapter.GetNewDMRActnAcceptOPR(ds, DMRID); //报工让步
-                else//物料
+                else if (type == "物料")//
                     adapter.GetNewDMRActnAcceptMTL(ds, DMRID); // 物料、工序返修，物料让步
+                //else if (type == "外协不良2")
+                //    adapter.GetNewDMRActnAcceptSTK(ds, DMRID);
 
 
                 ds.Tables["DMRActn"].Rows[i]["DMRNum"] = DMRID;

@@ -71,7 +71,7 @@ namespace Appapi.Models
         }
 
 
-        private static string CheckBinNum(string company, string binnum, string WarehouseCode)
+        public static string CheckBinNum(string company, string binnum, string WarehouseCode)
         {
             string sql = "select count(*) from erp.WhseBin where Company = '{0}' and  WarehouseCode = '{1}' and BinNum = '{2}'";
             sql = string.Format(sql, company, WarehouseCode, binnum);
