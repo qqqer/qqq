@@ -409,9 +409,9 @@ namespace ErpAPI
                 string ReasonCode,
                 string plant,
                 string LotNum,
+                string type,
                 out int tranid)
         {
-
             tranid = 0;
             Session EpicorSession = CommonRepository.GetEpicorSession();
             if (EpicorSession == null)
@@ -425,11 +425,18 @@ namespace ErpAPI
                 string snWarning = "";
 
                 NonConfImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<NonConfImpl>(EpicorSession, ImplBase<Erp.Contracts.NonConfSvcContract>.UriPath);
-                //EpicorSessionManager.EpicorSession.CompanyID = Company;
-                //EpicorSessionManager.EpicorSession.PlantID = plant;
-              
-                //新增物料
-                NonConfDataSet ds = adapter.AddNonConf("JobMaterial");
+                NonConfDataSet ds = new NonConfDataSet();
+
+
+                if (type == "外协")
+                {//新增工序
+                     ds = adapter.AddNonConf("Operation");
+                }
+                else if (type == "物料")
+                {
+                    //新增物料
+                     ds = adapter.AddNonConf("JobMaterial");
+                }
                 //加入工单
                 adapter.OnChangeJobNum(JobNum, out plAsmReturned, out snWarning, ds);
                 //选择阶层
@@ -459,8 +466,10 @@ namespace ErpAPI
                 ds.Tables["NonConf"].Rows[0]["BinNum"] = "01";
                 //原因
                 ds.Tables["NonConf"].Rows[0]["ReasonCode"] = ReasonCode;
-                //批次
-                ds.Tables["NonConf"].Rows[0]["LotNum"] = LotNum;
+
+                if (type == "物料")
+                    //批次
+                    ds.Tables["NonConf"].Rows[0]["LotNum"] = LotNum;
 
                 //保存
                 adapter.Update(ds);
@@ -489,6 +498,8 @@ namespace ErpAPI
             string FailedBin,
             string type,
             string plant,
+            string packslip,
+            int poline,
             out int dmrid)
         {
             dmrid = 0;
@@ -522,7 +533,10 @@ namespace ErpAPI
 
                 if (type == "外协不良2")
                 {
-                     ds = adapter.GetReceiptByID(778, "", "342355", 1);
+                    string sql = @"select VendorNum, PurPoint, PackLine, PackSlip from erp.RcvDtl where PackSlip = '"+packslip+"' and POLine = "+poline+"";
+                    DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+                    ds = adapter.GetReceiptByID((int)dt.Rows[0]["VendorNum"], dt.Rows[0]["PurPoint"].ToString(), packslip, (int)dt.Rows[0]["PackLine"]);
                 }
                 else
                 {
@@ -592,6 +606,7 @@ namespace ErpAPI
             try
             {
                 EpicorSession.PlantID = plant;
+                EpicorSession.CompanyID = Company;
                 int AssemblySeq = 0;
                 bool multipleMatch = false;
                 bool vSubAvail = false;
@@ -605,8 +620,6 @@ namespace ErpAPI
 
                 DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
                 JobEntryImpl adapter1 = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<JobEntryImpl>(EpicorSession, ImplBase<Erp.Contracts.JobEntrySvcContract>.UriPath);
-                //EpicorSessionManager.EpicorSession.CompanyID = Company;
-                // EpicorSessionManager.EpicorSession.PlantID = plant;
 
 
                 //工单是否存在
@@ -818,12 +831,11 @@ namespace ErpAPI
             }
             try
             {
+                EpicorSession.CompanyID = Company;
                 EpicorSession.PlantID = plant;
                 string opLegalNumberMessage = "";
 
                 DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
-                //EpicorSessionManager.EpicorSession.CompanyID = Company;
-                //EpicorSessionManager.EpicorSession.PlantID = plant;
 
 
                 DMRProcessingDataSet ds = adapter.GetByID(DMRID);

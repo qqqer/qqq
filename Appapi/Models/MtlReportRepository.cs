@@ -465,7 +465,7 @@ namespace Appapi.Models
                 if (theReport.ErpCounter < 1)//不合格品界面
                 {
                     int TranID = -1;
-                    res = ErpAPI.CommonRepository.Startnonconf(theReport.JobNum, (int)theReport.AssemblySeq, theReport.Company, (int)theReport.MtlSeq, (decimal)theReport.UnQualifiedQty, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, theReport.UnQualifiedReason, theReport.Plant, theReport.LotNum, out TranID);
+                    res = ErpAPI.CommonRepository.Startnonconf(theReport.JobNum, (int)theReport.AssemblySeq, theReport.Company, (int)theReport.MtlSeq, (decimal)theReport.UnQualifiedQty, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, theReport.UnQualifiedReason, theReport.Plant, theReport.LotNum,"物料", out TranID);
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 
@@ -484,7 +484,7 @@ namespace Appapi.Models
                 {
                     int DMRID = 0;
 
-                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "物料", theReport.Plant, out DMRID); //产品其它不良 D22  D
+                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "物料", theReport.Plant,"",0, out DMRID); //产品其它不良 D22  D
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 

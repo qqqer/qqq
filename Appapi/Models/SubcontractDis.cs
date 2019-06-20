@@ -41,18 +41,19 @@ namespace Appapi.Models
         public int? Type { get; set; }
         public int M_ID { get; set; }
 
+        public int RelatedID { get; set; }
         public DateTime DMRDate { get; set; }
-        public DateTime CompleteDate { get; set; }
-        public string SecondUserID { get; set; }
-        public string ThirdUserGroup { get; set; }
-        public string ThirdUserID { get; set; }
-        public int? NodeNum { get; set; }
+        public DateTime TransferDate { get; set; }
+        public DateTime AccepterDate { get; set; }
+        public string DMRUserID { get; set; }
+        public string TransferUserGroup { get; set; }
+        public string TransferUserID { get; set; }
+        public string AccepterUserGroup { get; set; }
+        public string AccepterUserID { get; set; }
         public bool S_IsDelete { get; set; }
         public bool IsComplete { get; set; }
         public long AtRole { get; set; }
-        public int? RelatedID { get; set; }
         public string S_Remark { get; set; }
-        public string LotNum { get; set; }
         public decimal? DMRQualifiedQty { get; set; }
         public decimal? DMRRepairQty { get; set; }
         public decimal? DMRUnQualifiedQty { get; set; }
@@ -60,6 +61,7 @@ namespace Appapi.Models
         public string DMRJobNum { get; set; }
         public string DMRWarehouseCode { get; set; }
         public string DMRBinNum { get; set; }
+        public int? NodeNum { get; set; }
         public int? S_ID { get; set; }
 
         public string FromUser { get; set; }

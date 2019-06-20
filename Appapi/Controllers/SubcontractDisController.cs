@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Web;
 using System.Web.Http;
 using Appapi.Models;
 
@@ -28,25 +29,57 @@ namespace Appapi.Controllers
         }
 
         [HttpPost]
-        //Post:  /api/SubcontractDis/AccepterCommitOfSub
-        public string AccepterCommitOfSub(SubcontractDis sd)//ApiNum: 301  对外协不良流程进行结束
+        //Post:  /api/SubcontractDis/TransferCommitOfSub
+        public string TransferCommitOfSub(SubcontractDis sd)//ApiNum: 301  
         {
-            string res = SubcontractDisRepository.AccepterCommitOfSub(sd);
+            string res = SubcontractDisRepository.TransferCommitOfSub(sd);
             return res == "处理成功" ? "301|" + res : res;
         }
 
+
+        [System.Web.Http.HttpPost]
+        //Post:  /api/SubcontractDis/AccepterCommitOfSub
+        public string AccepterCommitOfSub(SubcontractDis sd) // ApiNum 401
+        {
+            string res = SubcontractDisRepository.AccepterCommitOfSub(sd);
+            return res == "处理成功" ? res : "401|" + res;
+        }
+
+
         [HttpGet]
-        //Get:  /api/SubcontractDis/GetRemainsOfUser
-        public IEnumerable<SubcontractDis> GetRemainsOfUser()//ApiNum: 1     
+        //Get:  /api/SubcontractDis/GetDMRRemainsOfUser
+        public IEnumerable<SubcontractDis> GetDMRRemainsOfUser()//ApiNum: 1     
         {
             return SubcontractDisRepository.GetDMRRemainsOfUser();
         }
 
         [HttpGet]
-        //Get:  /api/SubcontractDis/GetNextUserGroup
-        public DataTable GetNextUserGroup(int s_id)//ApiNum: 2   
+        //Get:  /api/SubcontractDis/GetRemainsOfUser
+        public IEnumerable<SubcontractDis> GetRemainsOfUser()//ApiNum: 2    
         {
-            return SubcontractDisRepository.GetNextUserGroup(s_id);
+            return SubcontractDisRepository.GetRemainsOfUser();
+        }
+
+
+        [HttpGet]
+        //Get:  /api/SubcontractDis/GetTransferUserGroup
+        public DataTable GetTransferUserGroup(int m_id)//ApiNum:   3
+        {
+            return SubcontractDisRepository.GetTransferUserGroup(m_id);
+        }
+
+        [HttpGet]
+        //Get:  /api/SubcontractDis/GetAccepterUserGroup
+        public DataTable GetAccepterUserGroup(int s_id)//ApiNum:   4
+        {
+            return SubcontractDisRepository.GetAccepterUserGroup(s_id);
+        }
+
+        [HttpGet]
+        //Get:  /api/SubcontractDis/GetRecordByID
+        public SubcontractDis GetRecordByID(int id)//ApiNum: 5   从bpm表中获取ID指定的记录行
+        {
+            return HttpContext.Current.Session.Count != 0 ? SubcontractDisRepository.GetRecordByID(id) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
     }
 }

@@ -1248,7 +1248,7 @@ namespace Appapi.Models
 
                 if (DMRID == 0)
                 {
-                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, out DMRID); //产品其它不良 D22  D
+                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant,"",0, out DMRID); //产品其它不良 D22  D
                     if (res.Substring(0, 1).Trim() != "1")
                     {
                         AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "检验处理返回结果|" + res);
@@ -1433,6 +1433,8 @@ namespace Appapi.Models
 
                 if (!IsExistOprSeq) return "错误：返修工单工序为空，请联系计划部";
 
+                sql = @"select  SubContract  from erp.JobOper where jobnum = '" + theSubReport.DMRJobNum + "' order by OprSeq asc ";
+                bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
                 sql = " update bpmsub set " +
                         "TransformUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
@@ -1440,7 +1442,7 @@ namespace Appapi.Models
                         "Status = " + 4 + "," +
                         "NextUserGroup = '" + TransmitInfo.NextUserGroup + "'," +
                         "PreStatus = " + 3 + "," +
-                        "AtRole = " + 128 + " " +
+                        "AtRole = " + (IsSubContract ? 16 : 128) + " " +
                         "where id = " + (theSubReport.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -2075,7 +2077,7 @@ namespace Appapi.Models
                     nextOpCode = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
                 }
             }
-            `
+            
 
             DataTable dt = null;
             if (nextRole == 8)//从拥有权值8的人员表中，选出可以操作指定仓库的人
