@@ -429,10 +429,6 @@ namespace Appapi.Models
             }
 
 
-            //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
-            //    return "错误：该工序已完成";
-
-
             string NextSetpInfo = GetNextSetpInfo(arr[0], int.Parse(arr[1]), int.Parse(arr[2]), dt.Rows[0]["Company"].ToString());
             if (NextSetpInfo.Substring(0, 1).Trim() == "0")
                 return "0|错误：无法获取工序最终去向，" + NextSetpInfo;

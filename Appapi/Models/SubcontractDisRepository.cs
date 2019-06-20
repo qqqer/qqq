@@ -51,7 +51,7 @@ namespace Appapi.Models
                 pr.AssemblySeq,  
                 pr.PoNum,
                 vd.VendorID  as SupplierNo,
-                vd.Name as SupplierName,
+                vd.Name as SupplierName
                
                 from erp.PORel pr
                 left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
@@ -59,9 +59,12 @@ namespace Appapi.Models
                 left join erp.Vendor vd     on ph.VendorNum = vd.VendorNum   and   ph.company = vd.company                     
                 where pr.ponum = {0} and pr.poline ={1} and pr.PORelNum = {2} and pr.Company = '001'";
 
+            sql = string.Format(sql, ponum, poline, porelnum);
+
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
-            SubcontractDis commoninfo = CommonRepository.DataTableToList<SubcontractDis>
-                (Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
+            SubcontractDis commoninfo = new SubcontractDis();
+                //CommonRepository.DataTableToList<SubcontractDis>
+                //(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
             commoninfo.Plant = dt.Rows[0]["Plant"].ToString();
             commoninfo.Company = dt.Rows[0]["Company"].ToString();
@@ -76,14 +79,14 @@ namespace Appapi.Models
 
         public static string ReceiveSubcontractDisQty(SubcontractDis sd)
         {
-            if (((long)HttpContext.Current.Session["RoleID"] & 2048) == 0)
+            if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
                 return "0|错误：该账号没有权限发起外协不良";
 
             DataTable AllOpSeqOfSeriesSUB = GetAllOpSeqOfSeriesSUB(sd);
             SubcontractDis CommonInfo = GetCommonInfo((int)sd.PoNum,
                 (int)AllOpSeqOfSeriesSUB.Rows[0]["poline"], (int)AllOpSeqOfSeriesSUB.Rows[0]["porelnum"]);
 
-            string PackSlip = CommonInfo.SupplierNo + "D" + sd.PoNum + (new Random().Next() % 100000000) + 100000000;
+            string PackSlip = CommonInfo.SupplierNo + "D" + sd.PoNum + ((new Random().Next() % 100000) + 100000);
             string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             string sql = "";
 
@@ -118,7 +121,7 @@ namespace Appapi.Models
                                ,[ExistSubProcess]
                                ,[CheckCounter]
                                ,[Responsibility]
-                               ,[Type]) values{0}";
+                               ,[Type]) values({0})";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
                     {
                         CommonInfo.SupplierNo,
@@ -152,6 +155,7 @@ namespace Appapi.Models
                         sd.Type
                     });
                 sql = string.Format(sql, values);
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
 
@@ -550,7 +554,7 @@ namespace Appapi.Models
         private static void AddOpLog(string JobNum, int AssemblySeq, int ApiNum, string OpDetail, int M_ID, int S_ID, int PONum)
         {
             string sql = @"insert into SubcontractDisLog(JobNum, AssemblySeq, UserId, Opdate, ApiNum, OpDetail,M_ID,S_ID, PONum) Values('{0}', {1}, '{2}', {3}, {4},  @OpDetail,{5},{6},{7}) ";
-            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, OpDetail, M_ID, S_ID, PONum);
+            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, M_ID, S_ID, PONum);
 
             SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
