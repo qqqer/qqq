@@ -207,7 +207,7 @@ namespace ErpAPI
                 ReceiptDataSet ds = new ReceiptDataSet();
                 int vendornum = 0;
                 string purPoint = "";
-                //recAD.GetNewRcvHead(ds, vendornum, purPoint);
+                recAD.GetNewRcvHead(ds, vendornum, purPoint);
                 u = 3;
                 recAD.GetPOInfo(ds, poNum, false, out vendornum, out purPoint);
                 u = 4;
@@ -232,7 +232,7 @@ namespace ErpAPI
                 u = 10;
                 string lotStr = "";
                 string lotStr2 = "";
-                int poline = 0, porel = 0;
+                int poline = 0, porel = 0, jobseq = 0;
                 string jobnum = "", ordertype = "", whcode = "";
                 PODataSet poDS;
                 PODataSet.PODetailDataTable poDtlDt;
@@ -241,6 +241,7 @@ namespace ErpAPI
                 {
                     {
                         poNum = Convert.ToInt32(dtRcvDtl.Rows[i]["ponum"]);
+                        jobseq = Convert.ToInt32(dtRcvDtl.Rows[i]["jobseq"]);
                         poline = Convert.ToInt32(dtRcvDtl.Rows[i]["poline"]);
                         porel = Convert.ToInt32(dtRcvDtl.Rows[i]["porel"]);
                         jobnum = dtRcvDtl.Rows[i]["jobnum"].ToString().Trim();
@@ -256,12 +257,14 @@ namespace ErpAPI
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PONum"] = poNum;
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["POLine"] = poline;
 
-
-
+                        
                         if (reqIns)
                         {
                             ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["InspectionReq"] = "true";
-                            recAD.OnChangeInspReq(ds, vendornum,purPoint, packNum, ds.Tables["RcvDtl"].Rows.Count - 1);
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobNum"] = jobnum;
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobSeq"] = jobseq;
+
+                            recAD.OnChangeInspReq(ds, vendornum, purPoint, packNum, ds.Tables["RcvDtl"].Rows.Count-1);
                         }
 
 

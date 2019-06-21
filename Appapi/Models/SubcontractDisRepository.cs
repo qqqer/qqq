@@ -178,9 +178,8 @@ namespace Appapi.Models
                                 CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["jobseq"]),
                                 CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["CommentText"].ToString().Replace('\'','"')),
                                 CommonRepository.GetValueAsString("PUR-SUB"),
-                                CommonRepository.GetValueAsString("")});
+                                CommonRepository.GetValueAsString("")}) + (i == AllOpSeqOfSeriesSUB.Rows.Count - 1 ? "]" : ",");
             }
-
 
             string res = "";
             if ((res = ErpAPI.ReceiptRepository.porcv(PackSlip, recdate, CommonInfo.SupplierNo, rcvdtlStr, "", CommonInfo.Company, true)) != "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
@@ -197,7 +196,7 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string sql = @"select * from SubcontractDisMain where  = " + sd.M_ID + "";
+            string sql = @"select * from SubcontractDisMain where m_id = " + sd.M_ID + "";
 
             SubcontractDis theSubcontractDis = CommonRepository.DataTableToList<SubcontractDis>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
@@ -251,7 +250,7 @@ namespace Appapi.Models
 
 
 
-            string res, type = (int)theSubcontractDis.TranID == 0 ? "外协不良1" : "外协不良2";
+            string res, type = (int)theSubcontractDis.TranID != 0 ? "外协不良1" : "外协不良2";
             if (theSubcontractDis.DMRID == 0)
             {
                 int DMRID = 0, TranID = 0;
@@ -404,7 +403,7 @@ namespace Appapi.Models
         {
             if (((int)HttpContext.Current.Session["RoleId"] & 1024) != 0)
             {
-                string sql = @"select * from SubcontractDisMain where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter > 0  and isdelete != 1 order by CreateDate desc";
+                string sql = @"select * from SubcontractDisMain where CHARINDEX(company, '{0}') > 0   and   CHARINDEX(Plant, '{1}') > 0 and checkcounter > 0  and m_isdelete != 1 order by CreateDate desc";
                 sql = string.Format(sql, HttpContext.Current.Session["Company"].ToString(), HttpContext.Current.Session["Plant"].ToString());
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
@@ -468,7 +467,7 @@ namespace Appapi.Models
 
         public static DataTable GetTransferUserGroup(int m_id)
         {
-            string sql = @"select * from SubcontractDisMain where  = " + m_id + "";
+            string sql = @"select * from SubcontractDisMain where m_id = " + m_id + "";
             SubcontractDis theSubcontractDis = CommonRepository.DataTableToList<SubcontractDis>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
             sql = "select * from userfile where CHARINDEX('" + theSubcontractDis.Company + "', company) > 0 and CHARINDEX('" + theSubcontractDis.Plant + "', plant) > 0 and disabled = 0 and RoleID & 2048 != 0 and RoleID != 2147483647";
@@ -535,7 +534,7 @@ namespace Appapi.Models
         }
 
 
-        public static SubcontractDis GetRecordByID(int ID)
+        public static DataTable GetRecordByID(int ID)
         {
             string sql;
             if (ID > 0)
@@ -545,9 +544,9 @@ namespace Appapi.Models
             else
                 sql = @"select * from SubcontractDisMain sdm left join SubcontractDisSub sds on sdm.M_ID = sds.RelatedID where sds.S_ID = " + ID + "";
 
-            SubcontractDis theSubcontractDis = CommonRepository.DataTableToList<SubcontractDis>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
+            DataTable dt = (Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)); //获取该批次记录
 
-            return theSubcontractDis;
+            return dt;
         }
 
 

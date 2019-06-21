@@ -1228,8 +1228,6 @@ namespace Appapi.Models
 
 
             string res;
-
-
             if (theReport.DMRID is DBNull || theReport.DMRID == null)//产生dmrid前允许删除时间费用
             {
                 int DMRID;
@@ -1613,6 +1611,14 @@ namespace Appapi.Models
                         if (res != "1|处理成功")
                             return "错误：" + res;
                     }
+
+                    
+                    if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0,2) == "BC")
+                    {
+                        
+                    }
+
+                    //if(theSubReport.NextOpCode)
 
 
                     string[] arr = NextSetpInfo.Split('~');

@@ -77,7 +77,7 @@ namespace Appapi.Controllers
 
         [HttpGet]
         //Get:  /api/SubcontractDis/GetRecordByID
-        public SubcontractDis GetRecordByID(int id)//ApiNum: 5   从bpm表中获取ID指定的记录行
+        public DataTable GetRecordByID(int id)//ApiNum: 5   从bpm表中获取ID指定的记录行
         {
             return HttpContext.Current.Session.Count != 0 ? SubcontractDisRepository.GetRecordByID(id) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
