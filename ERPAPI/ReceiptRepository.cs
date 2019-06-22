@@ -226,7 +226,6 @@ namespace ErpAPI
                 o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
                 ds.Tables["RcvHead"].Rows[0]["Plant"] = o == null ? "" : o.ToString();
 
-
                 u = 9;
                 recAD.Update(ds);
                 u = 10;
@@ -258,15 +257,7 @@ namespace ErpAPI
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["POLine"] = poline;
 
                         
-                        if (reqIns)
-                        {
-                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["InspectionReq"] = "true";
-                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobNum"] = jobnum;
-                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobSeq"] = jobseq;
-
-                            recAD.OnChangeInspReq(ds, vendornum, purPoint, packNum, ds.Tables["RcvDtl"].Rows.Count-1);
-                        }
-
+                       
 
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
 
@@ -386,8 +377,18 @@ namespace ErpAPI
                         outMsg8 = "";
                         bool outBool1 = false, outBool2 = false, outBool3 = false;
 
-                        u = 21;
 
+                        if (reqIns)
+                        {
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["InspectionReq"] = "True";
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobNum"] = jobnum;
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobSeq"] = jobseq;
+
+                            recAD.OnChangeInspReq(ds, vendornum, purPoint, packNum, ds.Tables["RcvDtl"].Rows.Count - 1);
+                        }
+
+
+                        u = 21;
                         recAD.Update(ds);
                     }
                 }

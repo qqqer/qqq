@@ -1640,7 +1640,7 @@ namespace Appapi.Models
                     sql = sql.Replace("'", "");
                     AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "让步提交|" + sql);
                 }
-
+                
                 if ((theSubReport.DMRRepairQty) != null)
                 {
                     sql = " update bpmsub set " +

@@ -14,7 +14,7 @@ namespace Appapi.Models
     {
         private static void InsertDiscardRecord(int M_ID, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string ThirdUserGroup)
         {
-            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  '', '', '{1}','{2}','','','',0,0,2048,'',0,0,{3},'{4}','','{5}','{6}',3)";
+            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null, '{1}','{2}','','','',0,0,2048,'',0,0,{3},'{4}','','{5}','{6}',3)";
             sql = string.Format(sql, M_ID, HttpContext.Current.Session["UserId"].ToString(), ThirdUserGroup, DMRUnQualifiedQty, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -22,7 +22,7 @@ namespace Appapi.Models
 
         private static void InsertRepairRecord(int M_ID, decimal DMRRepairQty, string DMRJobNum, int DMRID, string ThirdUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason)
         {
-            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  '', '','{1}','{2}','','','',0,0,2048,'',0,{3},0,'{4}','{5}','{6}','{7}',3)";
+            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null,'{1}','{2}','','','',0,0,2048,'',0,{3},0,'{4}','{5}','{6}','{7}',3)";
             sql = string.Format(sql, M_ID, HttpContext.Current.Session["UserId"].ToString(), ThirdUserGroup, DMRRepairQty, DMRUnQualifiedReason, DMRJobNum, DMRWarehouseCode, DMRBinNum);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -287,7 +287,10 @@ namespace Appapi.Models
             {
                 res = ErpAPI.CommonRepository.RepairDMRProcessing((int)theSubcontractDis.DMRID, theSubcontractDis.Company, theSubcontractDis.Plant, theSubcontractDis.PartNum, (decimal)sd.DMRRepairQty, sd.DMRJobNum, theSubcontractDis.IUM);
                 if (res.Substring(0, 1).Trim() != "1")
+                {
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "DMR返修失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
+                }
 
                 InsertRepairRecord(sd.M_ID, (decimal)sd.DMRRepairQty, sd.DMRJobNum, (int)theSubcontractDis.DMRID, sd.TransferUserGroup, sd.DMRWarehouseCode, sd.DMRBinNum, sd.DMRUnQualifiedReason);
 
@@ -303,7 +306,10 @@ namespace Appapi.Models
 
                 res = ErpAPI.CommonRepository.RefuseDMRProcessing(theSubcontractDis.Company, theSubcontractDis.Plant, (decimal)sd.DMRUnQualifiedQty, sd.DMRUnQualifiedReason, (int)theSubcontractDis.DMRID, theSubcontractDis.IUM);
                 if (res.Substring(0, 1).Trim() != "1")
+                {
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "DMR拒收失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
                     return "错误：" + res + ". 请重新提交报废数量";
+                }
 
                 InsertDiscardRecord(theSubcontractDis.M_ID, (decimal)sd.DMRUnQualifiedQty, sd.DMRUnQualifiedReason, (int)theSubcontractDis.DMRID, sd.DMRWarehouseCode, sd.DMRBinNum, sd.TransferUserGroup);
 
@@ -542,7 +548,7 @@ namespace Appapi.Models
                 sql = @"select * from SubcontractDisMain sdm left join SubcontractDisSub sds on sdm.M_ID = sds.RelatedID where sdm.M_ID = " + ID + "";
             }
             else
-                sql = @"select * from SubcontractDisMain sdm left join SubcontractDisSub sds on sdm.M_ID = sds.RelatedID where sds.S_ID = " + ID + "";
+                sql = @"select * from SubcontractDisMain sdm left join SubcontractDisSub sds on sdm.M_ID = sds.RelatedID where sds.S_ID = " + (-ID) + "";
 
             DataTable dt = (Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)); //获取该批次记录
 
