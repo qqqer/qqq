@@ -384,7 +384,7 @@ namespace ErpAPI
                             ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobNum"] = jobnum;
                             ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobSeq"] = jobseq;
 
-                            recAD.OnChangeInspReq(ds, vendornum, purPoint, packNum, ds.Tables["RcvDtl"].Rows.Count - 1);
+                            recAD.OnChangeInspReq(ds, vendornum, purPoint, packNum, 0);// ds.Tables["RcvDtl"].Rows.Count - 1);
                         }
 
 
