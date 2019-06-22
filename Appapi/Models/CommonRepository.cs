@@ -258,30 +258,34 @@ namespace Appapi.Models
 
         public static DataTable NPI_Handler(string jobnum, DataTable UserGroup)
         {
-            if (UserGroup != null)
+            string sql = @"select Plant from erp.JobHead where company = '001' and JobNum = '" + jobnum + "'";
+            string Plant = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            if (Plant != "HDSite")
             {
-                if (jobnum.ToUpper().Contains("NPI") && UserGroup != null)
+                if (UserGroup != null)
                 {
-                    for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
+                    if (jobnum.ToUpper().Contains("NPI") && UserGroup != null)
                     {
-                        if (!Convert.ToBoolean(UserGroup.Rows[i]["OnlyNPI"]) && ((Convert.ToInt32(UserGroup.Rows[i]["RoleID"]) & 16) == 0)) //排除不是专门处理npi的人
+                        for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
                         {
-                            UserGroup.Rows.RemoveAt(i);
+                            if (!Convert.ToBoolean(UserGroup.Rows[i]["OnlyNPI"]) && ((Convert.ToInt32(UserGroup.Rows[i]["RoleID"]) & 16) == 0)) //排除不是专门处理npi的人
+                            {
+                                UserGroup.Rows.RemoveAt(i);
+                            }
                         }
                     }
-                }
-                else if (!jobnum.ToUpper().Contains("NPI") && UserGroup != null)
-                {
-                    for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
+                    else if (!jobnum.ToUpper().Contains("NPI") && UserGroup != null)
                     {
-                        if (Convert.ToBoolean(UserGroup.Rows[i]["OnlyNPI"])) //排除专门处理npi的人
+                        for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
                         {
-                            UserGroup.Rows.RemoveAt(i);
+                            if (Convert.ToBoolean(UserGroup.Rows[i]["OnlyNPI"])) //排除专门处理npi的人
+                            {
+                                UserGroup.Rows.RemoveAt(i);
+                            }
                         }
                     }
                 }
             }
-
             return UserGroup;
         }
 
