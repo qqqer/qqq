@@ -90,7 +90,7 @@ namespace Appapi.Models
             string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             string sql = "";
 
-            for (int i = 0; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
+            for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
             {
                 sql = @"INSERT INTO [dbo].[SubcontractDisMain]
                                ([SupplierNo]
@@ -160,7 +160,7 @@ namespace Appapi.Models
 
 
             string rcvdtlStr = "[";
-            for (int i = 0; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
+            for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
             {
                 rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
                     new String[] {
@@ -268,6 +268,7 @@ namespace Appapi.Models
                     AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "不合格品发起成功，TranID = " + TranID, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
                 }
 
+
                 res = ErpAPI.CommonRepository.StartInspProcessing((int)theSubcontractDis.TranID, 0, (decimal)theSubcontractDis.DisQty, "D22", "BLPC", "01", type, theSubcontractDis.Plant, theSubcontractDis.PackSlip,(int)theSubcontractDis.PoLine, out DMRID); //产品其它不良 D22  D
                 if (res.Substring(0, 1).Trim() != "1")
                 {
@@ -295,7 +296,7 @@ namespace Appapi.Models
                 InsertRepairRecord(sd.M_ID, (decimal)sd.DMRRepairQty, sd.DMRJobNum, (int)theSubcontractDis.DMRID, sd.TransferUserGroup, sd.DMRWarehouseCode, sd.DMRBinNum, sd.DMRUnQualifiedReason);
 
 
-                sql = " update SubcontractDisMain set ExistSubProcess = 1, checkcounter = checkcounter - " + sd.DMRRepairQty + ",TotalDMRRepairQty = ISNULL(TotalDMRRepairQty,0) + " + sd.DMRRepairQty + "  where m_id = " + (sd.M_ID) + "";
+                sql = " update SubcontractDisMain set Responsibility = '"+sd.Responsibility+"', ExistSubProcess = 1, checkcounter = checkcounter - " + sd.DMRRepairQty + ",TotalDMRRepairQty = ISNULL(TotalDMRRepairQty,0) + " + sd.DMRRepairQty + "  where m_id = " + (sd.M_ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "返修子流程生成", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);

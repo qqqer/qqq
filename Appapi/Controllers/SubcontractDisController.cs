@@ -17,7 +17,7 @@ namespace Appapi.Controllers
         public string ReceiveSubcontractDisQty(SubcontractDis sd)//ApiNum: 101  对外协不良进行收货
         {
             string res = SubcontractDisRepository.ReceiveSubcontractDisQty(sd);
-            return res == "处理成功" ? "101|" + res : res;
+            return res == "处理成功" ?  res : "101|" + res;
         }
 
         [HttpPost]
@@ -25,7 +25,7 @@ namespace Appapi.Controllers
         public string DMRCommit(SubcontractDis sd)//ApiNum: 201  对外协不良进行DMR
         {
             string res = SubcontractDisRepository.DMRCommit(sd);
-            return res == "处理成功" ? "201|" + res : res;
+            return res == "处理成功" ?  res : "201|" + res;
         }
 
         [HttpPost]
@@ -33,7 +33,7 @@ namespace Appapi.Controllers
         public string TransferCommitOfSub(SubcontractDis sd)//ApiNum: 301  
         {
             string res = SubcontractDisRepository.TransferCommitOfSub(sd);
-            return res == "处理成功" ? "301|" + res : res;
+            return res == "处理成功" ?  res : "301|" + res;
         }
 
 

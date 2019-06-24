@@ -143,7 +143,7 @@ namespace ErpAPI
                                     if (Convert.ToBoolean(drNextdt.Rows[0]["SubContract"]))
                                     {
                                         stype = "S|下工序外协" + drNextdt.Rows[0]["Opdesc"].ToString();
-                                        OutAsm = asmSeq;
+                                        OutAsm = parAsmSeq;
                                         OutOprSeq = NextOperSeq;
                                         OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
                                         OutOpDesc = drNextdt.Rows[0]["Opdesc"].ToString();
@@ -152,7 +152,7 @@ namespace ErpAPI
                                     else
                                     {
                                         stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();
-                                        OutAsm = asmSeq;
+                                        OutAsm = parAsmSeq;
                                         OutOprSeq = NextOperSeq;
                                         OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
                                         OutOpDesc = drNextdt.Rows[0]["Opdesc"].ToString();

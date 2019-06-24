@@ -291,6 +291,52 @@ namespace Appapi.Models
         }
 
 
+        public static void InputToBC_Warehouse(string JobNum, int AssemblySeq, int NextJobSeq, string BinNum, string NextOpCode, string NextOpDesc, string PartNum, string PartDesc, string Plant, string Company, decimal Qty)
+        {
+            string sql = @"select * from BC_Warehouse where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and JobSeq = " + NextJobSeq + " and BinNum = '" + BinNum + "'";
+            int IsExist = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            if (Convert.ToBoolean(IsExist))
+            {
+                sql = " update BC_Warehouse set OnHandQty = OnHandQty + " + Qty + " where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and JobSeq = " + NextJobSeq + " and BinNum = '" + BinNum + "'";
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            }
+            else
+            {
+                sql = @"INSERT INTO [dbo].[BC_Warehouse]·
+                               ([JobNum]
+                               ,[AssemblySeq]
+                               ,[JobSeq]
+                               ,[OpCode]
+                               ,[OpDesc]
+                               ,[PartNum]
+                               ,[PartDesc]
+                               ,[OnHandQty]
+                               ,[SumOutQty]
+                               ,[BinNum]
+                               ,[Plant]
+                               ,[Company])
+                                VALUES({0})";
+                string values = CommonRepository.ConstructInsertValues(new ArrayList
+                                    {
+                                        JobNum,
+                                        AssemblySeq,
+                                        NextJobSeq,
+                                        NextOpCode,
+                                        NextOpDesc,
+                                        PartNum,
+                                        PartDesc,
+                                        Qty,
+                                        0,
+                                        BinNum,
+                                        Plant,
+                                        Company
+                                    });
+                sql = string.Format(sql, values);
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            }
+        }
+
+
         public static DataTable WD_Handler(string jobnum, DataTable UserGroup)
         {
             if (UserGroup != null)

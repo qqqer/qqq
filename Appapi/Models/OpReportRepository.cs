@@ -314,7 +314,7 @@ namespace Appapi.Models
             if (res.Substring(0, 1).Trim() == "0")
                 return res;
 
-            return (nextJobSeq != -1 ? nextJobSeq.ToString() : "仓库") + "~" + NextOpCode + "~" + nextOpDesc;
+            return (nextJobSeq != -1 ? nextJobSeq.ToString() : "仓库") + "~" + NextOpCode + "~" + nextOpDesc + "~" + nextAssemblySeq;
         }
 
 
@@ -1242,7 +1242,7 @@ namespace Appapi.Models
 
                 if (DMRID == 0)
                 {
-                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant,"",0, out DMRID); //产品其它不良 D22  D
+                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "报工", theReport.Plant, "", 0, out DMRID); //产品其它不良 D22  D
                     if (res.Substring(0, 1).Trim() != "1")
                     {
                         AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "检验处理返回结果|" + res);
@@ -1612,13 +1612,13 @@ namespace Appapi.Models
                             return "错误：" + res;
                     }
 
-                    
-                    if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0,2) == "BC")
+
+                    if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0, 2) == "BC")
                     {
-                        
+                        CommonRepository.InputToBC_Warehouse(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.NextJobSeq, AcceptInfo.BinNum, theSubReport.NextOpCode, theSubReport.NextOpDesc, theSubReport.PartNum, theSubReport.PartDesc, theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRQualifiedQty);
+                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "表处物料入库成功" + sql);
                     }
 
-                    //if(theSubReport.NextOpCode)
 
 
                     string[] arr = NextSetpInfo.Split('~');
@@ -1640,9 +1640,22 @@ namespace Appapi.Models
                     sql = sql.Replace("'", "");
                     AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "让步提交|" + sql);
                 }
-                
+
                 if ((theSubReport.DMRRepairQty) != null)
                 {
+                    sql = @"select OpCode,  OprSeq, jo.PartNum, OpDesc, ja.Description from erp.JobOper jo left join erp.JobAsmbl ja on ja.JobNum = jo.JobNum 
+                                    where ja.Company = '001'  and jo.JobNum = '" + theSubReport.DMRJobNum + "'  order by OprSeq asc";
+                    DataTable nextinfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
+                    if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC")
+                    {
+                        CommonRepository.InputToBC_Warehouse(theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"], AcceptInfo.BinNum,
+                            (string)nextinfo.Rows[0]["OpCode"], (string)nextinfo.Rows[0]["OpDesc"], (string)nextinfo.Rows[0]["PartNum"],
+                            (string)nextinfo.Rows[0]["Description"], theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRRepairQty);
+
+                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "表处物料入库成功" + sql);
+                    }
+
                     sql = " update bpmsub set " +
                            "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
                            "NextDate = '" + OpDate + "'," +
@@ -1739,6 +1752,12 @@ namespace Appapi.Models
                     res = ErpAPI.CommonRepository.D0506_01(null, theReport.JobNum, (int)theReport.AssemblySeq, (decimal)theReport.QualifiedQty, theReport.JobNum, theReport.NextOpCode, AcceptInfo.BinNum, theReport.Company, theReport.Plant);
                     if (res != "1|处理成功")
                         return "错误：" + res;
+                }
+
+                if (theReport.AtRole == 128 && theReport.NextOpCode.Substring(0, 2) == "BC")
+                {
+                    CommonRepository.InputToBC_Warehouse(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.NextJobSeq, AcceptInfo.BinNum, theReport.NextOpCode, theReport.NextOpDesc, theReport.PartNum, theReport.PartDesc, theReport.Plant, theReport.Company, (decimal)theReport.QualifiedQty);
+                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "表处物料入库成功" + sql);
                 }
 
                 //再回写主表
@@ -2079,7 +2098,7 @@ namespace Appapi.Models
                     nextOpCode = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
                 }
             }
-            
+
 
             DataTable dt = null;
             if (nextRole == 8)//从拥有权值8的人员表中，选出可以操作指定仓库的人
