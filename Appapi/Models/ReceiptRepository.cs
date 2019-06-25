@@ -1128,8 +1128,8 @@ namespace Appapi.Models
                     string XML = OA_XML_Template.Create2162XML(theBatch);
 
                     OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                    string res = client.doCreateWorkflowRequest(XML, 1012).Replace("&", "amp;");
 
-                    string res = client.doCreateWorkflowRequest(XML, 1012);
                     if (Convert.ToInt32(res) <= 0)
                         return "错误：转发OA失败:" + res;
 
