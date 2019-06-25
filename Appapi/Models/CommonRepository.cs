@@ -298,11 +298,10 @@ namespace Appapi.Models
             if (Convert.ToBoolean(IsExist))
             {
                 sql = " update BC_Warehouse set OnHandQty = OnHandQty + " + Qty + " where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and JobSeq = " + NextJobSeq + " and BinNum = '" + BinNum + "'";
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
             else
             {
-                sql = @"INSERT INTO [dbo].[BC_Warehouse]·
+                sql = @"INSERT INTO [dbo].[BC_Warehouse]
                                ([JobNum]
                                ,[AssemblySeq]
                                ,[JobSeq]
@@ -332,8 +331,9 @@ namespace Appapi.Models
                                         Company
                                     });
                 sql = string.Format(sql, values);
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
+
+            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
 
 

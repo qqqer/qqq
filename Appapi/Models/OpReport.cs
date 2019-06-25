@@ -87,5 +87,8 @@ namespace Appapi.Models
        
         public int PrintQty { get; set; }
         public string FromUser { get; set; }
+
+        public decimal? OnHandQty { get; set; } //表处临时仓字段
+        public decimal? SumOutQty { get; set; } //表处临时仓字段
     }
 }

@@ -30,14 +30,14 @@ namespace Appapi.Models
 
 
 
-        private static DataTable GetAllOpSeqOfSeriesSUB(SubcontractDis sd) //取出该订单中的连续委外工序（包括当前处理的批次工序）的工序号、poline、porelnum、工序描述、工序代码
+        private static DataTable GetSpecifiedOpSeqOfSeriesSUB(SubcontractDis sd) //取出指定工序号委外工序相关信息
         {
             string sql = @" Select jobseq, jo.PartNum, jo.IUM, jo.Description,  pr.poline, porelnum ,OpDesc,OpCode,pd.CommentText 
                             from erp.porel pr 
                             left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
                             left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
-                            where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}' order by jobseq  asc";
-            sql = string.Format(sql, sd.PoNum, sd.JobNum, sd.AssemblySeq, "001");
+                            where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}'  and jobseq = {4}";
+            sql = string.Format(sql, sd.PoNum, sd.JobNum, sd.AssemblySeq, "001", sd.JobSeq);
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
             return dt;
         }
@@ -63,8 +63,6 @@ namespace Appapi.Models
 
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
             SubcontractDis commoninfo = new SubcontractDis();
-                //CommonRepository.DataTableToList<SubcontractDis>
-                //(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
             commoninfo.Plant = dt.Rows[0]["Plant"].ToString();
             commoninfo.Company = dt.Rows[0]["Company"].ToString();
@@ -82,7 +80,7 @@ namespace Appapi.Models
             if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
                 return "0|错误：该账号没有权限发起外协不良";
 
-            DataTable AllOpSeqOfSeriesSUB = GetAllOpSeqOfSeriesSUB(sd);
+            DataTable AllOpSeqOfSeriesSUB = GetSpecifiedOpSeqOfSeriesSUB(sd);
             SubcontractDis CommonInfo = GetCommonInfo((int)sd.PoNum,
                 (int)AllOpSeqOfSeriesSUB.Rows[0]["poline"], (int)AllOpSeqOfSeriesSUB.Rows[0]["porelnum"]);
 
@@ -254,10 +252,10 @@ namespace Appapi.Models
             if (theSubcontractDis.DMRID == 0)
             {
                 int DMRID = 0, TranID = 0;
-                if (theSubcontractDis.Type == 1)
+                if (theSubcontractDis.Type == 1) //我方不良，以不合格品发起
                 {
 
-                    res = ErpAPI.CommonRepository.Startnonconf(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, theSubcontractDis.Company, (int)theSubcontractDis.JobSeq, (decimal)theSubcontractDis.DisQty, sd.DMRWarehouseCode, sd.DMRBinNum, theSubcontractDis.UnQualifiedReason, theSubcontractDis.Plant, "", "外协", out TranID);
+                    res = ErpAPI.CommonRepository.Startnonconf(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, theSubcontractDis.Company, (int)theSubcontractDis.JobSeq, (decimal)theSubcontractDis.DisQty, sd.DMRWarehouseCode, sd.DMRBinNum, theSubcontractDis.UnQualifiedReason, theSubcontractDis.Plant, "", type, out TranID);
                     if (res.Substring(0, 1).Trim() != "1")
                     {
                         AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "不合格品发起失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);

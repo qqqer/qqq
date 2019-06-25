@@ -1456,13 +1456,19 @@ namespace Appapi.Models
                                 //尝试更改erp.PartTran.LotNum的值，由原来的批次号变为工单号 19.6.4  13:17 
                                 res = ErpAPI.CommonRepository.D0506_01(null, theBatch.JobNum, (int)theBatch.AssemblySeq, (decimal)AcceptInfo.ArrivedQty, theBatch.JobNum, AcceptInfo.Warehouse, AcceptInfo.BinNum, theBatch.Company, theBatch.Plant);
                                 if (res != "1|处理成功")
+                                {
+                                    AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "最后工序外协，入库失败：" + res);
+
                                     return "错误：" + res;
+                                }
+                                AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "最后工序外协，入库成功");
+
                             }
 
                             if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC") //下工序厂内且是表处，入库表处临时仓
                             {
                                 CommonRepository.InputToBC_Warehouse(theBatch.JobNum, nextAssemblySeq, nextJobSeq, AcceptInfo.BinNum, NextOpCode, nextOpDesc, theBatch.PartNum, theBatch.PartDesc, theBatch.Plant, theBatch.Company, (decimal)theBatch.ArrivedQty);
-
+                                AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "下工序表处入库成功");
                             }
 
                             return "处理成功";

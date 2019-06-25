@@ -428,7 +428,7 @@ namespace ErpAPI
                 NonConfDataSet ds = new NonConfDataSet();
 
 
-                if (type == "外协")
+                if (type == "外协不良1")
                 {//新增工序
                     ds = adapter.AddNonConf("Operation");
                 }
