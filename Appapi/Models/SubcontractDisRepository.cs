@@ -30,17 +30,7 @@ namespace Appapi.Models
 
 
 
-        private static DataTable GetSpecifiedOpSeqOfSeriesSUB(SubcontractDis sd) //取出指定工序号委外工序相关信息
-        {
-            string sql = @" Select jobseq, jo.PartNum, jo.IUM, jo.Description,  pr.poline, porelnum ,OpDesc,OpCode,pd.CommentText 
-                            from erp.porel pr 
-                            left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
-                            left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
-                            where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}'  and jobseq = {4}";
-            sql = string.Format(sql, sd.PoNum, sd.JobNum, sd.AssemblySeq, "001", sd.JobSeq);
-            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
-            return dt;
-        }
+        
 
         public static SubcontractDis GetCommonInfo(int ponum, int poline, int porelnum)
         {
@@ -75,12 +65,129 @@ namespace Appapi.Models
             return commoninfo;
         }
 
+
         public static string ReceiveSubcontractDisQty(SubcontractDis sd)
         {
             if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
                 return "0|错误：该账号没有权限发起外协不良";
 
-            DataTable AllOpSeqOfSeriesSUB = GetSpecifiedOpSeqOfSeriesSUB(sd);
+            DataTable AllOpSeqOfSeriesSUB = CommonRepository.GetSpecifiedSubcontractedOprInfo((int)sd.PoNum, sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, "001");
+            SubcontractDis CommonInfo = GetCommonInfo((int)sd.PoNum,
+                (int)AllOpSeqOfSeriesSUB.Rows[0]["poline"], (int)AllOpSeqOfSeriesSUB.Rows[0]["porelnum"]);
+
+            string PackSlip = CommonInfo.SupplierNo + "D" + sd.PoNum + ((new Random().Next() % 100000) + 100000);
+            string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            string sql = "";
+
+            for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
+            {
+                sql = @"INSERT INTO [dbo].[SubcontractDisMain]
+                               ([SupplierNo]
+                               ,[SupplierName]
+                               ,[CreateDate]
+                               ,[PartNum]
+                               ,[PartDesc]
+                               ,[DisQty]
+                               ,[IUM]
+                               ,[PoNum]
+                               ,[PoLine]
+                               ,[PORelNum]
+                               ,[JobNum]
+                               ,[AssemblySeq]
+                               ,[JobSeq]
+                               ,[OpCode]
+                               ,[OpDesc]
+                               ,[CommentText]
+                               ,[Plant]
+                               ,[Company]
+                               ,[FirstUserID]
+                               ,[M_IsDelete]
+                               ,[UnQualifiedReason]
+                               ,[PackSlip] 
+                               ,[TotalDMRQualifiedQty]
+                               ,[TotalDMRRepairQty]
+                               ,[TotalDMRUnQualifiedQty]
+                               ,[ExistSubProcess]
+                               ,[CheckCounter]
+                               ,[Responsibility]
+                               ,[Type]) values({0})";
+                string values = CommonRepository.ConstructInsertValues(new ArrayList
+                    {
+                        CommonInfo.SupplierNo,
+                        CommonInfo.SupplierName,
+                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                        AllOpSeqOfSeriesSUB.Rows[i]["PartNum"].ToString(),
+                        AllOpSeqOfSeriesSUB.Rows[i]["Description"].ToString(),
+                        sd.DisQty,
+                        AllOpSeqOfSeriesSUB.Rows[i]["IUM"].ToString(),
+                        sd.PoNum,
+                        (int)AllOpSeqOfSeriesSUB.Rows[i]["poline"],
+                        (int)AllOpSeqOfSeriesSUB.Rows[i]["porelnum"],
+                        sd.JobNum.ToUpper(),
+                        sd.AssemblySeq,
+                        (int)AllOpSeqOfSeriesSUB.Rows[i]["jobseq"],
+                        AllOpSeqOfSeriesSUB.Rows[i]["OpCode"].ToString(),
+                        AllOpSeqOfSeriesSUB.Rows[i]["OpDesc"].ToString(),
+                        AllOpSeqOfSeriesSUB.Rows[i]["CommentText"].ToString(),
+                        CommonInfo.Plant,
+                        CommonInfo.Company,
+                        HttpContext.Current.Session["UserId"].ToString(),
+                        0,
+                        sd.UnQualifiedReason,
+                        PackSlip,
+                        0,
+                        0,
+                        0,
+                        0,
+                        sd.DisQty,
+                        sd.Responsibility,
+                        sd.Type
+                    });
+                sql = string.Format(sql, values);
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            }
+
+
+            string rcvdtlStr = "[";
+            for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
+            {
+                rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
+                    new String[] {
+                                CommonRepository.GetValueAsString(sd.PoNum),
+                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["poline"]),
+                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["porelnum"]),
+                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["PartNum"].ToString()),
+                                CommonRepository.GetValueAsString(sd.DisQty),
+                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["IUM"].ToString()),
+                                CommonRepository.GetValueAsString("待检区"),
+                                CommonRepository.GetValueAsString("ins"),
+                                CommonRepository.GetValueAsString(sd.JobNum),
+                                CommonRepository.GetValueAsString(sd.JobNum),
+                                CommonRepository.GetValueAsString(sd.AssemblySeq),
+                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["jobseq"]),
+                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["CommentText"].ToString().Replace('\'','"')),
+                                CommonRepository.GetValueAsString("PUR-SUB"),
+                                CommonRepository.GetValueAsString("")}) + (i == AllOpSeqOfSeriesSUB.Rows.Count - 1 ? "]" : ",");
+            }
+
+            string res = "";
+            if ((res = ErpAPI.ReceiptRepository.porcv(PackSlip, recdate, CommonInfo.SupplierNo, rcvdtlStr, "", CommonInfo.Company, true)) != "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
+            {
+                AddOpLog(sd.JobNum, (int)sd.AssemblySeq, 101, res, 0, 0, (int)sd.PoNum);
+                return res;
+            }
+
+            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, 101, "外协不良品流程发起成功", 0, 0, (int)sd.PoNum);
+            return "处理成功";
+        }
+
+
+        public static string ReceiveSubcontractDisQty(SubcontractDis sd)
+        {
+            if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
+                return "0|错误：该账号没有权限发起外协不良";
+
+            DataTable AllOpSeqOfSeriesSUB = CommonRepository.GetSpecifiedSubcontractedOprInfo((int)sd.PoNum, sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, "001");
             SubcontractDis CommonInfo = GetCommonInfo((int)sd.PoNum,
                 (int)AllOpSeqOfSeriesSUB.Rows[0]["poline"], (int)AllOpSeqOfSeriesSUB.Rows[0]["porelnum"]);
 

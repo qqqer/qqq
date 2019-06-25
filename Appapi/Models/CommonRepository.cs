@@ -367,6 +367,17 @@ namespace Appapi.Models
         }
 
 
+        public static DataTable GetSpecifiedSubcontractedOprInfo(int PoNum, string JobNum, int AssemblySeq, int JobSeq, string Company) //取出指定的外工序相关信息
+        {
+            string sql = @" Select jobseq, jo.PartNum, jo.IUM, jo.Description,  pr.poline, porelnum ,OpDesc,OpCode,pd.CommentText 
+                            from erp.porel pr 
+                            left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
+                            left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
+                            where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}'  and jobseq = {4}";
+            sql = string.Format(sql, PoNum, JobNum, AssemblySeq, "001", JobSeq);
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+            return dt;
+        }
 
 
         public static object GetPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
