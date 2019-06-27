@@ -190,11 +190,15 @@ namespace ErpAPI
                     dt.Columns[i].ColumnName = dt.Columns[i].ColumnName.Replace('_', '.');
                 }
                 string partNum = "";
-                decimal recdQty = 0, compQty = 0, requQty = 0;
+                decimal recdQty = 0, compQty = 0, requQty = 0, cost = 0;
                 bool jobRes = false, jobCom = true;
                 if (dt != null && dt.Rows.Count > 0)
                 {
                     partNum = dt.Rows[0]["JobAsmbl.PartNum"].ToString();
+
+                    string ss = @"select  case when TypeCode = 'M' then (StdLaborCost + StdBurdenCost + StdMaterialCost + StdMtlBurCost + StdSubContCost) else AvgMaterialCost end from erp.PartCost pc left join erp.part pa on pc.PartNum = pa.PartNum  where pa. PartNum = '" + partNum + "'";
+                    cost = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, ss, null);
+
                     decimal.TryParse(dt.Rows[0]["JobPart.ReceivedQty"].ToString().Trim(), out recdQty);
                     decimal.TryParse(dt.Rows[0]["JobAsmbl.RequiredQty"].ToString().Trim(), out requQty);
                     decimal.TryParse(dt.Rows[0]["JobOper.QtyCompleted"].ToString().Trim(), out compQty);
@@ -210,6 +214,10 @@ namespace ErpAPI
                 {
 
                     return "0|工单未发放，不能收货。";
+                }
+                if (cost == 0)
+                {
+                    return "0|物料成本为0，请联系技术部";
                 }
 
                 string[] w = GetPartWB(partNum, companyId);
