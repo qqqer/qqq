@@ -1129,7 +1129,7 @@ namespace Appapi.Models
 
                     OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
 
-                    string res = client.doCreateWorkflowRequest(XML, 1012).Replace("&", "amp;");
+                    string res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
                     if (Convert.ToInt32(res) <= 0)
                         return "错误：转发OA失败:" + res;
 
@@ -1467,8 +1467,25 @@ namespace Appapi.Models
 
                             if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC") //下工序厂内且是表处，入库表处临时仓
                             {
-                                CommonRepository.InputToBC_Warehouse(theBatch.JobNum, nextAssemblySeq, nextJobSeq, AcceptInfo.BinNum, NextOpCode, nextOpDesc, theBatch.PartNum, theBatch.PartDesc, theBatch.Plant, theBatch.Company, (decimal)theBatch.ArrivedQty);
+                                OpReportRepository.InputToBC_Warehouse(theBatch.JobNum, nextAssemblySeq, nextJobSeq, AcceptInfo.BinNum, NextOpCode, nextOpDesc, theBatch.PartNum, theBatch.PartDesc, theBatch.Plant, theBatch.Company, (decimal)theBatch.ArrivedQty);
                                 AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "下工序表处入库成功");
+                            }
+
+                            if(theBatch.OurFailedQty > 0)
+                            {
+                                sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                                        where  SubContract = 0  and jo.JobNum = '" + theBatch.JobNum + "' and jo.AssemblySeq = " + theBatch.AssemblySeq + "  and  jo.OprSeq < " + theBatch.JobSeq + " and jh.Company = '001' order by jo.OprSeq desc";
+                                PreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+                                res = SubcontractDisRepository.ApplySubcontractDisQty(new SubcontractDis { PoNum = theBatch.PoNum, JobNum = theBatch.JobNum, AssemblySeq = theBatch.AssemblySeq, JobSeq = (int)PreOpSeq, DisQty = theBatch.OurFailedQty, Type = 1 ,M_Remark = "收料最后节点自动发起" });
+
+                                if (res != "处理成功")
+                                {
+                                    AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起申请失败：" + res);
+                                    return "错误：" + res;
+                                }
+                                AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起申请成功");
+
                             }
 
                             return "处理成功";
@@ -2218,8 +2235,8 @@ namespace Appapi.Models
 
         public static void AddOpLog(int? ReceiptId, string batchno, int ApiNum, string OpType, string OpDate, string OpDetail)
         {
-            string sql = @"insert into OpLog(ReceiptId,  UserId, Opdate, ApiNum, OpType, OpDetail,batchno) Values({0}, '{1}', '{2}', {3}, '{4}', @OpDetail, {5}) ";
-            sql = string.Format(sql, ReceiptId == null ? "null" : ReceiptId.ToString(), ApiNum != 12 ? Convert.ToString(HttpContext.Current.Session["UserId"]) : "102543", OpDate, ApiNum, OpType, batchno != null ? "'"+batchno+"'" : "null");
+            string sql = @"insert into OpLog(ReceiptId,  UserId, Opdate, ApiNum, OpType, OpDetail,batchno) Values({0}, '{1}', {2}, {3}, '{4}', @OpDetail, {5}) ";
+            sql = string.Format(sql, ReceiptId == null ? "null" : ReceiptId.ToString(), ApiNum != 12 ? Convert.ToString(HttpContext.Current.Session["UserId"]) : "102543", "getdate()", ApiNum, OpType, batchno != null ? "'"+batchno+"'" : "null");
 
             SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);

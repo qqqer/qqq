@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <UseVSHostingProcess>true</UseVSHostingProcess>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +32,8 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DevExpress.Data.v18.2, Version=18.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
+    <Reference Include="DevExpress.Xpo.v18.2, Version=18.2.6.0, Culture=neutral, PublicKeyToken=b88d1754d700e49a, processorArchitecture=MSIL" />
     <Reference Include="Epicor.ServiceModel, Version=3.1.600.0, Culture=neutral, PublicKeyToken=37a5ccb872c00aec, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>\\192.168.9.100\EpicorTest\Epicor.ServiceModel.dll</HintPath>
@@ -72,6 +75,9 @@
     <Reference Include="Erp.Contracts.BO.ReceiptsFromMfg">
       <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.ReceiptsFromMfg.dll</HintPath>
     </Reference>
+    <Reference Include="Erp.Contracts.BO.Req">
+      <HintPath>\\192.168.9.100\EpicorTest\Erp.Contracts.BO.Req.dll</HintPath>
+    </Reference>
     <Reference Include="Ice.Contracts.BO.DynamicQuery, Version=3.1.600.0, Culture=neutral, PublicKeyToken=5d3fa3c7105d7992, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>\\192.168.9.100\EpicorTest\Ice.Contracts.BO.DynamicQuery.dll</HintPath>
@@ -100,6 +106,7 @@
     <Compile Include="OpReportRepository.cs" />
     <Compile Include="ReceiptRepository.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReqRepository.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Common\Common.csproj">

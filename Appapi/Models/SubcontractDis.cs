@@ -39,6 +39,7 @@ namespace Appapi.Models
         public decimal? CheckCounter { get; set; }
         public string Responsibility { get; set; }
         public int? Type { get; set; }
+        public decimal? ReqQty { get; set; }
         public int M_ID { get; set; }
 
         public int RelatedID { get; set; }
@@ -62,8 +63,9 @@ namespace Appapi.Models
         public string DMRWarehouseCode { get; set; }
         public string DMRBinNum { get; set; }
         public int? NodeNum { get; set; }
+        public string BinNum { get; set; }
         public int? S_ID { get; set; }
-
+       
         public string FromUser { get; set; }
     }
 }

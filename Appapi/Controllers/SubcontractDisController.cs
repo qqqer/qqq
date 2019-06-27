@@ -13,6 +13,14 @@ namespace Appapi.Controllers
     public class SubcontractDisController : ApiController
     {
         [HttpPost]
+        //Post:  /api/SubcontractDis/ApplySubcontractDisQty
+        public string ApplySubcontractDisQty(SubcontractDis sd)//ApiNum: 100  
+        {
+            string res = SubcontractDisRepository.ApplySubcontractDisQty(sd);
+            return res == "处理成功" ? res : "100|" + res;
+        }
+
+        [HttpPost]
         //Post:  /api/SubcontractDis/ReceiveSubcontractDisQty
         public string ReceiveSubcontractDisQty(SubcontractDis sd)//ApiNum: 101  对外协不良进行收货
         {

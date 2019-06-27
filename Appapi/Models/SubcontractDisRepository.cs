@@ -14,7 +14,7 @@ namespace Appapi.Models
     {
         private static void InsertDiscardRecord(int M_ID, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string ThirdUserGroup)
         {
-            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null, '{1}','{2}','','','',0,0,2048,'',0,0,{3},'{4}','','{5}','{6}',3)";
+            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null, '{1}','{2}','','','',0,0,2048,'',0,0,{3},'{4}','','{5}','{6}',3,'')";
             sql = string.Format(sql, M_ID, HttpContext.Current.Session["UserId"].ToString(), ThirdUserGroup, DMRUnQualifiedQty, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -22,15 +22,13 @@ namespace Appapi.Models
 
         private static void InsertRepairRecord(int M_ID, decimal DMRRepairQty, string DMRJobNum, int DMRID, string ThirdUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason)
         {
-            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null,'{1}','{2}','','','',0,0,2048,'',0,{3},0,'{4}','{5}','{6}','{7}',3)";
+            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null,'{1}','{2}','','','',0,0,2048,'',0,{3},0,'{4}','{5}','{6}','{7}',3,'')";
             sql = string.Format(sql, M_ID, HttpContext.Current.Session["UserId"].ToString(), ThirdUserGroup, DMRRepairQty, DMRUnQualifiedReason, DMRJobNum, DMRWarehouseCode, DMRBinNum);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
 
 
-
-        
 
         public static SubcontractDis GetCommonInfo(int ponum, int poline, int porelnum)
         {
@@ -41,7 +39,8 @@ namespace Appapi.Models
                 pr.AssemblySeq,  
                 pr.PoNum,
                 vd.VendorID  as SupplierNo,
-                vd.Name as SupplierName
+                vd.Name as SupplierName,
+                pr.XRelQty as ReqQty
                
                 from erp.PORel pr
                 left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
@@ -61,11 +60,100 @@ namespace Appapi.Models
             commoninfo.JobNum = dt.Rows[0]["JobNum"].ToString();
             commoninfo.AssemblySeq = (int)dt.Rows[0]["AssemblySeq"];
             commoninfo.PoNum = (int)dt.Rows[0]["PoNum"];
+            commoninfo.ReqQty = (decimal)dt.Rows[0]["ReqQty"];
 
             return commoninfo;
         }
 
 
+        public static string ApplySubcontractDisQty(SubcontractDis sd)  //sd.jobseq为厂内工序
+        {
+            if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
+                return "0|错误：该账号没有权限发起外协不良";
+
+            object NextOpSeq = CommonRepository.GetNextOpSeq(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq); //JobSeq是打包工序
+            DataTable SpecifiedSubcontractedOprInfo = CommonRepository.GetSpecifiedSubcontractedOprInfo((int)sd.PoNum, sd.JobNum, (int)sd.AssemblySeq, (int)NextOpSeq, "001");
+
+            SubcontractDis CommonInfo = GetCommonInfo((int)sd.PoNum, (int)SpecifiedSubcontractedOprInfo.Rows[0]["poline"], (int)SpecifiedSubcontractedOprInfo.Rows[0]["porelnum"]);
+
+            string sql = "";
+            for (int i = SpecifiedSubcontractedOprInfo.Rows.Count - 1; i < SpecifiedSubcontractedOprInfo.Rows.Count; i++)
+            {
+                sql = @"INSERT INTO [dbo].[SubcontractDisMain]
+                               ([SupplierNo]
+                               ,[SupplierName]
+                               ,[CreateDate]
+                               ,[PartNum]
+                               ,[PartDesc]
+                               ,[DisQty]
+                               ,[IUM]
+                               ,[PoNum]
+                               ,[PoLine]
+                               ,[PORelNum]
+                               ,[JobNum]
+                               ,[AssemblySeq]
+                               ,[JobSeq]
+                               ,[OpCode]
+                               ,[OpDesc]
+                               ,[CommentText]
+                               ,[Plant]
+                               ,[Company]
+                               ,[FirstUserID]
+                               ,[M_IsDelete]
+                               ,[UnQualifiedReason]
+                               ,[PackSlip] 
+                               ,[TotalDMRQualifiedQty]
+                               ,[TotalDMRRepairQty]
+                               ,[TotalDMRUnQualifiedQty]
+                               ,[ExistSubProcess]
+                               ,[CheckCounter]
+                               ,[Responsibility]
+                               ,[Type]
+                               ,M_Remark
+                               ,ReqQty) values({0})";
+                string values = CommonRepository.ConstructInsertValues(new ArrayList
+                    {
+                        CommonInfo.SupplierNo,
+                        CommonInfo.SupplierName,
+                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
+                        SpecifiedSubcontractedOprInfo.Rows[i]["PartNum"].ToString(),
+                        SpecifiedSubcontractedOprInfo.Rows[i]["Description"].ToString(),
+                        sd.DisQty,
+                        SpecifiedSubcontractedOprInfo.Rows[i]["IUM"].ToString(),
+                        sd.PoNum,
+                        (int)SpecifiedSubcontractedOprInfo.Rows[i]["poline"],
+                        (int)SpecifiedSubcontractedOprInfo.Rows[i]["porelnum"],
+                        sd.JobNum.ToUpper(),
+                        sd.AssemblySeq,
+                        (int)SpecifiedSubcontractedOprInfo.Rows[i]["jobseq"],
+                        SpecifiedSubcontractedOprInfo.Rows[i]["OpCode"].ToString(),
+                        SpecifiedSubcontractedOprInfo.Rows[i]["OpDesc"].ToString(),
+                        SpecifiedSubcontractedOprInfo.Rows[i]["CommentText"].ToString(),
+                        CommonInfo.Plant,
+                        CommonInfo.Company,
+                        HttpContext.Current.Session["UserId"].ToString(),
+                        0,
+                        sd.UnQualifiedReason,
+                        "",
+                        0,
+                        0,
+                        0,
+                        0,
+                        sd.DisQty,
+                        "",
+                        1,
+                        CommonRepository.GetValueAsString(sd.M_Remark),
+                        CommonInfo.ReqQty
+                    });
+                sql = string.Format(sql, values);
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+            }
+
+            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 100, "外协不良品流程发起成功", 0, 0, (int)sd.PoNum, 1);
+            return "处理成功";
+        }
+
+
         public static string ReceiveSubcontractDisQty(SubcontractDis sd)
         {
             if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
@@ -78,6 +166,36 @@ namespace Appapi.Models
             string PackSlip = CommonInfo.SupplierNo + "D" + sd.PoNum + ((new Random().Next() % 100000) + 100000);
             string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
             string sql = "";
+            string rcvdtlStr = "[";
+            for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
+            {
+                rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
+                    new String[] {
+                                CommonRepository.GetValueAsString(sd.PoNum),
+                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["poline"]),
+                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["porelnum"]),
+                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["PartNum"].ToString()),
+                                CommonRepository.GetValueAsString(sd.DisQty),
+                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["IUM"].ToString()),
+                                CommonRepository.GetValueAsString("待检区"),
+                                CommonRepository.GetValueAsString("ins"),
+                                CommonRepository.GetValueAsString(sd.JobNum),
+                                CommonRepository.GetValueAsString(sd.JobNum),
+                                CommonRepository.GetValueAsString(sd.AssemblySeq),
+                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["jobseq"]),
+                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["CommentText"].ToString().Replace('\'','"')),
+                                CommonRepository.GetValueAsString("PUR-SUB"),
+                                CommonRepository.GetValueAsString("")}) + (i == AllOpSeqOfSeriesSUB.Rows.Count - 1 ? "]" : ",");
+            }
+
+            string res = "";
+            if ((res = ErpAPI.ReceiptRepository.porcv(PackSlip, recdate, CommonInfo.SupplierNo, rcvdtlStr, "", CommonInfo.Company, true)) != "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
+            {
+                AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 101, res, 0, 0, (int)sd.PoNum, 2);
+                return res;
+            }
+            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 101, "porcv收货执行成功", 0, 0, (int)sd.PoNum, 2);
+
 
             for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
             {
@@ -110,7 +228,8 @@ namespace Appapi.Models
                                ,[ExistSubProcess]
                                ,[CheckCounter]
                                ,[Responsibility]
-                               ,[Type]) values({0})";
+                               ,[Type]
+                               ,ReqQty) values({0})";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
                     {
                         CommonInfo.SupplierNo,
@@ -140,162 +259,18 @@ namespace Appapi.Models
                         0,
                         0,
                         sd.DisQty,
-                        sd.Responsibility,
-                        sd.Type
+                        "",
+                        2,
+                        CommonInfo.ReqQty
                     });
                 sql = string.Format(sql, values);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
-
-            string rcvdtlStr = "[";
-            for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
-            {
-                rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
-                    new String[] {
-                                CommonRepository.GetValueAsString(sd.PoNum),
-                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["poline"]),
-                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["porelnum"]),
-                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["PartNum"].ToString()),
-                                CommonRepository.GetValueAsString(sd.DisQty),
-                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["IUM"].ToString()),
-                                CommonRepository.GetValueAsString("待检区"),
-                                CommonRepository.GetValueAsString("ins"),
-                                CommonRepository.GetValueAsString(sd.JobNum),
-                                CommonRepository.GetValueAsString(sd.JobNum),
-                                CommonRepository.GetValueAsString(sd.AssemblySeq),
-                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["jobseq"]),
-                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["CommentText"].ToString().Replace('\'','"')),
-                                CommonRepository.GetValueAsString("PUR-SUB"),
-                                CommonRepository.GetValueAsString("")}) + (i == AllOpSeqOfSeriesSUB.Rows.Count - 1 ? "]" : ",");
-            }
-
-            string res = "";
-            if ((res = ErpAPI.ReceiptRepository.porcv(PackSlip, recdate, CommonInfo.SupplierNo, rcvdtlStr, "", CommonInfo.Company, true)) != "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
-            {
-                AddOpLog(sd.JobNum, (int)sd.AssemblySeq, 101, res, 0, 0, (int)sd.PoNum);
-                return res;
-            }
-
-            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, 101, "外协不良品流程发起成功", 0, 0, (int)sd.PoNum);
+            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 101, "外协不良品流程发起成功", 0, 0, (int)sd.PoNum, 2);
             return "处理成功";
         }
 
-
-        public static string ReceiveSubcontractDisQty(SubcontractDis sd)
-        {
-            if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
-                return "0|错误：该账号没有权限发起外协不良";
-
-            DataTable AllOpSeqOfSeriesSUB = CommonRepository.GetSpecifiedSubcontractedOprInfo((int)sd.PoNum, sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, "001");
-            SubcontractDis CommonInfo = GetCommonInfo((int)sd.PoNum,
-                (int)AllOpSeqOfSeriesSUB.Rows[0]["poline"], (int)AllOpSeqOfSeriesSUB.Rows[0]["porelnum"]);
-
-            string PackSlip = CommonInfo.SupplierNo + "D" + sd.PoNum + ((new Random().Next() % 100000) + 100000);
-            string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            string sql = "";
-
-            for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
-            {
-                sql = @"INSERT INTO [dbo].[SubcontractDisMain]
-                               ([SupplierNo]
-                               ,[SupplierName]
-                               ,[CreateDate]
-                               ,[PartNum]
-                               ,[PartDesc]
-                               ,[DisQty]
-                               ,[IUM]
-                               ,[PoNum]
-                               ,[PoLine]
-                               ,[PORelNum]
-                               ,[JobNum]
-                               ,[AssemblySeq]
-                               ,[JobSeq]
-                               ,[OpCode]
-                               ,[OpDesc]
-                               ,[CommentText]
-                               ,[Plant]
-                               ,[Company]
-                               ,[FirstUserID]
-                               ,[M_IsDelete]
-                               ,[UnQualifiedReason]
-                               ,[PackSlip] 
-                               ,[TotalDMRQualifiedQty]
-                               ,[TotalDMRRepairQty]
-                               ,[TotalDMRUnQualifiedQty]
-                               ,[ExistSubProcess]
-                               ,[CheckCounter]
-                               ,[Responsibility]
-                               ,[Type]) values({0})";
-                string values = CommonRepository.ConstructInsertValues(new ArrayList
-                    {
-                        CommonInfo.SupplierNo,
-                        CommonInfo.SupplierName,
-                        DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"),
-                        AllOpSeqOfSeriesSUB.Rows[i]["PartNum"].ToString(),
-                        AllOpSeqOfSeriesSUB.Rows[i]["Description"].ToString(),
-                        sd.DisQty,
-                        AllOpSeqOfSeriesSUB.Rows[i]["IUM"].ToString(),
-                        sd.PoNum,
-                        (int)AllOpSeqOfSeriesSUB.Rows[i]["poline"],
-                        (int)AllOpSeqOfSeriesSUB.Rows[i]["porelnum"],
-                        sd.JobNum.ToUpper(),
-                        sd.AssemblySeq,
-                        (int)AllOpSeqOfSeriesSUB.Rows[i]["jobseq"],
-                        AllOpSeqOfSeriesSUB.Rows[i]["OpCode"].ToString(),
-                        AllOpSeqOfSeriesSUB.Rows[i]["OpDesc"].ToString(),
-                        AllOpSeqOfSeriesSUB.Rows[i]["CommentText"].ToString(),
-                        CommonInfo.Plant,
-                        CommonInfo.Company,
-                        HttpContext.Current.Session["UserId"].ToString(),
-                        0,
-                        sd.UnQualifiedReason,
-                        PackSlip,
-                        0,
-                        0,
-                        0,
-                        0,
-                        sd.DisQty,
-                        sd.Responsibility,
-                        sd.Type
-                    });
-                sql = string.Format(sql, values);
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            }
-
-
-            string rcvdtlStr = "[";
-            for (int i = AllOpSeqOfSeriesSUB.Rows.Count - 1; i < AllOpSeqOfSeriesSUB.Rows.Count; i++)
-            {
-                rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
-                    new String[] {
-                                CommonRepository.GetValueAsString(sd.PoNum),
-                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["poline"]),
-                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["porelnum"]),
-                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["PartNum"].ToString()),
-                                CommonRepository.GetValueAsString(sd.DisQty),
-                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["IUM"].ToString()),
-                                CommonRepository.GetValueAsString("待检区"),
-                                CommonRepository.GetValueAsString("ins"),
-                                CommonRepository.GetValueAsString(sd.JobNum),
-                                CommonRepository.GetValueAsString(sd.JobNum),
-                                CommonRepository.GetValueAsString(sd.AssemblySeq),
-                                CommonRepository.GetValueAsString((int)AllOpSeqOfSeriesSUB.Rows[i]["jobseq"]),
-                                CommonRepository.GetValueAsString(AllOpSeqOfSeriesSUB.Rows[i]["CommentText"].ToString().Replace('\'','"')),
-                                CommonRepository.GetValueAsString("PUR-SUB"),
-                                CommonRepository.GetValueAsString("")}) + (i == AllOpSeqOfSeriesSUB.Rows.Count - 1 ? "]" : ",");
-            }
-
-            string res = "";
-            if ((res = ErpAPI.ReceiptRepository.porcv(PackSlip, recdate, CommonInfo.SupplierNo, rcvdtlStr, "", CommonInfo.Company, true)) != "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
-            {
-                AddOpLog(sd.JobNum, (int)sd.AssemblySeq, 101, res, 0, 0, (int)sd.PoNum);
-                return res;
-            }
-
-            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, 101, "外协不良品流程发起成功", 0, 0, (int)sd.PoNum);
-            return "处理成功";
-        }
 
         public static string DMRCommit(SubcontractDis sd) //apinum 201
         {
@@ -355,37 +330,42 @@ namespace Appapi.Models
 
 
 
-            string res, type = (int)theSubcontractDis.TranID != 0 ? "外协不良1" : "外协不良2";
+            string res, type = (int)theSubcontractDis.Type == 1 ? "外协不良1" : "外协不良2";
             if (theSubcontractDis.DMRID == 0)
             {
                 int DMRID = 0, TranID = 0;
-                if (theSubcontractDis.Type == 1) //我方不良，以不合格品发起
+                if (theSubcontractDis.Type == 1 && theSubcontractDis.TranID == 0) //我方不良，以不合格品发起
                 {
+                    object PreOpSeq = CommonRepository.GetPreOpSeq(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq); //获取上一道厂内工序号PreOpSeq， JobSeq是厂内工序的下道委外工序
 
-                    res = ErpAPI.CommonRepository.Startnonconf(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, theSubcontractDis.Company, (int)theSubcontractDis.JobSeq, (decimal)theSubcontractDis.DisQty, sd.DMRWarehouseCode, sd.DMRBinNum, theSubcontractDis.UnQualifiedReason, theSubcontractDis.Plant, "", type, out TranID);
+                    res = ErpAPI.CommonRepository.Startnonconf(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, theSubcontractDis.Company, (int)PreOpSeq, (decimal)theSubcontractDis.DisQty, sd.DMRWarehouseCode, sd.DMRBinNum, "B19", theSubcontractDis.Plant, "", type, out TranID); //B19 其他不良
                     if (res.Substring(0, 1).Trim() != "1")
                     {
-                        AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "不合格品发起失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
+                        AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, PreOpSeq + "厂内工序不合格品发起失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                         return "错误：" + res;
                     }
 
+                    sql = @"update SubcontractDisMain set tranid = " + TranID + " where m_id = " + sd.M_ID + "";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+
                     theSubcontractDis.TranID = TranID;
-                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "不合格品发起成功，TranID = " + TranID, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, PreOpSeq + "厂内工序不合格品发起成功，TranID = " + TranID, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                 }
 
 
-                res = ErpAPI.CommonRepository.StartInspProcessing((int)theSubcontractDis.TranID, 0, (decimal)theSubcontractDis.DisQty, "D22", "BLPC", "01", type, theSubcontractDis.Plant, theSubcontractDis.PackSlip,(int)theSubcontractDis.PoLine, out DMRID); //产品其它不良 D22  D
+                res = ErpAPI.CommonRepository.StartInspProcessing((int)theSubcontractDis.TranID, 0, (decimal)theSubcontractDis.DisQty, "D22", "BLPC", "01", type, theSubcontractDis.Plant, theSubcontractDis.PackSlip, (int)theSubcontractDis.PoLine, out DMRID); //产品其它不良 D22  D
                 if (res.Substring(0, 1).Trim() != "1")
                 {
-                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "检验处理失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "检验处理失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                     return "错误：" + res;
                 }
 
                 theSubcontractDis.DMRID = DMRID;
-                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "检验处理成功，DMRID = " + DMRID, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
+                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "检验处理成功，DMRID = " + DMRID, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
 
 
-                sql = @"update SubcontractDisMain set tranid = " + TranID + ", Dmrid = " + DMRID + "  where m_id = " + sd.M_ID + "";
+                sql = @"update SubcontractDisMain set Dmrid = " + DMRID + "  where m_id = " + sd.M_ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
             }
 
@@ -394,17 +374,17 @@ namespace Appapi.Models
                 res = ErpAPI.CommonRepository.RepairDMRProcessing((int)theSubcontractDis.DMRID, theSubcontractDis.Company, theSubcontractDis.Plant, theSubcontractDis.PartNum, (decimal)sd.DMRRepairQty, sd.DMRJobNum, theSubcontractDis.IUM);
                 if (res.Substring(0, 1).Trim() != "1")
                 {
-                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "DMR返修失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "DMR返修失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
                 }
 
                 InsertRepairRecord(sd.M_ID, (decimal)sd.DMRRepairQty, sd.DMRJobNum, (int)theSubcontractDis.DMRID, sd.TransferUserGroup, sd.DMRWarehouseCode, sd.DMRBinNum, sd.DMRUnQualifiedReason);
 
 
-                sql = " update SubcontractDisMain set Responsibility = '"+sd.Responsibility+"', ExistSubProcess = 1, checkcounter = checkcounter - " + sd.DMRRepairQty + ",TotalDMRRepairQty = ISNULL(TotalDMRRepairQty,0) + " + sd.DMRRepairQty + "  where m_id = " + (sd.M_ID) + "";
+                sql = " update SubcontractDisMain set Responsibility = '" + sd.Responsibility + "', ExistSubProcess = 1, checkcounter = checkcounter - " + sd.DMRRepairQty + ",TotalDMRRepairQty = ISNULL(TotalDMRRepairQty,0) + " + sd.DMRRepairQty + "  where m_id = " + (sd.M_ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "返修子流程生成", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
+                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "返修子流程生成", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
             }
 
             if (sd.DMRUnQualifiedQty > 0)
@@ -413,7 +393,7 @@ namespace Appapi.Models
                 res = ErpAPI.CommonRepository.RefuseDMRProcessing(theSubcontractDis.Company, theSubcontractDis.Plant, (decimal)sd.DMRUnQualifiedQty, sd.DMRUnQualifiedReason, (int)theSubcontractDis.DMRID, theSubcontractDis.IUM);
                 if (res.Substring(0, 1).Trim() != "1")
                 {
-                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "DMR拒收失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "DMR拒收失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                     return "错误：" + res + ". 请重新提交报废数量";
                 }
 
@@ -422,11 +402,12 @@ namespace Appapi.Models
                 sql = " update SubcontractDisMain set ExistSubProcess = 1,checkcounter = checkcounter - " + sd.DMRUnQualifiedQty + ", TotalDMRUnQualifiedQty = ISNULL(totalDMRUnQualifiedQty,0) + " + sd.DMRUnQualifiedQty + "  where m_id = " + (sd.M_ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 201, "报废子流程生成", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum);
+                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "报废子流程生成", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
             }
 
             return "处理成功";
         }
+
 
         public static string TransferCommitOfSub(SubcontractDis sd)//apinum 301
         {
@@ -461,10 +442,10 @@ namespace Appapi.Models
 
                     theSubcontractDis.AtRole = IsSubContract ? 16 : 128;
 
-                    sql = @"update SubcontractDisSub set atrole = " + theSubcontractDis.AtRole + ", NodeNum = 4, TransferDate = getdate(), TransferUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "', AccepterUserGroup = '"+sd.AccepterUserGroup+"'  where s_id = " + theSubcontractDis.S_ID + "";
+                    sql = @"update SubcontractDisSub set atrole = " + theSubcontractDis.AtRole + ", NodeNum = 4, TransferDate = getdate(), TransferUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "', AccepterUserGroup = '" + sd.AccepterUserGroup + "'  where s_id = " + theSubcontractDis.S_ID + "";
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 301, "返修流程提交成功|" + sql, 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum);
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 301, "返修流程提交成功|" + sql, 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                 }
 
                 else if (theSubcontractDis.DMRUnQualifiedQty > 0)
@@ -472,7 +453,7 @@ namespace Appapi.Models
                     sql = @"update SubcontractDisSub set IsComplete = 1,NodeNum = 99, TransferDate = getdate(), TransferUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "' where s_id = " + theSubcontractDis.S_ID + "";
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 301, "报废流程完结", 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum);
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 301, "报废流程完结", 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                 }
 
                 return "处理成功";
@@ -482,6 +463,7 @@ namespace Appapi.Models
                 return "错误：" + ex.Message;
             }
         }
+
 
         public static string AccepterCommitOfSub(SubcontractDis sd)//apinum 401
         {
@@ -497,10 +479,26 @@ namespace Appapi.Models
                     return "错误：该流程已结束";
 
 
-                sql = @"update SubcontractDisSub set IsComplete = 1,NodeNum = 99, AccepterDate = getdate(), AccepterUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "' where s_id = " + theSubcontractDis.S_ID + "";
+
+                sql = @"select OpCode,  OprSeq, jo.PartNum, OpDesc, ja.Description from erp.JobOper jo left join erp.JobAsmbl ja on ja.JobNum = jo.JobNum 
+                                    where ja.Company = '001'  and jo.JobNum = '" + theSubcontractDis.DMRJobNum + "'  order by OprSeq asc";
+                DataTable nextJobInfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+                if (((string)nextJobInfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC")
+                {
+                    OpReportRepository.InputToBC_Warehouse(theSubcontractDis.DMRJobNum, 0, (int)nextJobInfo.Rows[0]["OprSeq"], sd.BinNum,
+                    (string)nextJobInfo.Rows[0]["OpCode"], (string)nextJobInfo.Rows[0]["OpDesc"], (string)nextJobInfo.Rows[0]["PartNum"],
+                    (string)nextJobInfo.Rows[0]["Description"], theSubcontractDis.Plant, theSubcontractDis.Company, (decimal)theSubcontractDis.DMRRepairQty);
+
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 401, "下工序表处物料入库成功", 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
+                }
+
+
+
+                sql = @"update SubcontractDisSub set binnum = '" + sd.BinNum + "', IsComplete = 1,NodeNum = 99, AccepterDate = getdate(), AccepterUserID = '" + HttpContext.Current.Session["UserId"].ToString() + "' where s_id = " + theSubcontractDis.S_ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, 401, "返修流程完结", 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum);
+                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 401, "返修流程完结", 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
 
                 return "处理成功";
             }
@@ -662,10 +660,11 @@ namespace Appapi.Models
         }
 
 
-        private static void AddOpLog(string JobNum, int AssemblySeq, int ApiNum, string OpDetail, int M_ID, int S_ID, int PONum)
+
+        private static void AddOpLog(string JobNum, int AssemblySeq, int jobseq, int ApiNum, string OpDetail, int M_ID, int S_ID, int PONum, int type)
         {
-            string sql = @"insert into SubcontractDisLog(JobNum, AssemblySeq, UserId, Opdate, ApiNum, OpDetail,M_ID,S_ID, PONum) Values('{0}', {1}, '{2}', {3}, {4},  @OpDetail,{5},{6},{7}) ";
-            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, M_ID, S_ID, PONum);
+            string sql = @"insert into SubcontractDisLog(JobNum, AssemblySeq, jobseq , UserId, Opdate, ApiNum, OpDetail,M_ID,S_ID, PONum, type) Values('{0}', {1}, " + jobseq + ", '{2}', {3}, {4},  @OpDetail,{5},{6},{7},{8}) ";
+            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, M_ID, S_ID, PONum, type);
 
             SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);

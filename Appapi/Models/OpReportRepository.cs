@@ -1615,8 +1615,8 @@ namespace Appapi.Models
 
                     if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0, 2) == "BC")
                     {
-                        CommonRepository.InputToBC_Warehouse(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.NextJobSeq, AcceptInfo.BinNum, theSubReport.NextOpCode, theSubReport.NextOpDesc, theSubReport.PartNum, theSubReport.PartDesc, theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRQualifiedQty);
-                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "表处物料入库成功" + sql);
+                        InputToBC_Warehouse(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.NextJobSeq, AcceptInfo.BinNum, theSubReport.NextOpCode, theSubReport.NextOpDesc, theSubReport.PartNum, theSubReport.PartDesc, theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRQualifiedQty);
+                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序表处物料入库成功");
                     }
 
 
@@ -1645,15 +1645,15 @@ namespace Appapi.Models
                 {
                     sql = @"select OpCode,  OprSeq, jo.PartNum, OpDesc, ja.Description from erp.JobOper jo left join erp.JobAsmbl ja on ja.JobNum = jo.JobNum 
                                     where ja.Company = '001'  and jo.JobNum = '" + theSubReport.DMRJobNum + "'  order by OprSeq asc";
-                    DataTable nextinfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+                    DataTable nextinfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
                     if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC")
                     {
-                        CommonRepository.InputToBC_Warehouse(theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"], AcceptInfo.BinNum,
-                            (string)nextinfo.Rows[0]["OpCode"], (string)nextinfo.Rows[0]["OpDesc"], (string)nextinfo.Rows[0]["PartNum"],
-                            (string)nextinfo.Rows[0]["Description"], theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRRepairQty);
+                        InputToBC_Warehouse(theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"], AcceptInfo.BinNum,
+                        (string)nextinfo.Rows[0]["OpCode"], (string)nextinfo.Rows[0]["OpDesc"], (string)nextinfo.Rows[0]["PartNum"],
+                        (string)nextinfo.Rows[0]["Description"], theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRRepairQty);
 
-                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "表处物料入库成功" + sql);
+                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序表处物料入库成功");
                     }
 
                     sql = " update bpmsub set " +
@@ -1756,8 +1756,8 @@ namespace Appapi.Models
 
                 if (theReport.AtRole == 128 && theReport.NextOpCode.Substring(0, 2) == "BC")
                 {
-                    CommonRepository.InputToBC_Warehouse(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.NextJobSeq, AcceptInfo.BinNum, theReport.NextOpCode, theReport.NextOpDesc, theReport.PartNum, theReport.PartDesc, theReport.Plant, theReport.Company, (decimal)theReport.QualifiedQty);
-                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "表处物料入库成功" + sql);
+                    InputToBC_Warehouse(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.NextJobSeq, AcceptInfo.BinNum, theReport.NextOpCode, theReport.NextOpDesc, theReport.PartNum, theReport.PartDesc, theReport.Plant, theReport.Company, (decimal)theReport.QualifiedQty);
+                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "下工序表处物料入库成功");
                 }
 
                 //再回写主表
@@ -2428,12 +2428,113 @@ namespace Appapi.Models
         }
 
 
+        public static void InputToBC_Warehouse(string JobNum, int AssemblySeq, int NextJobSeq, string BinNum, string NextOpCode, string NextOpDesc, string PartNum, string PartDesc, string Plant, string Company, decimal Qty)
+        {
+            string sql = @"select ID from BC_Warehouse where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and JobSeq = " + NextJobSeq + " and BinNum = '" + BinNum + "'";
+            int ID = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+            if (ID != 0)
+            {
+                sql = " update BC_Warehouse set OnHandQty = OnHandQty + " + Qty + " where id = "+ID+"";
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                AddBC_WarehouseLog(JobNum, AssemblySeq, NextJobSeq, sql, ID, Qty, BinNum);
+            }
+            else
+            {
+                sql = @"INSERT INTO [dbo].[BC_Warehouse]
+                               ([JobNum]
+                               ,[AssemblySeq]
+                               ,[JobSeq]
+                               ,[OpCode]
+                               ,[OpDesc]
+                               ,[PartNum]
+                               ,[PartDesc]
+                               ,[OnHandQty]
+                               ,[SumOutQty]
+                               ,[BinNum]
+                               ,[Plant]
+                               ,[Company])
+                                VALUES({0})";
+                string values = CommonRepository.ConstructInsertValues(new ArrayList
+                                    {
+                                        JobNum,
+                                        AssemblySeq,
+                                        NextJobSeq,
+                                        NextOpCode,
+                                        NextOpDesc,
+                                        PartNum,
+                                        PartDesc,
+                                        Qty,
+                                        0,
+                                        BinNum,
+                                        Plant,
+                                        Company
+                                    });
+                sql = string.Format(sql, values);
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                AddBC_WarehouseLog(JobNum, AssemblySeq, NextJobSeq, sql, 0, Qty, BinNum);
+
+            }
+        }
+
+
+
+        public static DataTable GetBC_WarehouseInfo(OpReport condition)
+        {
+            string sql = @"select * from BC_Warehouse where 1 = 1 ";
+
+            if (!string.IsNullOrEmpty(condition.JobNum))
+                sql += " and JobNum = '" + condition.JobNum + "' ";
+            if (condition.AssemblySeq != null)
+                sql += "and AssemblySeq = " + condition.AssemblySeq + " ";
+            if (condition.JobSeq != null)
+                sql += "and JobSeq = " + condition.JobSeq + " ";
+            if (!string.IsNullOrEmpty(condition.OpDesc))
+                sql += " and OpDesc like '%" + condition.OpDesc + "%' ";
+            if (!string.IsNullOrEmpty(condition.PartNum))
+                sql += " and PartNum = '" + condition.PartNum + "' ";
+            if (!string.IsNullOrEmpty(condition.PartDesc))
+                sql += " and PartDesc like '%" + condition.PartDesc + "%' ";
+            if (!string.IsNullOrEmpty(condition.BinNum))
+                sql += " and BinNum = '" + condition.BinNum + "' ";
+
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
+            return dt;
+        }
+
+
+        public static string OutOfBC_Warehouse(OpReport opReport)
+        {
+            string sql = @"select * from BC_Warehouse where id = "+opReport.ID+" ";
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
+            if (opReport.Qty > (decimal)dt.Rows[0]["OnHandQty"]) return "错误：库存数不足";
+
+            sql = " update BC_Warehouse set OnHandQty = OnHandQty - " + opReport.Qty + " , sumoutqty  = sumoutqty + "+opReport.Qty+" where id = " + opReport.ID + "";
+            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            AddBC_WarehouseLog(dt.Rows[0]["JobNum"].ToString(), (int)dt.Rows[0]["AssemblySeq"], (int)dt.Rows[0]["JobSeq"], sql, (int)opReport.ID, (decimal)-opReport.Qty , dt.Rows[0]["BinNum"].ToString());
+
+            return "处理成功";
+        }
+
+
+
+        private static void AddBC_WarehouseLog(string JobNum, int AssemblySeq, int JobSeq, string OpDetail, int id, decimal qty,string binnum)
+        {
+            string sql = @"insert into BC_WarehouseLog(JobNum, AssemblySeq, JobSeq,  Opdate, OpDetail, UserId, ID, Qty,binnum) Values('{0}', {1}, {2}, {3},  @OpDetail, '{4}',{5}, {6}, '{7}') ";
+            sql = string.Format(sql, JobNum, AssemblySeq, JobSeq, "getdate()", HttpContext.Current.Session["UserId"].ToString(), id, qty,binnum);
+
+            SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
+            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
+
+        }//添加操作记录
 
 
         private static void AddOpLog(int? id, string JobNum, int AssemblySeq, int JobSeq, int ApiNum, string OpDate, string OpDetail)
         {
-            string sql = @"insert into BPMLog(JobNum, AssemblySeq, UserId, Opdate, ApiNum, JobSeq, OpDetail,bpmid) Values('{0}', {1}, '{2}', '{3}', {4}, {5}, @OpDetail,{6}) ";
-            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), OpDate, ApiNum, JobSeq, id == null ? "null" : id.ToString());
+            string sql = @"insert into BPMLog(JobNum, AssemblySeq, UserId, Opdate, ApiNum, JobSeq, OpDetail,bpmid) Values('{0}', {1}, '{2}', {3}, {4}, {5}, @OpDetail,{6}) ";
+            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, JobSeq, id == null ? "null" : id.ToString());
 
             SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);

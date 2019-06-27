@@ -170,6 +170,7 @@ namespace ErpAPI
             }
 
         }
+        
 
 
         //D0506-01工单收货至库存
@@ -190,11 +191,15 @@ namespace ErpAPI
                     dt.Columns[i].ColumnName = dt.Columns[i].ColumnName.Replace('_', '.');
                 }
                 string partNum = "";
-                decimal recdQty = 0, compQty = 0, requQty = 0;
+                decimal recdQty = 0, compQty = 0, requQty = 0, cost = 0;
                 bool jobRes = false, jobCom = true;
                 if (dt != null && dt.Rows.Count > 0)
                 {
                     partNum = dt.Rows[0]["JobAsmbl.PartNum"].ToString();
+
+                    string ss = @"select  case when TypeCode = 'M' then (StdLaborCost + StdBurdenCost + StdMaterialCost + StdMtlBurCost + StdSubContCost) else AvgMaterialCost end from erp.PartCost pc left join erp.part pa on pc.PartNum = pa.PartNum  where pa. PartNum = '"+partNum+"'";
+                    cost = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, ss, null);
+
                     decimal.TryParse(dt.Rows[0]["JobPart.ReceivedQty"].ToString().Trim(), out recdQty);
                     decimal.TryParse(dt.Rows[0]["JobAsmbl.RequiredQty"].ToString().Trim(), out requQty);
                     decimal.TryParse(dt.Rows[0]["JobOper.QtyCompleted"].ToString().Trim(), out compQty);
@@ -211,6 +216,11 @@ namespace ErpAPI
 
                     return "0|工单未发放，不能收货。";
                 }
+                if (cost == 0)
+                {
+                    return "0|物料成本为0，请联系技术部";
+                }
+
 
                 string[] w = GetPartWB(partNum, companyId);
                 string tlot = w[2].ToString().Trim().ToLower();
@@ -402,7 +412,7 @@ namespace ErpAPI
                 string JobNum,
                 int AssemblySeq,
                 string Company,
-                int MtlSeq,
+                int Seq,
                 decimal Qty,//让步数(DMRQualifiedQty) + 返修数(DMRRepairQty)+拒收数(DMRUnQualifiedQty) + 
                 string WarehouseCode,
                 string BinNum,
@@ -443,9 +453,22 @@ namespace ErpAPI
                 ds.Tables["NonConf"].Rows[0]["JobNum"] = JobNum;
                 ds.Tables["NonConf"].Rows[0]["AssemblySeq"] = AssemblySeq;
                 adapter.OnChangeJobAsm(AssemblySeq, ds);
-                //选择物料
-                adapter.OnChangeJobMtl(MtlSeq, ds);
-                ds.Tables["NonConf"].Rows[0]["FromOprSeq"] = MtlSeq;
+
+
+                if (type == "外协不良1")
+                {
+                    //选择工序
+                    adapter.OnChangeJobOpr(Seq, true, ds);
+                    ds.Tables["NonConf"].Rows[0]["FromOprSeq"] = Seq;
+                }
+                else if (type == "物料")
+                {
+                    //选择物料
+                    adapter.OnChangeJobMtl(Seq, ds);
+                    ds.Tables["NonConf"].Rows[0]["FromOprSeq"] = Seq;
+                }
+                    
+             
                 //填数量
                 adapter.OnChangeTranQty(Qty, ds);
                 ds.Tables["NonConf"].Rows[0]["Quantity"] = Qty;
@@ -572,7 +595,7 @@ namespace ErpAPI
                 //保存
                 if (type == "物料")
                     adapter.InspectMaterial(out legalNumberMessage, out iDMRNum, ds);
-                if (type == "报工")
+                if (type == "报工" || type == "外协不良1")
                     adapter.InspectOperation(out legalNumberMessage, out iDMRNum, ds);
                 if (type == "外协不良2")
                     adapter.InspectReceipt(out legalNumberMessage, out iDMRNum, out iNonConfID, ds);

@@ -291,52 +291,6 @@ namespace Appapi.Models
         }
 
 
-        public static void InputToBC_Warehouse(string JobNum, int AssemblySeq, int NextJobSeq, string BinNum, string NextOpCode, string NextOpDesc, string PartNum, string PartDesc, string Plant, string Company, decimal Qty)
-        {
-            string sql = @"select * from BC_Warehouse where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and JobSeq = " + NextJobSeq + " and BinNum = '" + BinNum + "'";
-            int IsExist = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-            if (Convert.ToBoolean(IsExist))
-            {
-                sql = " update BC_Warehouse set OnHandQty = OnHandQty + " + Qty + " where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and JobSeq = " + NextJobSeq + " and BinNum = '" + BinNum + "'";
-            }
-            else
-            {
-                sql = @"INSERT INTO [dbo].[BC_Warehouse]
-                               ([JobNum]
-                               ,[AssemblySeq]
-                               ,[JobSeq]
-                               ,[OpCode]
-                               ,[OpDesc]
-                               ,[PartNum]
-                               ,[PartDesc]
-                               ,[OnHandQty]
-                               ,[SumOutQty]
-                               ,[BinNum]
-                               ,[Plant]
-                               ,[Company])
-                                VALUES({0})";
-                string values = CommonRepository.ConstructInsertValues(new ArrayList
-                                    {
-                                        JobNum,
-                                        AssemblySeq,
-                                        NextJobSeq,
-                                        NextOpCode,
-                                        NextOpDesc,
-                                        PartNum,
-                                        PartDesc,
-                                        Qty,
-                                        0,
-                                        BinNum,
-                                        Plant,
-                                        Company
-                                    });
-                sql = string.Format(sql, values);
-            }
-
-            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-        }
-
-
         public static DataTable WD_Handler(string jobnum, DataTable UserGroup)
         {
             if (UserGroup != null)
@@ -383,11 +337,22 @@ namespace Appapi.Models
         public static object GetPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
         {
             string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
-                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " order by jo.OprSeq desc";
+                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " and jh.Company = '001' order by jo.OprSeq desc";
 
             object PreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
             return PreOpSeq;
+        }
+
+
+        public static object GetNextOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
+        {
+            string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq > " + JobSeq + " and jh.Company = '001' order by jo.OprSeq asc";
+
+            object NextOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return NextOpSeq;
         }
 
 
