@@ -2485,9 +2485,9 @@ namespace Appapi.Models
             if (!string.IsNullOrEmpty(condition.JobNum))
                 sql += " and JobNum = '" + condition.JobNum + "' ";
             if (condition.AssemblySeq != null)
-                sql += "and AssemblySeq = " + condition.AssemblySeq + " ";
+                sql += " and AssemblySeq = " + condition.AssemblySeq + " ";
             if (condition.JobSeq != null)
-                sql += "and JobSeq = " + condition.JobSeq + " ";
+                sql += " and JobSeq = " + condition.JobSeq + " ";
             if (!string.IsNullOrEmpty(condition.OpDesc))
                 sql += " and OpDesc like '%" + condition.OpDesc + "%' ";
             if (!string.IsNullOrEmpty(condition.PartNum))

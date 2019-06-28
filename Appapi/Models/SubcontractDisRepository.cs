@@ -110,7 +110,8 @@ namespace Appapi.Models
                                ,[Responsibility]
                                ,[Type]
                                ,M_Remark
-                               ,ReqQty) values({0})";
+                               ,ReqQty
+                               ,StockPosition) values({0})";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
                     {
                         CommonInfo.SupplierNo,
@@ -143,7 +144,8 @@ namespace Appapi.Models
                         "",
                         1,
                         CommonRepository.GetValueAsString(sd.M_Remark),
-                        CommonInfo.ReqQty
+                        CommonInfo.ReqQty,
+                        sd.StockPosition
                     });
                 sql = string.Format(sql, values);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -229,7 +231,8 @@ namespace Appapi.Models
                                ,[CheckCounter]
                                ,[Responsibility]
                                ,[Type]
-                               ,ReqQty) values({0})";
+                               ,ReqQty
+                               ,StockPosition) values({0})";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
                     {
                         CommonInfo.SupplierNo,
@@ -261,7 +264,8 @@ namespace Appapi.Models
                         sd.DisQty,
                         "",
                         2,
-                        CommonInfo.ReqQty
+                        CommonInfo.ReqQty,
+                        sd.StockPosition
                     });
                 sql = string.Format(sql, values);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);

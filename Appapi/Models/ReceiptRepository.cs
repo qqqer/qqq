@@ -1439,7 +1439,6 @@ namespace Appapi.Models
                                     SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@CommentText", theBatch.CommentText), new SqlParameter("@PartDesc", theBatch.PartDesc) };
                                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
 
-                                    sql = sql.Replace("'", "");
                                     AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, sql.Contains("update") ? "update" : "insert", OpDate, sql + "    " + issue_res);
                                 }
                             }

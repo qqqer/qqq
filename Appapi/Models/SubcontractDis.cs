@@ -40,6 +40,7 @@ namespace Appapi.Models
         public string Responsibility { get; set; }
         public int? Type { get; set; }
         public decimal? ReqQty { get; set; }
+        public string StockPosition { get; set; }
         public int M_ID { get; set; }
 
         public int RelatedID { get; set; }
