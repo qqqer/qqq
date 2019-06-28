@@ -507,6 +507,19 @@ namespace Appapi.Controllers
             return OpReportRepository.GetCachePageDetailByCacheID(ProcessId);
         }
 
+        [HttpPost]
+        //Post:  /api/OpReport/GetBC_WarehouseInfo
+        public DataTable GetBC_WarehouseInfo(OpReport opReport)//ApiNum: 25  
+        {
+            return OpReportRepository.GetBC_WarehouseInfo(opReport);
+        }
+
+        [HttpPost]
+        //Post:  /api/OpReport/OutOfBC_Warehouse
+        public string OutOfBC_Warehouse(OpReport opReport)//ApiNum: 25  
+        {
+            return OpReportRepository.OutOfBC_Warehouse(opReport);
+        }
 
     }
 }

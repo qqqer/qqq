@@ -131,7 +131,7 @@ namespace ErpAPI
 
 
 
-        public static string porcv(string packNum, string recdate, string vendorid, string rcvdtlStr, string c10, string companyId)
+        public static string porcv(string packNum, string recdate, string vendorid, string rcvdtlStr, string c10, string companyId, bool reqIns)
         {
             if (packNum.Trim() == "") { return "0|收货单号不可为空"; }
             DateTime recdateD;
@@ -226,13 +226,12 @@ namespace ErpAPI
                 o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
                 ds.Tables["RcvHead"].Rows[0]["Plant"] = o == null ? "" : o.ToString();
 
-
                 u = 9;
                 recAD.Update(ds);
                 u = 10;
                 string lotStr = "";
                 string lotStr2 = "";
-                int poline = 0, porel = 0;
+                int poline = 0, porel = 0, jobseq = 0;
                 string jobnum = "", ordertype = "", whcode = "";
                 PODataSet poDS;
                 PODataSet.PODetailDataTable poDtlDt;
@@ -241,6 +240,7 @@ namespace ErpAPI
                 {
                     {
                         poNum = Convert.ToInt32(dtRcvDtl.Rows[i]["ponum"]);
+                        jobseq = Convert.ToInt32(dtRcvDtl.Rows[i]["jobseq"]);
                         poline = Convert.ToInt32(dtRcvDtl.Rows[i]["poline"]);
                         porel = Convert.ToInt32(dtRcvDtl.Rows[i]["porel"]);
                         jobnum = dtRcvDtl.Rows[i]["jobnum"].ToString().Trim();
@@ -256,7 +256,8 @@ namespace ErpAPI
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PONum"] = poNum;
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["POLine"] = poline;
 
-
+                        
+                       
 
                         ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["PORelNum"] = porel;
 
@@ -376,8 +377,18 @@ namespace ErpAPI
                         outMsg8 = "";
                         bool outBool1 = false, outBool2 = false, outBool3 = false;
 
-                        u = 21;
 
+                        if (reqIns)
+                        {
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["InspectionReq"] = "True";
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobNum"] = jobnum;
+                            ds.Tables["RcvDtl"].Rows[ds.Tables["RcvDtl"].Rows.Count - 1]["JobSeq"] = jobseq;
+
+                            recAD.OnChangeInspReq(ds, vendornum, purPoint, packNum, 0);// ds.Tables["RcvDtl"].Rows.Count - 1);
+                        }
+
+
+                        u = 21;
                         recAD.Update(ds);
                     }
                 }

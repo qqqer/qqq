@@ -61,7 +61,7 @@ namespace ErpAPI
                 int NextOperSeq = 0;
                 if (asmSeq == 0) //0层半层品
                 {
-                    DataTable drNextdt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn,"select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "' and OprSeq > '" + oprseq + "' order by OprSeq ASC ");
+                    DataTable drNextdt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, "select OpCode,OprSeq,SubContract,Opdesc from erp.JobOper where Company='" + companyId + "' and JobNum='" + jobnum + "' and AssemblySeq='" + asmSeq + "' and OprSeq > '" + oprseq + "' order by OprSeq ASC ");
                     if (drNextdt != null && drNextdt.Rows.Count > 0) //当前半成品内有下工序
                     {
                         NextOperSeq = Convert.ToInt32(drNextdt.Rows[0]["OprSeq"]);
@@ -143,7 +143,7 @@ namespace ErpAPI
                                     if (Convert.ToBoolean(drNextdt.Rows[0]["SubContract"]))
                                     {
                                         stype = "S|下工序外协" + drNextdt.Rows[0]["Opdesc"].ToString();
-                                        OutAsm = asmSeq;
+                                        OutAsm = parAsmSeq;
                                         OutOprSeq = NextOperSeq;
                                         OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
                                         OutOpDesc = drNextdt.Rows[0]["Opdesc"].ToString();
@@ -152,7 +152,7 @@ namespace ErpAPI
                                     else
                                     {
                                         stype = "M|下工序:" + drNextdt.Rows[0]["Opdesc"].ToString();
-                                        OutAsm = asmSeq;
+                                        OutAsm = parAsmSeq;
                                         OutOprSeq = NextOperSeq;
                                         OutOpcode = drNextdt.Rows[0]["OpCode"].ToString();
                                         OutOpDesc = drNextdt.Rows[0]["Opdesc"].ToString();
@@ -170,6 +170,7 @@ namespace ErpAPI
             }
 
         }
+        
 
 
         //D0506-01工单收货至库存
@@ -197,6 +198,7 @@ namespace ErpAPI
                     partNum = dt.Rows[0]["JobAsmbl.PartNum"].ToString();
 
                     string ss = @"select  case when TypeCode = 'M' then (StdLaborCost + StdBurdenCost + StdMaterialCost + StdMtlBurCost + StdSubContCost) else AvgMaterialCost end from erp.PartCost pc left join erp.part pa on pc.PartNum = pa.PartNum  where pa. PartNum = '" + partNum + "'";
+
                     cost = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, ss, null);
 
                     decimal.TryParse(dt.Rows[0]["JobPart.ReceivedQty"].ToString().Trim(), out recdQty);
@@ -219,6 +221,7 @@ namespace ErpAPI
                 {
                     return "0|物料成本为0，请联系技术部";
                 }
+
 
                 string[] w = GetPartWB(partNum, companyId);
                 string tlot = w[2].ToString().Trim().ToLower();
@@ -342,7 +345,7 @@ namespace ErpAPI
                 o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
                 string wb = o == null ? "" : o.ToString();
 
-            
+
                 if (partDT != null && partDT.Rows.Count > 0) { tlot = Convert.ToBoolean(partDT.Rows[0]["TrackLots"]); }
                 pp[0] = pw;
                 pp[1] = wb;
@@ -372,7 +375,7 @@ namespace ErpAPI
             {
                 DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, "select [WhseBin].[WarehouseCode] as [WhseBin_WarehouseCode],[WhseBin].[ZoneID] as [WhseBin_ZoneID],[WhseBin].[BinNum] as [WhseBin_BinNum] from Erp.WhseBin as WhseBin where (WhseBin.Company = '" + companyId + "'  and WhseBin.ZoneID = '" + zonid + "'  and WhseBin.BinNum = '" + binid + "' and WhseBin.WarehouseCode='" + wh + "')");
 
-                for (int i = 0; dt != null &&  i < dt.Columns.Count; i++)
+                for (int i = 0; dt != null && i < dt.Columns.Count; i++)
                 {
                     dt.Columns[i].ColumnName = dt.Columns[i].ColumnName.Replace('_', '.');
                 }
@@ -410,17 +413,17 @@ namespace ErpAPI
                 string JobNum,
                 int AssemblySeq,
                 string Company,
-                int MtlSeq,
+                int Seq,
                 decimal Qty,//让步数(DMRQualifiedQty) + 返修数(DMRRepairQty)+拒收数(DMRUnQualifiedQty) + 
                 string WarehouseCode,
                 string BinNum,
                 string ReasonCode,
                 string plant,
                 string LotNum,
+                string type,
                 out int tranid)
         {
-
-            tranid = -1;
+            tranid = 0;
             Session EpicorSession = CommonRepository.GetEpicorSession();
             if (EpicorSession == null)
             {
@@ -433,20 +436,40 @@ namespace ErpAPI
                 string snWarning = "";
 
                 NonConfImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<NonConfImpl>(EpicorSession, ImplBase<Erp.Contracts.NonConfSvcContract>.UriPath);
-                //EpicorSessionManager.EpicorSession.CompanyID = Company;
-                //EpicorSessionManager.EpicorSession.PlantID = plant;
-              
-                //新增物料
-                NonConfDataSet ds = adapter.AddNonConf("JobMaterial");
+                NonConfDataSet ds = new NonConfDataSet();
+
+
+                if (type == "外协不良1")
+                {//新增工序
+                    ds = adapter.AddNonConf("Operation");
+                }
+                else if (type == "物料")
+                {
+                    //新增物料
+                    ds = adapter.AddNonConf("JobMaterial");
+                }
                 //加入工单
                 adapter.OnChangeJobNum(JobNum, out plAsmReturned, out snWarning, ds);
                 //选择阶层
                 ds.Tables["NonConf"].Rows[0]["JobNum"] = JobNum;
                 ds.Tables["NonConf"].Rows[0]["AssemblySeq"] = AssemblySeq;
                 adapter.OnChangeJobAsm(AssemblySeq, ds);
-                //选择物料
-                adapter.OnChangeJobMtl(MtlSeq, ds);
-                ds.Tables["NonConf"].Rows[0]["FromOprSeq"] = MtlSeq;
+
+
+                if (type == "外协不良1")
+                {
+                    //选择工序
+                    adapter.OnChangeJobOpr(Seq, true, ds);
+                    ds.Tables["NonConf"].Rows[0]["FromOprSeq"] = Seq;
+                }
+                else if (type == "物料")
+                {
+                    //选择物料
+                    adapter.OnChangeJobMtl(Seq, ds);
+                    ds.Tables["NonConf"].Rows[0]["FromOprSeq"] = Seq;
+                }
+                    
+             
                 //填数量
                 adapter.OnChangeTranQty(Qty, ds);
                 ds.Tables["NonConf"].Rows[0]["Quantity"] = Qty;
@@ -467,8 +490,10 @@ namespace ErpAPI
                 ds.Tables["NonConf"].Rows[0]["BinNum"] = "01";
                 //原因
                 ds.Tables["NonConf"].Rows[0]["ReasonCode"] = ReasonCode;
-                //批次
-                ds.Tables["NonConf"].Rows[0]["LotNum"] = LotNum;
+
+                if (type == "物料")
+                    //批次
+                    ds.Tables["NonConf"].Rows[0]["LotNum"] = LotNum;
 
                 //保存
                 adapter.Update(ds);
@@ -497,6 +522,8 @@ namespace ErpAPI
             string FailedBin,
             string type,
             string plant,
+            string packslip,
+            int poline,
             out int dmrid)
         {
             dmrid = 0;
@@ -507,13 +534,13 @@ namespace ErpAPI
                 return "0|GetEpicorSession失败，请稍候再试|StartInspProcessing";
             }
 
-            
+
 
             try
             {
                 EpicorSession.PlantID = plant;
 
-               
+
                 if (plant.Contains("RR")) FailedWarehouseCode = "RR" + FailedWarehouseCode;
                 if (plant.Contains("HD")) FailedWarehouseCode = "HD" + FailedWarehouseCode;
 
@@ -522,35 +549,57 @@ namespace ErpAPI
                 string legalNumberMessage = "";
                 int iDMRNum = 0;
                 string InspectorID = "Q01";
+                int iNonConfID = 0;
 
                 InspProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<InspProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.InspProcessingSvcContract>.UriPath);
-                InspProcessingDataSet ds = adapter.GetByID(TranID);
+                InspProcessingDataSet ds = new InspProcessingDataSet();
+
+                string name = "", pcSource = "";
+                if (type == "外协不良2")
+                {
+                    name = "InspRcpt"; pcSource = "Receipt";
+                    string sql = @"select VendorNum, PurPoint, PackLine, PackSlip from erp.RcvDtl where PackSlip = '" + packslip + "' and POLine = " + poline + "";
+                    DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+                    ds = adapter.GetReceiptByID((int)dt.Rows[0]["VendorNum"], dt.Rows[0]["PurPoint"].ToString(), packslip, (int)dt.Rows[0]["PackLine"]);
+                }
+                else
+                {
+                    pcSource = "NonConf";
+                    name = "InspNonConf";
+                    ds = adapter.GetByID(TranID);
+                }
+
+
                 //检验员
-                ds.Tables["InspNonConf"].Rows[0]["InspectorID"] = InspectorID;
+                ds.Tables[name].Rows[0]["InspectorID"] = InspectorID;
                 adapter.AssignInspectorNonConf(InspectorID, ds, out infoMsg);
 
                 //合格数
                 if (type == "报工")
                 {
-                    ds.Tables["InspNonConf"].Rows[0]["DimPassedQty"] = DMRQualifiedQty;
-                    adapter.OnChangePassedQty(ds, "NonConf", DMRQualifiedQty, out infoMsg);
+                    ds.Tables[name].Rows[0]["DimPassedQty"] = DMRQualifiedQty;
+                    adapter.OnChangePassedQty(ds, pcSource, DMRQualifiedQty, out infoMsg);
                 }
 
                 //不合格数
-                ds.Tables["InspNonConf"].Rows[0]["DimFailedQty"] = UnQualifiedQty;
-                adapter.OnChangeFailedQty(ds, "NonConf", UnQualifiedQty, out infoMsg);
+                ds.Tables[name].Rows[0]["DimFailedQty"] = UnQualifiedQty;
+                adapter.OnChangeFailedQty(ds, pcSource, UnQualifiedQty, out infoMsg);
                 //不合格原因
-                ds.Tables["InspNonConf"].Rows[0]["FailedReasonCode"] = FailedReasonCode;
+                ds.Tables[name].Rows[0]["FailedReasonCode"] = FailedReasonCode;
                 //不合格仓库
-                adapter.OnChangePassedWhse(ds, "NonConf", "Failed", FailedWarehouseCode);
+                adapter.OnChangePassedWhse(ds, pcSource, "Failed", FailedWarehouseCode);
                 //不合格库位
-                ds.Tables["InspNonConf"].Rows[0]["FailedBin"] = FailedBin;
-                ds.Tables["InspNonConf"].Rows[0]["RowMod"] = "U";
+                ds.Tables[name].Rows[0]["FailedBin"] = FailedBin;
+
+                ds.Tables[name].Rows[0]["RowMod"] = "U";
                 //保存
                 if (type == "物料")
                     adapter.InspectMaterial(out legalNumberMessage, out iDMRNum, ds);
-                if (type == "报工")
+                if (type == "报工" || type == "外协不良1")
                     adapter.InspectOperation(out legalNumberMessage, out iDMRNum, ds);
+                if (type == "外协不良2")
+                    adapter.InspectReceipt(out legalNumberMessage, out iDMRNum, out iNonConfID, ds);
 
 
                 dmrid = iDMRNum;
@@ -585,6 +634,7 @@ namespace ErpAPI
             try
             {
                 EpicorSession.PlantID = plant;
+                EpicorSession.CompanyID = Company;
                 int AssemblySeq = 0;
                 bool multipleMatch = false;
                 bool vSubAvail = false;
@@ -598,8 +648,6 @@ namespace ErpAPI
 
                 DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
                 JobEntryImpl adapter1 = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<JobEntryImpl>(EpicorSession, ImplBase<Erp.Contracts.JobEntrySvcContract>.UriPath);
-                //EpicorSessionManager.EpicorSession.CompanyID = Company;
-                // EpicorSessionManager.EpicorSession.PlantID = plant;
 
 
                 //工单是否存在
@@ -667,7 +715,7 @@ namespace ErpAPI
                 ds.Tables["DMRActn"].Rows[i]["TranQty"] = DMRRepairQty;
                 ds.Tables["DMRActn"].Rows[i]["Quantity"] = 0;
                 ds.Tables["DMRActn"].Rows[i]["AcceptIUM"] = IUM;
-                ds.Tables["DMRActn"].Rows[i]["TranUOM"] =IUM;
+                ds.Tables["DMRActn"].Rows[i]["TranUOM"] = IUM;
                 adapter.DefaultIssueComplete(ds);
 
 
@@ -708,7 +756,7 @@ namespace ErpAPI
         string PartNum,
         int AssemblySeq,
         int Seq, //type=报工，代表工序号， type=物料，代表物料序号，
-        decimal DMRQualifiedQty,    
+        decimal DMRQualifiedQty,
         string DMRJobNum,
         string type
         )
@@ -721,23 +769,25 @@ namespace ErpAPI
             try
             {
                 EpicorSession.PlantID = plant;
-                
+
                 DateTime time = DateTime.Now;
                 string opLegalNumberMessage = "";
 
                 DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
                 //JobEntryImpl adapter1 = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<JobEntryImpl>(EpicorSession, ImplBase<Erp.Contracts.JobEntrySvcContract>.UriPath);
-                
 
-        
+
+
                 DMRProcessingDataSet ds = adapter.GetByID(DMRID);
                 int i = ds.Tables["DMRActn"].Rows.Count;
 
 
-                if(type == "报工")
+                if (type == "报工")
                     adapter.GetNewDMRActnAcceptOPR(ds, DMRID); //报工让步
-                else//物料
+                else if (type == "物料")//
                     adapter.GetNewDMRActnAcceptMTL(ds, DMRID); // 物料、工序返修，物料让步
+                //else if (type == "外协不良2")
+                //    adapter.GetNewDMRActnAcceptSTK(ds, DMRID);
 
 
                 ds.Tables["DMRActn"].Rows[i]["DMRNum"] = DMRID;
@@ -754,7 +804,7 @@ namespace ErpAPI
 
                     adapter.ChangeJobMtlSeq(ds, Seq); // 物料、工序返修，物料让步
                 }
-                
+
 
                 ds.Tables["DMRActn"].Rows[i]["DispQuantity"] = DMRQualifiedQty;
                 ds.Tables["DMRActn"].Rows[i]["TranQty"] = DMRQualifiedQty;
@@ -768,7 +818,7 @@ namespace ErpAPI
                 if (plant.Substring(0, 2) == "HD") whc = "HDWIP";
 
                 ds.Tables["DMRActn"].Rows[i]["WarehouseCode"] = whc;
-                
+
                 adapter.ChangeWarehouse(ds);
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
                 ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D01"; //返修D03，  让步接收D01
@@ -809,12 +859,11 @@ namespace ErpAPI
             }
             try
             {
+                EpicorSession.CompanyID = Company;
                 EpicorSession.PlantID = plant;
                 string opLegalNumberMessage = "";
 
                 DMRProcessingImpl adapter = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<DMRProcessingImpl>(EpicorSession, ImplBase<Erp.Contracts.DMRProcessingSvcContract>.UriPath);
-                //EpicorSessionManager.EpicorSession.CompanyID = Company;
-                //EpicorSessionManager.EpicorSession.PlantID = plant;
 
 
                 DMRProcessingDataSet ds = adapter.GetByID(DMRID);

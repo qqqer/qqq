@@ -212,5 +212,56 @@ namespace ErpAPI
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.ERP_strConn, CommandType.Text, strSql, null);
         }
 
+
+        public static string deleteTimeAndCost(int HedSeq, int DtlSeq, string plantId)
+        {
+            Session EpicorSession = CommonRepository.GetEpicorSession();
+            if (EpicorSession == null)
+            {
+                return "获取session失败";
+            }
+            try
+            {
+                EpicorSession.CompanyID = "001";
+                EpicorSession.PlantID = plantId;
+
+                LaborImpl labAd = Ice.Lib.Framework.WCFServiceSupport.CreateImpl<LaborImpl>(EpicorSession, ImplBase<Erp.Contracts.LaborSvcContract>.UriPath);
+                LaborDataSet dsLabHed = new LaborDataSet();
+                LaborDataSet.LaborDtlDataTable dtLabDtl = new LaborDataSet.LaborDtlDataTable();
+
+                dsLabHed = labAd.GetDetail(HedSeq, DtlSeq);
+                dtLabDtl = dsLabHed.LaborDtl;
+
+
+                string cMessageText = "";
+                dsLabHed.Tables["LaborDtl"].Rows[0]["RowMod"] = "U";
+                labAd.RecallFromApproval(dsLabHed, false, out cMessageText);
+
+                if (cMessageText != "")
+                {
+                    return cMessageText;
+                }
+
+                if (dsLabHed.LaborEquip.Rows.Count == 1)
+                    dsLabHed.LaborEquip.Rows[0].Delete();
+
+                dsLabHed.Tables["LaborDtl"].Rows[0].Delete();
+
+                labAd.Update(dsLabHed);
+
+                
+
+                return "撤销时间费用成功";
+            }
+            catch (Exception ex)
+            {
+                return "ErpAPI|撤销时间费用失败，" + ex.Message;
+            }
+            finally
+            {
+                EpicorSession.Dispose();
+            }
+        }
+
     }
 }
