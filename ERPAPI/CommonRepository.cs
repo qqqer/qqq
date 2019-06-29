@@ -191,13 +191,19 @@ namespace ErpAPI
                     dt.Columns[i].ColumnName = dt.Columns[i].ColumnName.Replace('_', '.');
                 }
                 string partNum = "";
+                int costid = 0;
+
+                if (plantId == "MfgSys") costid = 1;
+                if (plantId == "RRSite") costid = 2;
+                if (plantId == "HDSite") costid = 3;
+
                 decimal recdQty = 0, compQty = 0, requQty = 0, cost = 0;
                 bool jobRes = false, jobCom = true;
                 if (dt != null && dt.Rows.Count > 0)
                 {
                     partNum = dt.Rows[0]["JobAsmbl.PartNum"].ToString();
 
-                    string ss = @"select  case when TypeCode = 'M' then (StdLaborCost + StdBurdenCost + StdMaterialCost + StdMtlBurCost + StdSubContCost) else AvgMaterialCost end from erp.PartCost pc left join erp.part pa on pc.PartNum = pa.PartNum  where pa. PartNum = '" + partNum + "'";
+                    string ss = @"select  case when TypeCode = 'M' then (StdLaborCost + StdBurdenCost + StdMaterialCost + StdMtlBurCost + StdSubContCost) else AvgMaterialCost end from erp.PartCost pc left join erp.part pa on pc.PartNum = pa.PartNum  where pa. PartNum = '" + partNum + "' and costid = "+ costid + "";
 
                     cost = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, ss, null);
 

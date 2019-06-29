@@ -1284,6 +1284,23 @@ namespace Appapi.Models
                                 AcceptInfo.BinNum = "ins";
                             }
 
+                            if (theBatch.AtRole == 8) //连续委外回来不直接入库
+                            {
+                                int costid = 0;
+                                decimal cost = 0;
+                                if (theBatch.Plant == "MfgSys") costid = 1;
+                                if (theBatch.Plant == "RRSite") costid = 2;
+                                if (theBatch.Plant == "HDSite") costid = 3;
+
+                                string ss = @"select  case when TypeCode = 'M' then (StdLaborCost + StdBurdenCost + StdMaterialCost + StdMtlBurCost + StdSubContCost) else AvgMaterialCost end from erp.PartCost pc left join erp.part pa on pc.PartNum = pa.PartNum  where pa. PartNum = '" + dt.Rows[dt.Rows.Count - 1]["PartNum"].ToString() + "' and costid = " + costid + "";
+
+                                cost = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, ss, null);
+                                if (cost == 0)
+                                {
+                                    return "错误：" + theBatch.Plant + "物料成本为0，请联系技术部";
+                                }
+                            }
+
 
                             //发料验证， 若该组委外工序中有多个相同化学品，每个单独验证时 数量满足， 但实际发料时 会有多次发料，则可能不够发， 
                             for (int i = 0; i < dt.Rows.Count; i++)
@@ -1470,11 +1487,11 @@ namespace Appapi.Models
 
                             if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC") //下工序厂内且是表处，入库表处临时仓
                             {
-                                OpReportRepository.InputToBC_Warehouse(theBatch.JobNum, nextAssemblySeq, nextJobSeq, AcceptInfo.BinNum, NextOpCode, nextOpDesc, theBatch.PartNum, theBatch.PartDesc, theBatch.Plant, theBatch.Company, (decimal)theBatch.ArrivedQty);
+                                OpReportRepository.InputToBC_Warehouse(theBatch.JobNum, nextAssemblySeq, nextJobSeq, AcceptInfo.BinNum, NextOpCode, nextOpDesc, theBatch.PartNum, theBatch.PartDesc, theBatch.Plant, theBatch.Company, (decimal)AcceptInfo.ArrivedQty);
                                 AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "下工序表处入库成功");
                             }
 
-                            if(theBatch.OurFailedQty > 0)
+                            if (theBatch.OurFailedQty > 0)
                             {
                                 sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
                                         where  SubContract = 0  and jo.JobNum = '" + theBatch.JobNum + "' and jo.AssemblySeq = " + theBatch.AssemblySeq + "  and  jo.OprSeq < " + theBatch.JobSeq + " and jh.Company = '001' order by jo.OprSeq desc";

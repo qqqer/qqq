@@ -419,7 +419,7 @@ namespace Appapi.Models
                 sql = "select iscomplete from BPMsub where DMRJobNum = '" + arr[0] + "'";
                 bool isSubComplete = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
                 if (!isSubComplete)
-                    return "0|错误：该返修工单所属的返修流程未结束";
+                    return "0|错误：该返修工单所属的返修流程未结束。原工单的对应工序没有结束，请用查询工具查询对应的记录，让相应的人员接收确认";
             }
 
             object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
@@ -473,9 +473,9 @@ namespace Appapi.Models
             UserProcess = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //获取刚才插入的作业申请记录 以取得processid 和 并发标记
             string SumOfReportQty = GetSumOfReportedQty(arr[0], int.Parse(arr[1]), int.Parse(arr[2])).ToString("N2");
 
-
+            string[] brr = NextSetpInfo.Split('~');
             arr[1] += "|" + (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, @" select PartNum from erp.JobAsmbl where JobNum = '" + arr[0] + "' and AssemblySeq = " + int.Parse(arr[1]) + "", null); //阶层号后追加物料编码
-            return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + NextSetpInfo + "~" + OpDate + "~" + SumOfReportQty + "~" + UserProcess.Rows[0]["ProcessId"] + "~" + Convert.ToInt32(UserProcess.Rows[0]["IsParallel"]);
+            return "1|" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + arr[3] + "~" + OpDesc + "~" + brr[0] + "~" + brr[1] + "~" + brr[2] + "~" + OpDate + "~" + SumOfReportQty + "~" + UserProcess.Rows[0]["ProcessId"] + "~" + Convert.ToInt32(UserProcess.Rows[0]["IsParallel"]);
         }
 
 
@@ -878,9 +878,9 @@ namespace Appapi.Models
             }
 
 
-
+            string[] arr = NextOprInfo.Split('~');
             string detail = "1|" + process.JobNum + "~" + process.AssemblySeq + partnum + "~" + process.JobSeq + "~" + LatestOprInfo.Rows[0]["OpCode"] + "~" +
-                LatestOprInfo.Rows[0]["OpDesc"] + "~" + NextOprInfo + "~" + startdate + "~" + SumOfReportedQty + "~" + process.Qty + "~" + LatestOprInfo.Rows[0]["Plant"] + "~" + process.ProcessId + "~" + usernames + "~" + process.EndDate;
+                LatestOprInfo.Rows[0]["OpDesc"] + "~" + arr[0] + "~" + arr[1] + "~" + arr[2] + "~" + startdate + "~" + SumOfReportedQty + "~" + process.Qty + "~" + LatestOprInfo.Rows[0]["Plant"] + "~" + process.ProcessId + "~" + usernames + "~" + process.EndDate;
 
             return detail;
         }
@@ -1400,7 +1400,6 @@ namespace Appapi.Models
                         "where id = " + (theSubReport.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = sql.Replace("'", "");
                 AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 301, OpDate, "让步提交|" + sql);
             }
 
@@ -1416,7 +1415,6 @@ namespace Appapi.Models
                         "where id = " + (theSubReport.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = sql.Replace("'", "");
                 AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 301, OpDate, "报废提交|" + sql);
             }
 
@@ -1440,7 +1438,6 @@ namespace Appapi.Models
                         "where id = " + (theSubReport.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = sql.Replace("'", "");
                 AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 302, OpDate, "返修提交|" + sql);
             }
 
@@ -1512,7 +1509,6 @@ namespace Appapi.Models
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-            sql = sql.Replace("'", "");
             AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 301, OpDate, sql);
 
             return "处理成功";
@@ -1637,7 +1633,6 @@ namespace Appapi.Models
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-                    sql = sql.Replace("'", "");
                     AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "让步提交|" + sql);
                 }
 
@@ -1667,7 +1662,6 @@ namespace Appapi.Models
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-                    sql = sql.Replace("'", "");
                     AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "返修提交|" + sql);
                 }
 
@@ -1776,7 +1770,6 @@ namespace Appapi.Models
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
-                sql = sql.Replace("'", "");
                 AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, sql);
 
                 return "处理成功";
@@ -1924,13 +1917,15 @@ namespace Appapi.Models
             sql = @"select  PartNum  from erp.JobAsmbl where jobnum = '" + UserProcess.Rows[0]["JobNum"].ToString() + "' and AssemblySeq = " + (int)UserProcess.Rows[0]["AssemblySeq"] + "";
             string partnum = "|" + (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-
+            string[] arr = NextOprInfo.Split('~');
             return "1|" + (string)UserProcess.Rows[0]["JobNum"]
                 + "~" + UserProcess.Rows[0]["AssemblySeq"].ToString() + partnum
                 + "~" + UserProcess.Rows[0]["JobSeq"].ToString()
                 + "~" + (string)UserProcess.Rows[0]["OpCode"]
                 + "~" + (string)UserProcess.Rows[0]["OpDesc"]
-                + "~" + NextOprInfo
+                + "~" + arr[0]
+                + "~" + arr[1]
+                + "~" + arr[2]
                 + "~" + ((DateTime)UserProcess.Rows[0]["StartDate"]).ToString("yyyy-MM-dd HH:mm:ss.fff")
                 + "~" + (UserProcess.Rows[0]["Qty"].ToString() == "" ? "0" : UserProcess.Rows[0]["Qty"].ToString())
                 + "~" + GetSumOfReportedQty(UserProcess.Rows[0]["JobNum"].ToString(), (int)UserProcess.Rows[0]["AssemblySeq"], (int)UserProcess.Rows[0]["JobSeq"]).ToString("N2")
