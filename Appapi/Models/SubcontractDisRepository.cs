@@ -66,10 +66,60 @@ namespace Appapi.Models
         }
 
 
+        private static string CheckPO(int PoNum, int PoLine, int PORelNum)
+        {
+            string sql = @"select 
+                ph.OpenOrder,
+                ph.orderHeld,
+                ph.Approve,
+                ph.Confirmed,
+                pd.openLine,
+                pr.openRelease,
+                jh.jobClosed,
+                jh.jobComplete,   
+                jh.JobEngineered,
+                jh.JobReleased
+                from erp.PORel pr
+
+                left join erp.PODetail pd   on pr.PONum = pd.PONUM   and   pr.Company = pd.Company   and   pr.POLine = pd.POLine 
+                left join erp.POHeader ph   on ph.Company = pd.Company   and   ph.PONum = pd.PONUM 
+                left join erp.JobHead jh  on pr.JobNum = jh.JobNum   and   pr.Company = jh.Company 
+
+                where pr.Company = '001' " +
+                "and  pr.PONum = " + PoNum + "   and    pr.POLine = " + PoLine + "    and    pr.PORelNum = " + PORelNum + " ";
+
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+
+            if (dt == null)
+                return "该订单项目不存在";
+            if ((bool)dt.Rows[0]["OpenOrder"] == false)
+                return "订单已关闭,请联系采购部";
+            else if ((bool)dt.Rows[0]["orderHeld"] == true)
+                return "订单已冻结,请联系采购部";
+            else if ((bool)dt.Rows[0]["Approve"] == false)
+                return "订单未同意,请联系采购部";
+            else if ((bool)dt.Rows[0]["Confirmed"] == false)
+                return "订单未确认,请联系采购部";
+            else if ((bool)dt.Rows[0]["openLine"] == false)
+                return "订单行已关闭,请联系采购部";
+            else if ((bool)dt.Rows[0]["openRelease"] == false)
+                return "发货行已关闭,请联系采购部";
+            
+            return "OK";
+        }
+
+
+
         public static string ApplySubcontractDisQty(SubcontractDis sd)  //sd.jobseq为厂内工序
         {
+            sd.JobNum = sd.JobNum.TrimEnd();
             if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
                 return "错误：该账号没有权限发起外协不良";
+
+            string res = CommonRepository.GetJobHeadState(sd.JobNum);
+            if (res != "正常")
+                return "0|错误：" + res;
 
             string sql = @"select  SubContract  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq+ " and OprSeq = "+sd.JobSeq+"  and company = '001'";
             bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
@@ -172,8 +222,13 @@ namespace Appapi.Models
 
         public static string ReceiveSubcontractDisQty(SubcontractDis sd)
         {
+            sd.JobNum = sd.JobNum.TrimEnd();
             if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
                 return "错误：该账号没有权限发起外协不良";
+
+            string res = CommonRepository.GetJobHeadState(sd.JobNum);
+            if (res != "正常")
+                return "0|错误：" + res;
 
             string sql = @"select  SubContract  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + sd.JobSeq + "  and company = '001'";
             bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
@@ -189,9 +244,14 @@ namespace Appapi.Models
                 return "错误：该工序不是最后一道委外工序";
 
 
-
             SubcontractDis CommonInfo = GetCommonInfo((int)sd.PoNum,
                 (int)ReceiveOpSeqOfSeriesSUB.Rows[0]["poline"], (int)ReceiveOpSeqOfSeriesSUB.Rows[0]["porelnum"]);
+
+
+            ret = CheckPO((int)sd.PoNum, (int)ReceiveOpSeqOfSeriesSUB.Rows[0]["poline"], (int)ReceiveOpSeqOfSeriesSUB.Rows[0]["porelnum"]);
+            if (ret != "OK")
+                return "错误：" + ret;
+
 
             string PackSlip = CommonInfo.SupplierNo + "D" + sd.PoNum + ((new Random().Next() % 100000) + 100000);
             string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -217,7 +277,7 @@ namespace Appapi.Models
                                 CommonRepository.GetValueAsString("")}) + (i == ReceiveOpSeqOfSeriesSUB.Rows.Count - 1 ? "]" : ",");
             }
 
-            string res = "";
+            res = "";
             if ((res = ErpAPI.ReceiptRepository.porcv(PackSlip, recdate, CommonInfo.SupplierNo, rcvdtlStr, "", CommonInfo.Company, true)) != "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
             {
                 AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 101, res, 0, 0, (int)sd.PoNum, 2);
