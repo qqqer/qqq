@@ -136,7 +136,7 @@ namespace Appapi.Controllers
             string res = OpReportRepository.AccepterCommit(AcceptInfo);
 
             string apinum = (bool)AcceptInfo.IsSubProcess ? "402|" : "401|";
-            return res == "处理成功" ? res : apinum + res;
+            return res.Contains("处理成功") ? res : apinum + res;
         }
 
 

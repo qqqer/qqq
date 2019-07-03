@@ -515,7 +515,7 @@ namespace Appapi.Models
 
                 if ((ret = GetExceedError(process)).Contains("错误")) return ret;
 
-                //if ((ret = GetDuplicateError(process)).Contains("错误")) return ret;
+                //if((ret = GetBC_WarehouseIssueError(process)).Contains("错误")) return ret;
 
                 if ((ret = ChemicalIssue(process)).Contains("错误")) return ret;
 
@@ -545,6 +545,16 @@ namespace Appapi.Models
                 report_IDs.Remove((int)opReport.ProcessId);
             }
         }
+
+        //private static string GetBC_WarehouseIssueError(OpReport process)
+        //{
+        //    string sql2 = @"SELECT sum(sumoutqty) FROM BC_Plan where  JobNum= '{0}' and AssemblySeq={1} and JobSeq = {2}";
+        //    sql2 = string.Format(sql2, process.JobNum, process.AssemblySeq, process.JobSeq);
+
+        //    int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql2, null);
+        //    if (InPlan > 0)
+        //        append = "下工序在计划中，请尽快出货";
+        //}
 
         internal static void SetAverageTime(List<OpReport> CacheList)
         {
@@ -1553,6 +1563,8 @@ namespace Appapi.Models
                     return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
 
+                string append = "";
+
                 if ((theSubReport.DMRQualifiedQty) != null)
                 {
                     string res = CommonRepository.GetJobHeadState(theSubReport.JobNum);
@@ -1609,9 +1621,14 @@ namespace Appapi.Models
                     }
 
 
-                    if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0, 2) == "BC" && AcceptInfo.BinNum != "")
+                    
+                    if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0, 2) == "BC" )
                     {
-                        InputToBC_Warehouse(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.NextJobSeq, AcceptInfo.BinNum, theSubReport.NextOpCode, theSubReport.NextOpDesc, theSubReport.PartNum, theSubReport.PartDesc, theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRQualifiedQty,"报工DMR让步接收");
+                        if (AcceptInfo.BinNum == "")
+                        {
+                            return "错误：下工序表处，请填写临时仓库位";
+                        }
+                        InputToBC_Warehouse(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.NextJobSeq, AcceptInfo.BinNum, theSubReport.NextOpCode, theSubReport.NextOpDesc, theSubReport.PartNum, theSubReport.PartDesc, theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRQualifiedQty, "报工DMR让步接收");
                         AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序表处物料入库成功");
                     }
 
@@ -1631,9 +1648,17 @@ namespace Appapi.Models
                            "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
                            "where id = " + (theSubReport.ID) + "";
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-
                     AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "让步提交|" + sql);
+
+                    if (theSubReport.AtRole == 128)
+                    {
+                        string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                        sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.JobNum, (int)theSubReport.AssemblySeq, int.Parse(arr[0]));
+
+                        int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        if (InPlan > 0)
+                            append = "下工序在计划中，请尽快出货";
+                    }
                 }
 
                 if ((theSubReport.DMRRepairQty) != null)
@@ -1642,8 +1667,12 @@ namespace Appapi.Models
                                     where ja.Company = '001'  and jo.JobNum = '" + theSubReport.DMRJobNum + "'  order by OprSeq asc";
                     DataTable nextinfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
-                    if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC" && AcceptInfo.BinNum != "")
+                    if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC")
                     {
+                        if (AcceptInfo.BinNum == "")
+                        {
+                            return "错误：下工序表处，请填写临时仓库位";
+                        }
                         InputToBC_Warehouse(theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"], AcceptInfo.BinNum,
                         (string)nextinfo.Rows[0]["OpCode"], (string)nextinfo.Rows[0]["OpDesc"], theSubReport.PartNum,
                         (string)nextinfo.Rows[0]["Description"], theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRRepairQty, "报工DMR返修接收");
@@ -1663,9 +1692,16 @@ namespace Appapi.Models
 
 
                     AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "返修提交|" + sql);
+
+                    string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                    sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"]);
+
+                    int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    if (InPlan > 0)
+                        append = "。下工序在计划中，请尽快出货";
                 }
 
-                return "处理成功";
+                return "处理成功" + append;
             }
             catch (Exception ex)
             {
@@ -1748,8 +1784,12 @@ namespace Appapi.Models
                         return "错误：" + res;
                 }
 
-                if (theReport.AtRole == 128 && theReport.NextOpCode.Substring(0, 2) == "BC" && AcceptInfo.BinNum != "")
+                if (theReport.AtRole == 128 && theReport.NextOpCode.Substring(0, 2) == "BC")
                 {
+                    if (AcceptInfo.BinNum == "")
+                    {
+                        return "错误：下工序表处，请填写临时仓库位";
+                    }
                     InputToBC_Warehouse(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.NextJobSeq, AcceptInfo.BinNum, theReport.NextOpCode, theReport.NextOpDesc, theReport.PartNum, theReport.PartDesc, theReport.Plant, theReport.Company, (decimal)theReport.QualifiedQty, "报工主流程接收");
                     AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "下工序表处物料入库成功");
                 }
@@ -1772,7 +1812,19 @@ namespace Appapi.Models
 
                 AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, sql);
 
-                return "处理成功";
+
+                string append = "";
+                if (theReport.AtRole == 128)
+                {
+                    string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                    sql = string.Format(sql2, "001", theReport.Plant, theReport.JobNum, (int)theReport.AssemblySeq, int.Parse(arr[0]));
+
+                    int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    if (InPlan > 0)
+                        append = "。下工序在计划中，请尽快出货";
+                }
+
+                return "处理成功" + append;
             }
             catch (Exception ex)
             {
@@ -2429,7 +2481,7 @@ namespace Appapi.Models
             int ID = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
             if (ID != 0)
             {
-                sql = " update BC_Warehouse set OnHandQty = OnHandQty + " + Qty + " where id = "+ID+"";
+                sql = " update BC_Warehouse set OnHandQty = OnHandQty + " + Qty + " where id = " + ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 AddBC_WarehouseLog(JobNum, AssemblySeq, NextJobSeq, sql, ID, Qty, BinNum, comefrom);
             }
@@ -2504,25 +2556,25 @@ namespace Appapi.Models
                 return "0|错误：该账号没有权限操作表处临时仓";
 
 
-            string sql = @"select * from BC_Warehouse where id = "+opReport.ID+" ";
+            string sql = @"select * from BC_Warehouse where id = " + opReport.ID + " ";
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
 
             if (opReport.Qty > (decimal)dt.Rows[0]["OnHandQty"]) return "错误：库存数不足";
 
-            sql = " update BC_Warehouse set OnHandQty = OnHandQty - " + opReport.Qty + " , sumoutqty  = sumoutqty + "+opReport.Qty+" where id = " + opReport.ID + "";
+            sql = " update BC_Warehouse set OnHandQty = OnHandQty - " + opReport.Qty + " , sumoutqty  = sumoutqty + " + opReport.Qty + " where id = " + opReport.ID + "";
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            AddBC_WarehouseLog(dt.Rows[0]["JobNum"].ToString(), (int)dt.Rows[0]["AssemblySeq"], (int)dt.Rows[0]["JobSeq"], sql, (int)opReport.ID, (decimal)-opReport.Qty , dt.Rows[0]["BinNum"].ToString(),"");
+            AddBC_WarehouseLog(dt.Rows[0]["JobNum"].ToString(), (int)dt.Rows[0]["AssemblySeq"], (int)dt.Rows[0]["JobSeq"], sql, (int)opReport.ID, (decimal)-opReport.Qty, dt.Rows[0]["BinNum"].ToString(), "");
 
             return "处理成功";
         }
 
 
 
-        private static void AddBC_WarehouseLog(string JobNum, int AssemblySeq, int JobSeq, string OpDetail, int id, decimal qty,string binnum, string comefrom)
+        private static void AddBC_WarehouseLog(string JobNum, int AssemblySeq, int JobSeq, string OpDetail, int id, decimal qty, string binnum, string comefrom)
         {
             string sql = @"insert into BC_WarehouseLog(JobNum, AssemblySeq, JobSeq,  Opdate, OpDetail, UserId, ID, Qty,binnum,comefrom) Values('{0}', {1}, {2}, {3},  @OpDetail, '{4}',{5}, {6}, '{7}', '{8}') ";
-            sql = string.Format(sql, JobNum, AssemblySeq, JobSeq, "getdate()", HttpContext.Current.Session["UserId"].ToString(), id, qty,binnum, comefrom);
+            sql = string.Format(sql, JobNum, AssemblySeq, JobSeq, "getdate()", HttpContext.Current.Session["UserId"].ToString(), id, qty, binnum, comefrom);
 
             SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, ps);
