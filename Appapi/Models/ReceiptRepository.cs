@@ -1491,11 +1491,11 @@ namespace Appapi.Models
 
                         }
 
-                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && AcceptInfo.BinNum != "") //下工序厂内且是表处，入库表处临时仓
+                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && AcceptInfo.BinNum != "" && theBatch.Plant != "RRSite") //下工序厂内且是表处，入库表处临时仓
                         {
                             if (AcceptInfo.BinNum == "")
                             {
-                                return "错误：下工序表处，请填写临时仓库位";
+                                return "错误：下工序表处，请填写表处现场仓库位";
                             }
                             OpReportRepository.InputToBC_Warehouse(theBatch.JobNum, nextAssemblySeq, nextJobSeq, AcceptInfo.BinNum, NextOpCode, nextOpDesc, theBatch.PartNum, theBatch.PartDesc, theBatch.Plant, theBatch.Company, (decimal)AcceptInfo.ArrivedQty, "收料委外接收");
                             AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "下工序表处入库成功");

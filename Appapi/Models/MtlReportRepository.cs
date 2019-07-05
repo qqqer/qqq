@@ -409,6 +409,10 @@ namespace Appapi.Models
             if (theReport.CheckCounter == 0)
                 return "错误：该不良品流程已处理";
 
+            string res;
+            if ((res = CommonRepository.GetJobHeadState(theReport.JobNum)) != "正常")
+                return "错误：" + res;
+
             DMRInfo.DMRQualifiedQty = Convert.ToDecimal(DMRInfo.DMRQualifiedQty);
             DMRInfo.DMRRepairQty = Convert.ToDecimal(DMRInfo.DMRRepairQty);
             DMRInfo.DMRUnQualifiedQty = Convert.ToDecimal(DMRInfo.DMRUnQualifiedQty);
@@ -452,7 +456,6 @@ namespace Appapi.Models
             if (DMRInfo.DMRUnQualifiedQty > 0 && CheckBinNum(theReport.Company, DMRInfo.DMRBinNum, DMRInfo.DMRWarehouseCode) != "ok")
                 return "错误：库位与仓库不匹配";
 
-            string res;
             lock (lock_dmr)
             {
                 if (dmr_IDs.Contains((int)DMRInfo.ID))
@@ -651,13 +654,38 @@ namespace Appapi.Models
 
 
 
-            string type = "返修提交|";
+            string append ="", type = "返修提交|";
             if ((theSubReport.DMRQualifiedQty) != null)
             {
                 type = "让步提交|";
             }
             if ((theSubReport.DMRRepairQty) != null)
             {
+                sql = @"select OpCode,  OprSeq, jo.PartNum, OpDesc, ja.Description from erp.JobOper jo left join erp.JobAsmbl ja on ja.JobNum = jo.JobNum 
+                     where ja.Company = '001'  and jo.JobNum = '" + theSubReport.DMRJobNum + "'  order by OprSeq asc";
+                DataTable nextinfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+                if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC" && theSubReport.Plant != "RRSite")
+                {
+                    if (AcceptInfo.BinNum == "")
+                    {
+                        return "错误：下工序表处，请填写表处现场仓库位";
+                    }
+                    OpReportRepository.InputToBC_Warehouse(theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"], AcceptInfo.BinNum,
+                    (string)nextinfo.Rows[0]["OpCode"], (string)nextinfo.Rows[0]["OpDesc"], theSubReport.PartNum,
+                    (string)nextinfo.Rows[0]["Description"], theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRRepairQty, "物料DMR返修接收");
+                    
+                    AddOpLog(theSubReport.ID, 401, OpDate, "下工序表处物料入库成功");
+                }
+                if (theSubReport.Plant != "RRSite")
+                {
+                    string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                    sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"]);
+
+                    int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    if (InPlan > 0)
+                        append = "。下工序在计划中，请尽快出货";
+                }
                 type = "返修提交|";
             }
 
@@ -673,7 +701,9 @@ namespace Appapi.Models
             sql = sql.Replace("'", "");
             AddOpLog(theSubReport.ID, 401, OpDate, type + sql);
 
-            return "处理成功";
+
+
+            return "处理成功" + append;
         }
 
 

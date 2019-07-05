@@ -114,7 +114,7 @@ namespace Appapi.Controllers
 
             string res = MtlReportRepository.AcceptCommit(AcceptInfo);
 
-            return res == "处理成功" ? res : "401|" + res;
+            return res.Contains( "处理成功") ? res : "401|" + res;
         }
 
 

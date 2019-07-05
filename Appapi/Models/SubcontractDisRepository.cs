@@ -612,11 +612,11 @@ namespace Appapi.Models
                                     where ja.Company = '001'  and jo.JobNum = '" + theSubcontractDis.DMRJobNum + "'  order by OprSeq asc";
                 DataTable nextJobInfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
-                if (((string)nextJobInfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC")
+                if (((string)nextJobInfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC" && theSubcontractDis.Plant != "RRSite")
                 {
                     if (sd.BinNum == "")
                     {
-                        return "错误：下工序表处，请填写临时仓库位";
+                        return "错误：下工序表处，请填写表处现场仓库位";
                     }
                     OpReportRepository.InputToBC_Warehouse(theSubcontractDis.DMRJobNum, 0, (int)nextJobInfo.Rows[0]["OprSeq"], sd.BinNum,
                     (string)nextJobInfo.Rows[0]["OpCode"], (string)nextJobInfo.Rows[0]["OpDesc"], theSubcontractDis.PartNum,

@@ -491,7 +491,6 @@ namespace Appapi.Models
 
             try
             {
-
                 string sql = @"select * from process where processid = " + opReport.ProcessId + "";
                 OpReport process = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First();
 
@@ -546,15 +545,22 @@ namespace Appapi.Models
             }
         }
 
-        //private static string GetBC_WarehouseIssueError(OpReport process)
-        //{
-        //    string sql2 = @"SELECT sum(sumoutqty) FROM BC_Plan where  JobNum= '{0}' and AssemblySeq={1} and JobSeq = {2}";
-        //    sql2 = string.Format(sql2, process.JobNum, process.AssemblySeq, process.JobSeq);
+        private static string GetBC_WarehouseIssueError(OpReport process)
+        {
+            string sql2 = @"SELECT sum(sumoutqty) FROM BC_Plan where  JobNum= '{0}' and AssemblySeq={1} and JobSeq = {2}";
+            sql2 = string.Format(sql2, process.JobNum, process.AssemblySeq, process.JobSeq);
 
-        //    int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql2, null);
-        //    if (InPlan > 0)
-        //        append = "下工序在计划中，请尽快出货";
-        //}
+            object sumoutqty = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql2, null);
+            decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
+
+            if (sumoutqty is DBNull || sumoutqty == null)
+                return "";
+
+            if(SumOfReportedQty + process.Qty > (decimal)sumoutqty)
+                return "错误：表处临时仓发料数不足，还需补发："+ (SumOfReportedQty + process.Qty - (decimal)sumoutqty);
+
+            return "";
+        }
 
         internal static void SetAverageTime(List<OpReport> CacheList)
         {
@@ -657,6 +663,8 @@ namespace Appapi.Models
             if ((ret = GetExceedError(process)).Contains("错误")) return ret;
 
             if ((ret = GetDuplicateError(process)).Contains("错误")) return ret;
+
+            //if ((ret = GetBC_WarehouseIssueError(process)).Contains("错误")) return ret;
 
             if ((ret = ChemicalIssue(process)).Contains("错误")) return ret;
 
@@ -1622,11 +1630,11 @@ namespace Appapi.Models
 
 
                     
-                    if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0, 2) == "BC" )
+                    if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0, 2) == "BC" && theSubReport.Plant != "RRSite")
                     {
                         if (AcceptInfo.BinNum == "")
                         {
-                            return "错误：下工序表处，请填写临时仓库位";
+                            return "错误：下工序表处，请填写表处现场仓库位";
                         }
                         InputToBC_Warehouse(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.NextJobSeq, AcceptInfo.BinNum, theSubReport.NextOpCode, theSubReport.NextOpDesc, theSubReport.PartNum, theSubReport.PartDesc, theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRQualifiedQty, "报工DMR让步接收");
                         AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序表处物料入库成功");
@@ -1650,7 +1658,7 @@ namespace Appapi.Models
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                     AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "让步提交|" + sql);
 
-                    if (theSubReport.AtRole == 128)
+                    if (theSubReport.AtRole == 128 && theSubReport.Plant != "RRSite")
                     {
                         string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
                         sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.JobNum, (int)theSubReport.AssemblySeq, int.Parse(arr[0]));
@@ -1667,11 +1675,11 @@ namespace Appapi.Models
                                     where ja.Company = '001'  and jo.JobNum = '" + theSubReport.DMRJobNum + "'  order by OprSeq asc";
                     DataTable nextinfo = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
-                    if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC")
+                    if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC" && theSubReport.Plant != "RRSite")
                     {
                         if (AcceptInfo.BinNum == "")
                         {
-                            return "错误：下工序表处，请填写临时仓库位";
+                            return "错误：下工序表处，请填写表处现场仓库位";
                         }
                         InputToBC_Warehouse(theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"], AcceptInfo.BinNum,
                         (string)nextinfo.Rows[0]["OpCode"], (string)nextinfo.Rows[0]["OpDesc"], theSubReport.PartNum,
@@ -1693,12 +1701,15 @@ namespace Appapi.Models
 
                     AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "返修提交|" + sql);
 
-                    string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
-                    sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"]);
+                    if (theSubReport.Plant != "RRSite")
+                    {
+                        string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                        sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"]);
 
-                    int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                    if (InPlan > 0)
-                        append = "。下工序在计划中，请尽快出货";
+                        int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        if (InPlan > 0)
+                            append = "。下工序在计划中，请尽快出货";
+                    }
                 }
 
                 return "处理成功" + append;
@@ -1784,11 +1795,11 @@ namespace Appapi.Models
                         return "错误：" + res;
                 }
 
-                if (theReport.AtRole == 128 && theReport.NextOpCode.Substring(0, 2) == "BC")
+                if (theReport.AtRole == 128 && theReport.NextOpCode.Substring(0, 2) == "BC" && theReport.Plant != "RRSite")
                 {
                     if (AcceptInfo.BinNum == "")
                     {
-                        return "错误：下工序表处，请填写临时仓库位";
+                        return "错误：下工序表处，请填写表处现场仓库位";
                     }
                     InputToBC_Warehouse(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.NextJobSeq, AcceptInfo.BinNum, theReport.NextOpCode, theReport.NextOpDesc, theReport.PartNum, theReport.PartDesc, theReport.Plant, theReport.Company, (decimal)theReport.QualifiedQty, "报工主流程接收");
                     AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "下工序表处物料入库成功");
@@ -1814,7 +1825,7 @@ namespace Appapi.Models
 
 
                 string append = "";
-                if (theReport.AtRole == 128)
+                if (theReport.AtRole == 128 && theReport.Plant != "RRSite")
                 {
                     string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
                     sql = string.Format(sql2, "001", theReport.Plant, theReport.JobNum, (int)theReport.AssemblySeq, int.Parse(arr[0]));
@@ -2477,7 +2488,7 @@ namespace Appapi.Models
 
         public static void InputToBC_Warehouse(string JobNum, int AssemblySeq, int NextJobSeq, string BinNum, string NextOpCode, string NextOpDesc, string PartNum, string PartDesc, string Plant, string Company, decimal Qty, string comefrom)
         {
-            string sql = @"select ID from BC_Warehouse where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and JobSeq = " + NextJobSeq + " and BinNum = '" + BinNum + "'";
+            string sql = @"select ID from BC_Warehouse where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and JobSeq = " + NextJobSeq + " and BinNum = '" + BinNum.Trim() + "'";
             int ID = Convert.ToInt32(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
             if (ID != 0)
             {
