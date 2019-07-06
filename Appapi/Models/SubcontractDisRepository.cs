@@ -265,7 +265,7 @@ namespace Appapi.Models
 
             string res = CommonRepository.GetJobHeadState(sd.JobNum);
             if (res != "正常")
-                return "0|错误：" + res;
+                return "错误：" + res;
 
             string sql = @"select  SubContract  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + sd.JobSeq + "  and company = '001'";
             bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
@@ -276,7 +276,7 @@ namespace Appapi.Models
 
             string ret = ErpAPI.ReceiptRepository.poDes((int)sd.PoNum, (int)ReceiveOpSeqOfSeriesSUB.Rows[0]["poline"], (int)ReceiveOpSeqOfSeriesSUB.Rows[0]["porelnum"], "001");
             if (ret.Substring(0, 1) == "0")
-                return "错误：下工序去向不明";
+                return "错误：" + ret;
             if (ret.Substring(0, 2) != "S2" && ret.Substring(0, 1) != "P" && ret.Substring(0, 1) != "M")
                 return "错误：该工序不是最后一道委外工序";
 

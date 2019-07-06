@@ -1169,7 +1169,7 @@ namespace Appapi.Models
                     if (ret == "撤销时间费用成功")
                     {
                         ss = "delete from BPMID_LabrSeq where BPMID = " + theReport.ID + "";
-                        Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, ss, null);
                         AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, ret);
                     }
                     else
@@ -1618,6 +1618,18 @@ namespace Appapi.Models
                         ReturnStatus((bool)theSubReport.IsSubProcess, (int)theSubReport.ID, (int)theSubReport.Status, 11, "工序去向已更改，子流程自动回退", 402);
                         return "错误： 工序去向已更改，流程已自动回退至上一节点";
                     }
+                    
+                    string[] arr = NextSetpInfo.Split('~');
+                    if (arr[0] == "仓库")
+                        theSubReport.AtRole = 8;
+                    else if(arr[0] != "仓库" && arr[1].Substring(0,2) == "WX")
+                        theSubReport.AtRole = 16;
+                    else if (arr[0] != "仓库" && arr[1].Substring(0, 2) != "WX")
+                        theSubReport.AtRole = 128;
+
+
+                    theSubReport.NextOpCode = arr[1];
+                    theSubReport.NextOpDesc = arr[2];
 
 
                     //若去向仓库
@@ -1642,7 +1654,7 @@ namespace Appapi.Models
 
 
 
-                    string[] arr = NextSetpInfo.Split('~');
+                    
                     //再回写主表
                     sql = " update bpmsub set " +
                            "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
@@ -1660,12 +1672,12 @@ namespace Appapi.Models
 
                     if (theSubReport.AtRole == 128 && theSubReport.Plant != "RRSite")
                     {
-                        string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                        string sql2 = @"SELECT schedule FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
                         sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.JobNum, (int)theSubReport.AssemblySeq, int.Parse(arr[0]));
 
-                        int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                        if (InPlan > 0)
-                            append = "下工序在计划中，请尽快出货";
+                        object schedule = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        if (schedule != null)
+                            append = "。下工序在计划中，请尽快出货," + schedule;
                     }
                 }
 
@@ -1703,12 +1715,12 @@ namespace Appapi.Models
 
                     if (theSubReport.Plant != "RRSite")
                     {
-                        string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                        string sql2 = @"SELECT schedule FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
                         sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"]);
 
-                        int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                        if (InPlan > 0)
-                            append = "。下工序在计划中，请尽快出货";
+                        object schedule = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                        if (schedule != null)
+                            append = "。下工序在计划中，请尽快出货," + schedule;
                     }
                 }
 
@@ -1787,6 +1799,21 @@ namespace Appapi.Models
 
 
 
+                string[] arr = NextSetpInfo.Split('~');
+                if (arr[0] == "仓库")
+                {
+                    theReport.AtRole = 8;
+                }
+                else if (arr[0] != "仓库" && arr[1].Substring(0, 2) == "WX")
+                    theReport.AtRole = 16;
+                else if (arr[0] != "仓库" && arr[1].Substring(0, 2) != "WX")
+                    theReport.AtRole = 128;
+
+
+                theReport.NextOpCode = arr[1];
+                theReport.NextOpDesc = arr[2];
+
+
                 //若去向仓库
                 if (theReport.AtRole == 8)
                 {
@@ -1806,7 +1833,6 @@ namespace Appapi.Models
                 }
 
                 //再回写主表
-                string[] arr = NextSetpInfo.Split('~');
                 sql = " update bpm set " +
                        "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
                        "NextDate = '" + OpDate + "'," +
@@ -1814,6 +1840,7 @@ namespace Appapi.Models
                        "NextOpCode = '" + arr[1] + "'," +
                         "NextOpDesc = '" + arr[2] + "'," +
                        "Status = 99," +
+                       "atrole =  "+theReport.AtRole+"," +
                        "PreStatus = " + (theReport.Status) + "," +
                        "IsComplete = 1," +
                        "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
@@ -1827,12 +1854,12 @@ namespace Appapi.Models
                 string append = "";
                 if (theReport.AtRole == 128 && theReport.Plant != "RRSite")
                 {
-                    string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                    string sql2 = @"SELECT schedule FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
                     sql = string.Format(sql2, "001", theReport.Plant, theReport.JobNum, (int)theReport.AssemblySeq, int.Parse(arr[0]));
 
-                    int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                    if (InPlan > 0)
-                        append = "。下工序在计划中，请尽快出货";
+                    object schedule = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    if (schedule != null)
+                        append = "。下工序在计划中，请尽快出货," + schedule;
                 }
 
                 return "处理成功" + append;

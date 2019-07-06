@@ -679,12 +679,13 @@ namespace Appapi.Models
                 }
                 if (theSubReport.Plant != "RRSite")
                 {
-                    string sql2 = @"SELECT count(*) FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
+                    string sql2 = @"SELECT schedule FROM BC_Plan where Company = '{0}' and Plant = '{1}' and JobNum= '{2}' and AssemblySeq={3} and JobSeq = {4}";
                     sql = string.Format(sql2, "001", theSubReport.Plant, theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"]);
 
-                    int InPlan = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                    if (InPlan > 0)
-                        append = "。下工序在计划中，请尽快出货";
+
+                    object schedule = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    if (schedule != null)
+                        append = "。下工序在计划中，请尽快出货," + schedule;
                 }
                 type = "返修提交|";
             }
