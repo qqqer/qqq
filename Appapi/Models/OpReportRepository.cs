@@ -81,7 +81,7 @@ namespace Appapi.Models
         }
 
 
-        private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, int dmrid, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility)
+        private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, int dmrid, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility, string DMRUnQualifiedReasonRemark, string ResponsibilityRemark)
         {
             string sql = @"
                    insert into BPMSub select 
@@ -149,15 +149,20 @@ namespace Appapi.Models
                   ,'{9}'
                   ,[DefectNO]
                   ,[CheckRemark]
+,'{10}'
+,'{11}'
+,'{12}'
+,UnQualifiedReasonRemark
+,UnQualifiedReasonDesc
              from bpm where id = " + Id + "";
 
-            sql = string.Format(sql, DMRQualifiedQty, Id, 1, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), dmrid, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, Responsibility);
+            sql = string.Format(sql, DMRQualifiedQty, Id, 1, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), dmrid, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, Responsibility, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason), ResponsibilityRemark);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
 
 
-        private static void InsertRepairRecord(int Id, decimal DMRRepairQty, string DMRJobNum, int DMRID, string TransformUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility)
+        private static void InsertRepairRecord(int Id, decimal DMRRepairQty, string DMRJobNum, int DMRID, string TransformUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility, string DMRUnQualifiedReasonRemark,string ResponsibilityRemark)
         {
             string sql = @"
                    insert into BPMSub   select StartUser,[CreateUser]
@@ -223,15 +228,20 @@ namespace Appapi.Models
                   ,'{10}'
                   ,[DefectNO]
                   ,[CheckRemark]
+,'{11}'
+,'{12}'
+,'{13}'
+,UnQualifiedReasonRemark
+,UnQualifiedReasonDesc
              from bpm where id = " + Id + "";
 
-            sql = string.Format(sql, DMRRepairQty, Id, 1, DMRJobNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, Responsibility);
+            sql = string.Format(sql, DMRRepairQty, Id, 1, DMRJobNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, Responsibility, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason), ResponsibilityRemark);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
 
 
-        private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility)
+        private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark,  string ResponsibilityRemark)
         {
             string sql = @"
                insert into BPMSub   select StartUser, [CreateUser]
@@ -297,9 +307,14 @@ namespace Appapi.Models
               ,'{9}'
               ,[DefectNO]
               ,[CheckRemark]
+,'{10}'
+,'{11}'
+,'{12}'
+,UnQualifiedReasonRemark
+,UnQualifiedReasonDesc
          from bpm where id = " + Id + "";
 
-            sql = string.Format(sql, DMRUnQualifiedQty, Id, 1, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), Responsibility);
+            sql = string.Format(sql, DMRUnQualifiedQty, Id, 1, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), Responsibility, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason), ResponsibilityRemark);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
@@ -1139,6 +1154,8 @@ namespace Appapi.Models
                         "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
                         "QualifiedQty = " + CheckInfo.QualifiedQty + ", " +
                         "UnQualifiedReason = '" + (CheckInfo.UnQualifiedQty > 0 ? CommonRepository.GetValueAsString(CheckInfo.UnQualifiedReason) : "") + "'," +
+                        "UnQualifiedReasonDesc = '" + (CheckInfo.UnQualifiedQty > 0 ? CommonRepository.GetReasonDesc(CheckInfo.UnQualifiedReason) : "") + "', " +
+                        "UnQualifiedReasonRemark = '" + CheckInfo.UnQualifiedReasonRemark + "', " +
                         "Character05 = '" + Character05 + "'," +
                         "CheckCounter = " + (CheckInfo.UnQualifiedQty > 0 ? CheckInfo.UnQualifiedQty : 0) + ", " +
                         "UnQualifiedQty = " + CheckInfo.UnQualifiedQty + ", " +
@@ -1281,7 +1298,7 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量";
 
-                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility);
+                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility,DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark);
 
                 sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRQualifiedQty + ",DMRQualifiedQty = ISNULL(DMRQualifiedQty,0) + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -1298,13 +1315,24 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
 
-                InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility);
+                InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark);
 
 
                 sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRRepairQty + ",DMRRepairQty = ISNULL(DMRRepairQty,0) + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "返修子流程生成|" + theReport.DMRRepairQty + " + " + DMRInfo.DMRRepairQty);
+
+
+                //string XML = OA_XML_Template.Create2162XML(theBatch);
+
+                //OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                //res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
+
+                //if (Convert.ToInt32(res) <= 0)
+                //    return "错误：转发OA失败:" + res;
+
+                //AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "转发OA成功，OA流程id：" + res);
             }
 
             if (DMRInfo.DMRUnQualifiedQty > 0)
@@ -1316,7 +1344,7 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交报废数量";
 
-                InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup, DMRInfo.Responsibility);
+                InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark);
 
                 sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -2365,6 +2393,7 @@ namespace Appapi.Models
         }
 
 
+
         public static DataTable GetReason(string type)
         {
             string sql = "select ReasonCode, Description from erp.Reason where Company = '001' and ReasonType = '" + type + "' ";
@@ -2373,6 +2402,7 @@ namespace Appapi.Models
             return Reasons;
         }
 
+      
 
         public static string ReturnStatus(bool IsSubProcess, int ID, int oristatus, int ReasonID, string remark, int apinum)
         {

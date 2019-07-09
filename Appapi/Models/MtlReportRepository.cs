@@ -25,7 +25,7 @@ namespace Appapi.Models
 
 
 
-        private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, int DMRID, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility)
+        private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, int DMRID, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility, string DMRUnQualifiedReasonRemark,string DMRUnQualifiedReasonDesc, string ResponsibilityRemark)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
@@ -61,7 +61,12 @@ namespace Appapi.Models
                     ,[Responsibility]
                     ,[DMRUnQualifiedReason]
                     ,[DMRWarehouseCode]
-                    ,[DMRBinNum]) values({0})";
+                    ,[DMRBinNum]
+                    ,DMRUnQualifiedReasonRemark
+                    ,DMRUnQualifiedReasonDesc
+                    ,ResponsibilityRemark
+                    ,UnQualifiedReasonRemark
+                    ,UnQualifiedReasonDesc) values({0})";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
             {
                 theReport.CreateUser,
@@ -92,7 +97,12 @@ namespace Appapi.Models
                 Responsibility,
                 DMRUnQualifiedReason,
                 DMRWarehouseCode,
-                DMRBinNum
+                DMRBinNum,
+                DMRUnQualifiedReasonRemark,
+                DMRUnQualifiedReasonDesc,
+                ResponsibilityRemark,
+                theReport.UnQualifiedReasonRemark,
+                theReport.UnQualifiedReasonDesc
             });
             sql = string.Format(sql, valueStr);
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -100,7 +110,7 @@ namespace Appapi.Models
 
 
 
-        private static void InsertRepairRecord(int Id, decimal DMRRepairQty, string DMRJobNum, int DMRID, string TransformUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility)
+        private static void InsertRepairRecord(int Id, decimal DMRRepairQty, string DMRJobNum, int DMRID, string TransformUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility, string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
@@ -137,7 +147,12 @@ namespace Appapi.Models
                     ,[Responsibility]
                     ,[DMRUnQualifiedReason]
                     ,[DMRWarehouseCode]
-                    ,[DMRBinNum]) values({0})";
+                    ,[DMRBinNum]
+                    ,DMRUnQualifiedReasonRemark
+                    ,DMRUnQualifiedReasonDesc
+                    ,ResponsibilityRemark
+                    ,UnQualifiedReasonRemark
+                    ,UnQualifiedReasonDesc) values({0})";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
             {
                 theReport.CreateUser,
@@ -169,7 +184,12 @@ namespace Appapi.Models
                 Responsibility,
                 DMRUnQualifiedReason,
                 DMRWarehouseCode,
-                DMRBinNum              
+                DMRBinNum       ,
+                DMRUnQualifiedReasonRemark,
+                DMRUnQualifiedReasonDesc,
+                ResponsibilityRemark,
+                theReport.UnQualifiedReasonRemark,
+                theReport.UnQualifiedReasonDesc
             });
             sql = string.Format(sql, valueStr);
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -177,7 +197,7 @@ namespace Appapi.Models
 
 
 
-        private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility)
+        private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
@@ -213,7 +233,12 @@ namespace Appapi.Models
                     ,[IsDelete]
                     ,[IsSubProcess]
                     ,[LotNum]
-                    ,[Responsibility]) values({0})";
+                    ,[Responsibility]
+                    ,DMRUnQualifiedReasonRemark
+                    ,DMRUnQualifiedReasonDesc
+                    ,ResponsibilityRemark
+                    ,UnQualifiedReasonRemark
+                    ,UnQualifiedReasonDesc) values({0})";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
             {
                 theReport.CreateUser,
@@ -244,7 +269,12 @@ namespace Appapi.Models
                 0,
                 1,
                 theReport.LotNum,
-                Responsibility
+                Responsibility,
+                DMRUnQualifiedReasonRemark,
+                DMRUnQualifiedReasonDesc,
+                ResponsibilityRemark,
+                theReport.UnQualifiedReasonRemark,
+                theReport.UnQualifiedReasonDesc
             });
             sql = string.Format(sql, valueStr);
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -361,7 +391,9 @@ namespace Appapi.Models
                   ,[IsSubProcess]
                   ,[DMRQualifiedQty]
                   ,[DMRRepairQty]
-                  ,[DMRUnQualifiedQty]) values({0}) ";
+                  ,[DMRUnQualifiedQty]
+                    ,UnQualifiedReasonRemark
+                    ,UnQualifiedReasonDesc) values({0}) ";
             string valueStr = CommonRepository.ConstructInsertValues(new ArrayList
                 {
                     HttpContext.Current.Session["UserId"].ToString(),
@@ -383,7 +415,9 @@ namespace Appapi.Models
                     0,
                     0,
                     0,
-                    0
+                    0,
+                    ReportInfo.UnQualifiedReasonRemark,
+                    CommonRepository.GetReasonDesc(ReportInfo.UnQualifiedReason)
                 });
 
             sql = string.Format(sql, valueStr);
@@ -513,7 +547,7 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量";
 
-                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason,DMRInfo.Responsibility);
+                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason,DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
 
                 sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRQualifiedQty + ",DMRQualifiedQty = ISNULL(DMRQualifiedQty,0) + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -530,7 +564,7 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
 
-                InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility);
+                InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
 
                 sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRRepairQty + ",DMRRepairQty = ISNULL(DMRRepairQty,0) + " + DMRInfo.DMRRepairQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -548,7 +582,7 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交报废数量";
 
-                InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup,DMRInfo.Responsibility);
+                InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup,DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
 
                 sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);

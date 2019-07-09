@@ -363,5 +363,13 @@ namespace Appapi.Models
             return Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
         }
 
+        public static string GetReasonDesc(string ReasonCode)
+        {
+            string sql = "select Description from erp.Reason where Company = '001' and ReasonCode = '" + ReasonCode + "' ";
+            string Reasonsdesc = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return Reasonsdesc;
+        }
+
     }
 }
