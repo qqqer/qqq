@@ -1263,6 +1263,8 @@ namespace Appapi.Models
 
                     else if (theBatch.TranType == "PUR-SUB")
                     {
+                        string BC_BinNum = AcceptInfo.BinNum;
+
                         DataTable dt = GetAllOpSeqOfSeriesSUB(theBatch);
 
                         object PreOpSeq = CommonRepository.GetPreOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[0]["jobseq"]);
@@ -1275,7 +1277,7 @@ namespace Appapi.Models
                         int nextAssemblySeq, nextJobSeq;
                         string NextOpCode, nextOpDesc;
                         res = ErpAPI.CommonRepository.getJobNextOprTypes(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[dt.Rows.Count - 1]["jobseq"], out nextAssemblySeq, out nextJobSeq, out NextOpCode, out nextOpDesc, theBatch.Company);
-                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && AcceptInfo.BinNum == "") //下工序厂内且是表处，入库表处临时仓
+                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && BC_BinNum == "") //下工序厂内且是表处，入库表处临时仓
                         {
                             return "错误：下工序表处，请填写临时仓库位";
                         }
@@ -1491,13 +1493,9 @@ namespace Appapi.Models
 
                         }
 
-                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && AcceptInfo.BinNum != "" && theBatch.Plant != "RRSite") //下工序厂内且是表处，入库表处临时仓
+                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC"  && theBatch.Plant != "RRSite") //下工序厂内且是表处，入库表处临时仓
                         {
-                            if (AcceptInfo.BinNum == "")
-                            {
-                                return "错误：下工序表处，请填写表处现场仓库位";
-                            }
-                            OpReportRepository.InputToBC_Warehouse(theBatch.JobNum, nextAssemblySeq, nextJobSeq, AcceptInfo.BinNum, NextOpCode, nextOpDesc, theBatch.PartNum, theBatch.PartDesc, theBatch.Plant, theBatch.Company, (decimal)AcceptInfo.ArrivedQty, "收料委外接收");
+                            OpReportRepository.InputToBC_Warehouse(theBatch.JobNum, nextAssemblySeq, nextJobSeq, BC_BinNum, NextOpCode, nextOpDesc, theBatch.PartNum, theBatch.PartDesc, theBatch.Plant, theBatch.Company, (decimal)AcceptInfo.ArrivedQty, "收料委外接收");
                             AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "下工序表处入库成功");
                         }
 
