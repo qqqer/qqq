@@ -345,6 +345,17 @@ namespace Appapi.Models
         }
 
 
+        public static DataTable GetOpInfo(string JobNum, int AssemblySeq, int JobSeq)//
+        {
+            string sql = @"select * from erp.JobOper 
+                  where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + "  and  OprSeq < " + JobSeq + "";
+
+            DataTable  dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+            return dt;
+        }
+
+
         public static object GetNextOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
         {
             string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum

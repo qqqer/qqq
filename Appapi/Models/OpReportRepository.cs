@@ -1055,10 +1055,6 @@ namespace Appapi.Models
             return "true";
         }
 
-
-
-
-
         public static string CheckerCommit(OpReport CheckInfo)
         {
             lock (lock_check)
@@ -1324,15 +1320,17 @@ namespace Appapi.Models
                 AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "返修子流程生成|" + theReport.DMRRepairQty + " + " + DMRInfo.DMRRepairQty);
 
 
-                //string XML = OA_XML_Template.Create2162XML(theBatch);
+                string XML = OA_XML_Template.Create2188XML(theReport.JobNum,(int)theReport.AssemblySeq,(int)theReport.JobSeq,theReport.OpCode,theReport.OpDesc,(decimal)DMRInfo.DMRRepairQty,
+                    theReport.Plant,DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate,"制程不良返修",DMRInfo.Responsibility,
+                    theReport.DefectNO,DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason),DMRInfo.ResponsibilityRemark);
 
-                //OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
-                //res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
+                OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
 
-                //if (Convert.ToInt32(res) <= 0)
-                //    return "错误：转发OA失败:" + res;
+                if (Convert.ToInt32(res) <= 0)
+                    return "错误：转发OA失败:" + res;
 
-                //AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "转发OA成功，OA流程id：" + res);
+                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "转发OA成功，OA流程id：" + res);
             }
 
             if (DMRInfo.DMRUnQualifiedQty > 0)

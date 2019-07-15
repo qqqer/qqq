@@ -570,6 +570,20 @@ namespace Appapi.Models
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(DMRInfo.ID, 201, OpDate, "返修子流程生成");
+
+
+                string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
+                    theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返修", DMRInfo.Responsibility,
+                    "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+
+                OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
+
+                if (Convert.ToInt32(res) <= 0)
+                    return "错误：转发OA失败:" + res;
+
+                AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
+
             }
 
             if (DMRInfo.DMRUnQualifiedQty > 0)//报废
@@ -904,8 +918,8 @@ namespace Appapi.Models
 
         private static void AddOpLog(int? MtlReportID, int ApiNum, string OpDate, string OpDetail)
         {
-            string sql = @"insert into MtlReportLog(UserId, Opdate, ApiNum,  OpDetail, MtlReportID) Values('{0}', '{1}', {2}, '{3}', {4}) ";
-            sql = string.Format(sql, HttpContext.Current.Session["UserId"].ToString(), OpDate, ApiNum, OpDetail, MtlReportID == null ? "null" : MtlReportID.ToString());
+            string sql = @"insert into MtlReportLog(UserId, Opdate, ApiNum,  OpDetail, MtlReportID) Values('{0}', {1}, {2}, '{3}', {4}) ";
+            sql = string.Format(sql, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, OpDetail, MtlReportID == null ? "null" : MtlReportID.ToString());
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }//添加操作记录
