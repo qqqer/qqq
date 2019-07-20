@@ -37,10 +37,11 @@ namespace Appapi.Models
         public decimal? TotalDMRUnQualifiedQty { get; set; }
         public bool ExistSubProcess { get; set; }
         public decimal? CheckCounter { get; set; }
-        public string Responsibility { get; set; }
         public int? Type { get; set; }
         public decimal? ReqQty { get; set; }
         public string StockPosition { get; set; }
+        public string ResponsibilityRemark { get; set; }
+
         public int M_ID { get; set; }
 
         public int RelatedID { get; set; }
@@ -67,7 +68,8 @@ namespace Appapi.Models
         public string BinNum { get; set; }
         public string DMRUnQualifiedReasonRemark { get; set; }
         public string DMRUnQualifiedReasonDesc { get; set; }
-        public string ResponsibilityRemark { get; set; }
+        public string S_ResponsibilityRemark { get; set; }
+        public string Responsibility { get; set; }
         public int? S_ID { get; set; }
        
         public string FromUser { get; set; }

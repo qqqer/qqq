@@ -12,18 +12,18 @@ namespace Appapi.Models
 {
     public static class SubcontractDisRepository
     {
-        private static void InsertDiscardRecord(int M_ID, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string ThirdUserGroup, string DMRUnQualifiedReasonRemark)
+        private static void InsertDiscardRecord(int M_ID, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string ThirdUserGroup, string DMRUnQualifiedReasonRemark,string S_ResponsibilityRemark, string Responsibility)
         {
-            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null, '{1}','{2}','','','',0,0,2048,'',0,0,{3},'{4}','','{5}','{6}',3,'','{7}','{8}')";
-            sql = string.Format(sql, M_ID, HttpContext.Current.Session["UserId"].ToString(), ThirdUserGroup, DMRUnQualifiedQty, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason));
+            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null, '{1}','{2}','','','',0,0,2048,'',0,0,{3},'{4}','','{5}','{6}',3,'','{7}','{8}','{9}','{10}')";
+            sql = string.Format(sql, M_ID, HttpContext.Current.Session["UserId"].ToString(), ThirdUserGroup, DMRUnQualifiedQty, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason),S_ResponsibilityRemark,Responsibility);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
 
-        private static void InsertRepairRecord(int M_ID, decimal DMRRepairQty, string DMRJobNum, int DMRID, string ThirdUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string DMRUnQualifiedReasonRemark)
+        private static void InsertRepairRecord(int M_ID, decimal DMRRepairQty, string DMRJobNum, int DMRID, string ThirdUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string DMRUnQualifiedReasonRemark, string S_ResponsibilityRemark, string Responsibility)
         {
-            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null,'{1}','{2}','','','',0,0,2048,'',0,{3},0,'{4}','{5}','{6}','{7}',3,'','{8}','{9}')";
-            sql = string.Format(sql, M_ID, HttpContext.Current.Session["UserId"].ToString(), ThirdUserGroup, DMRRepairQty, DMRUnQualifiedReason, DMRJobNum, DMRWarehouseCode, DMRBinNum, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason));
+            string sql = @"insert into SubcontractDisSub values({0}, getdate(),  null, null,'{1}','{2}','','','',0,0,2048,'',0,{3},0,'{4}','{5}','{6}','{7}',3,'','{8}','{9}','{10}','{11}')";
+            sql = string.Format(sql, M_ID, HttpContext.Current.Session["UserId"].ToString(), ThirdUserGroup, DMRRepairQty, DMRUnQualifiedReason, DMRJobNum, DMRWarehouseCode, DMRBinNum, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason), S_ResponsibilityRemark,  Responsibility);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
@@ -117,18 +117,21 @@ namespace Appapi.Models
             if (res != "正常")
                 return "0|错误：" + res;
 
-            string sql = @"select  SubContract  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + sd.JobSeq + "  and company = '001'";
-            bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
-            if (IsSubContract)
+            string sql = @"select opcode  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + sd.JobSeq + "  and company = '001'";
+            string  opcode  = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+            if (opcode.Substring(0,2) != "WX")
                 return "错误：该工序号不是厂内工序";
 
 
             object NextOpSeq = CommonRepository.GetNextOpSeq(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq); //JobSeq是打包工序
 
-            sql = @"select  SubContract  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + NextOpSeq + "  and company = '001'";
-            IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
-            if (!IsSubContract)
-                return "错误：下工序不是委外工序";
+            if (NextOpSeq != null)
+            {
+                sql = @"select  opcode  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + NextOpSeq + "  and company = '001'";
+                opcode = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+                if (opcode.Substring(0, 2) != "WX")
+                    return "错误：下工序不是委外工序";
+            }
 
 
             sql = @"INSERT INTO [dbo].[SubcontractDisMain]
@@ -159,14 +162,13 @@ namespace Appapi.Models
                                ,[TotalDMRUnQualifiedQty]
                                ,[ExistSubProcess]
                                ,[CheckCounter]
-                               ,[Responsibility]
                                ,[Type]
                                ,M_Remark
                                ,ReqQty
                                ,StockPosition
                                ,ResponsibilityRemark) values({0})";
             string values = "";
-            if (sd.PoNum != 0)
+            if (sd.PoNum != 0) //还没下订单
             {
                 DataTable FirstSubcontractedOprInfo = CommonRepository.GetSpecifiedSubcontractedOprInfo((int)sd.PoNum, sd.JobNum, (int)sd.AssemblySeq, (int)NextOpSeq, "001");
                 SubcontractDis POInfo = GetPOInfo((int)sd.PoNum, (int)FirstSubcontractedOprInfo.Rows[0]["poline"], (int)FirstSubcontractedOprInfo.Rows[0]["porelnum"]);
@@ -200,7 +202,6 @@ namespace Appapi.Models
                         0,
                         0,
                         sd.DisQty,
-                        "",
                         1,
                         CommonRepository.GetValueAsString(sd.M_Remark),
                         POInfo.ReqQty,
@@ -356,7 +357,6 @@ namespace Appapi.Models
                                ,[TotalDMRUnQualifiedQty]
                                ,[ExistSubProcess]
                                ,[CheckCounter]
-                               ,[Responsibility]
                                ,[Type]
                                ,ReqQty
                                ,StockPosition
@@ -390,7 +390,6 @@ namespace Appapi.Models
                         0,
                         0,
                         sd.DisQty,
-                        "",
                         2,
                         POInfo.ReqQty,
                         sd.StockPosition,
@@ -511,10 +510,10 @@ namespace Appapi.Models
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
                 }
 
-                InsertRepairRecord(sd.M_ID, (decimal)sd.DMRRepairQty, sd.DMRJobNum, (int)theSubcontractDis.DMRID, sd.TransferUserGroup, sd.DMRWarehouseCode, sd.DMRBinNum, sd.DMRUnQualifiedReason,sd.DMRUnQualifiedReasonRemark);
+                InsertRepairRecord(sd.M_ID, (decimal)sd.DMRRepairQty, sd.DMRJobNum, (int)theSubcontractDis.DMRID, sd.TransferUserGroup, sd.DMRWarehouseCode, sd.DMRBinNum, sd.DMRUnQualifiedReason,sd.DMRUnQualifiedReasonRemark,sd.ResponsibilityRemark,sd.Responsibility);
 
 
-                sql = " update SubcontractDisMain set ResponsibilityRemark = '"+sd.ResponsibilityRemark+"', Responsibility = '" + sd.Responsibility + "', ExistSubProcess = 1, checkcounter = checkcounter - " + sd.DMRRepairQty + ",TotalDMRRepairQty = ISNULL(TotalDMRRepairQty,0) + " + sd.DMRRepairQty + "  where m_id = " + (sd.M_ID) + "";
+                sql = " update SubcontractDisMain set  ExistSubProcess = 1, checkcounter = checkcounter - " + sd.DMRRepairQty + ",TotalDMRRepairQty = ISNULL(TotalDMRRepairQty,0) + " + sd.DMRRepairQty + "  where m_id = " + (sd.M_ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "返修子流程生成", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
@@ -534,7 +533,7 @@ namespace Appapi.Models
 
                 else if (theSubcontractDis.Type == 2)
                 {
-                    XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, theSubcontractDis.PartNum, theSubcontractDis.PartDesc, (decimal)sd.DMRRepairQty,
+                    XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, theSubcontractDis.OpCode, theSubcontractDis.OpDesc, (decimal)sd.DMRRepairQty,
                        theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货供方不良返修", sd.Responsibility,
                        "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark);
                 }
@@ -559,9 +558,9 @@ namespace Appapi.Models
                     return "错误：" + res + ". 请重新提交报废数量";
                 }
 
-                InsertDiscardRecord(theSubcontractDis.M_ID, (decimal)sd.DMRUnQualifiedQty, sd.DMRUnQualifiedReason, (int)theSubcontractDis.DMRID, sd.DMRWarehouseCode, sd.DMRBinNum, sd.TransferUserGroup, sd.DMRUnQualifiedReasonRemark);
+                InsertDiscardRecord(theSubcontractDis.M_ID, (decimal)sd.DMRUnQualifiedQty, sd.DMRUnQualifiedReason, (int)theSubcontractDis.DMRID, sd.DMRWarehouseCode, sd.DMRBinNum, sd.TransferUserGroup, sd.DMRUnQualifiedReasonRemark, sd.ResponsibilityRemark,sd.Responsibility);
 
-                sql = " update SubcontractDisMain set ResponsibilityRemark = '" + sd.ResponsibilityRemark + "', ExistSubProcess = 1,checkcounter = checkcounter - " + sd.DMRUnQualifiedQty + ", TotalDMRUnQualifiedQty = ISNULL(totalDMRUnQualifiedQty,0) + " + sd.DMRUnQualifiedQty + "  where m_id = " + (sd.M_ID) + "";
+                sql = " update SubcontractDisMain set  ExistSubProcess = 1,checkcounter = checkcounter - " + sd.DMRUnQualifiedQty + ", TotalDMRUnQualifiedQty = ISNULL(totalDMRUnQualifiedQty,0) + " + sd.DMRUnQualifiedQty + "  where m_id = " + (sd.M_ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "报废子流程生成", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
