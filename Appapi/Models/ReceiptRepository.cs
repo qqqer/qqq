@@ -1446,7 +1446,7 @@ namespace Appapi.Models
 
 
                                 //为当前工序下的化学品发料
-                                string issue_res = "";  //若issue_res不为空， 则表明虽通过了之前的发料验证，但实际发料时不够发导致失败。    存在解决该问题的算法O(mlgm + m*n)   m：需要发几次物料A    n：物料A所有库存批次
+                                string issue_res = "";  //若issue_res不为空， 则表明虽通过了之前的发料验证，但实际发料时不够发导致失败。    存在解决该问题的算法O(mlgm + m*n) = O(mn)   m：需要发几次物料A    n：物料A所有库存批次
                                 DataTable mtls = CommonRepository.GetMtlsOfOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], theBatch.Company);
                                 if (mtls != null)
                                 {
