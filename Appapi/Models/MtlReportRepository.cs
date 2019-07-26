@@ -410,7 +410,7 @@ namespace Appapi.Models
                 return "错误：该不良品流程已处理";
 
             string res;
-            if ((res = CommonRepository.GetJobHeadState(theReport.JobNum)) != "正常")
+            if ((res = CommonRepository.GetJobHeadState(theReport.JobNum)) != "正常" && res != "该工单已完成,请联系计划部")
                 return "错误：" + res;
 
             DMRInfo.DMRQualifiedQty = Convert.ToDecimal(DMRInfo.DMRQualifiedQty);
