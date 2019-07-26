@@ -58,7 +58,7 @@ namespace Appapi.Models
             string sql = @"  Select jobseq,PartNum, Description, poline,porelnum ,OpDesc,OpCode, pr.company,pr.ponum from erp.porel pr 
                           left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
                           where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}' order by jobseq  asc";
-            sql = string.Format(sql, theBatch.PoNum, theBatch.JobNum, theBatch.AssemblySeq, theBatch.Company);
+            sql = string.Format(sql, theBatch.PoNum, theBatch.JobNum, theBatch.AssemblySeq, theBatch.Company);//订单级 连续委外组
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             if (dt != null)
@@ -67,6 +67,38 @@ namespace Appapi.Models
                 {
                     if ((int)dt.Rows[i]["jobseq"] == theBatch.JobSeq && ((int)dt.Rows[i]["poline"] != theBatch.PoLine || (int)dt.Rows[i]["porelnum"] != theBatch.PORelNum))
                         dt.Rows.RemoveAt(i);
+                }
+
+                int p = -1; 
+                for (int i = dt.Rows.Count - 1; i >= 0; i--)
+                {
+                    if ((int)dt.Rows[i]["jobseq"] == theBatch.JobSeq)
+                    {
+                        p = i;
+                        break;
+                    }
+                }
+
+
+                for(int i = p; i > 0; i--)
+                {
+                    if((int)CommonRepository.GetPreOpSeq(theBatch.JobNum,(int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"]) != (int)dt.Rows[i-1]["jobseq"])
+                    {
+                        while(i > 0)
+                            dt.Rows.RemoveAt(--i);
+                        break;
+                    }
+                }
+
+                for (int i = p; i < dt.Rows.Count - 1; i++)
+                {
+                    if ((int)CommonRepository.GetNextOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"]) != (int)dt.Rows[i + 1]["jobseq"])
+                    {
+                        int j = dt.Rows.Count - i - 1;
+                        while (j-- > 0)
+                            dt.Rows.RemoveAt(i+1);
+                        break;
+                    }
                 }
             }
 

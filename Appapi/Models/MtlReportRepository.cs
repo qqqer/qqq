@@ -450,6 +450,7 @@ namespace Appapi.Models
             DMRInfo.DMRQualifiedQty = Convert.ToDecimal(DMRInfo.DMRQualifiedQty);
             DMRInfo.DMRRepairQty = Convert.ToDecimal(DMRInfo.DMRRepairQty);
             DMRInfo.DMRUnQualifiedQty = Convert.ToDecimal(DMRInfo.DMRUnQualifiedQty);
+            DMRInfo.DMRJobNum = DMRInfo.DMRJobNum.Trim();
 
             decimal determinedQty = Convert.ToDecimal(theReport.DMRQualifiedQty) + Convert.ToDecimal(theReport.DMRRepairQty) + Convert.ToDecimal(theReport.DMRUnQualifiedQty);
 
@@ -831,7 +832,7 @@ namespace Appapi.Models
         {
             string sql = "";
             DataTable dt = null;
-            string jobnum = "";
+            string jobnum = "", OpCode = "";
             if (!IsSubProcess)//2选3
             {
                 sql = @"select * from MtlReport where Id = " + id + "";
@@ -843,7 +844,7 @@ namespace Appapi.Models
                 int RelatedOperation = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                 sql = @"select OpCode from erp.JobOper where JobNum = '" + theReport.JobNum + "' and  AssemblySeq = " + theReport.AssemblySeq + " and OprSeq = " + RelatedOperation + " ";
-                string OpCode = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                OpCode = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                 sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
                 string TransformUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -890,9 +891,11 @@ namespace Appapi.Models
                 dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
 
-            dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
-            dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
-
+            //if (!OpCode.Contains("WL0101"))
+            {
+                dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
+                dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
+            }
 
             return dt == null || dt.Rows.Count == 0 ? null : dt;
         }

@@ -166,9 +166,10 @@ namespace Appapi.Models
                                ,M_Remark
                                ,ReqQty
                                ,StockPosition
-                               ,ResponsibilityRemark) values({0})";
+                               ,ResponsibilityRemark
+                               ,POReceived) values({0})";
             string values = "";
-            if (sd.PoNum != 0) //还没下订单
+            if (sd.PoNum != 0)
             {
                 DataTable FirstSubcontractedOprInfo = CommonRepository.GetSpecifiedSubcontractedOprInfo((int)sd.PoNum, sd.JobNum, (int)sd.AssemblySeq, (int)NextOpSeq, "001");
                 SubcontractDis POInfo = GetPOInfo((int)sd.PoNum, (int)FirstSubcontractedOprInfo.Rows[0]["poline"], (int)FirstSubcontractedOprInfo.Rows[0]["porelnum"]);
@@ -206,7 +207,8 @@ namespace Appapi.Models
                         CommonRepository.GetValueAsString(sd.M_Remark),
                         POInfo.ReqQty,
                         sd.StockPosition,
-                        sd.ResponsibilityRemark
+                        sd.ResponsibilityRemark,
+                        0
                     });
             }
             else
@@ -249,7 +251,9 @@ namespace Appapi.Models
                         1,
                         CommonRepository.GetValueAsString(sd.M_Remark),
                         0,
-                        sd.StockPosition
+                        sd.StockPosition,
+                        sd.ResponsibilityRemark,
+                        0
                     });
             }
             sql = string.Format(sql, values);
@@ -294,39 +298,7 @@ namespace Appapi.Models
                 return "错误：" + ret;
 
 
-            string PackSlip = POInfo.SupplierNo + "D" + sd.PoNum + ((new Random().Next() % 100000) + 100000);
-            string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            string rcvdtlStr = "[";
-            for (int i = ReceiveOpSeqOfSeriesSUB.Rows.Count - 1; i < ReceiveOpSeqOfSeriesSUB.Rows.Count; i++)
-            {
-                rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
-                    new String[] {
-                                CommonRepository.GetValueAsString(sd.PoNum),
-                                CommonRepository.GetValueAsString((int)ReceiveOpSeqOfSeriesSUB.Rows[i]["poline"]),
-                                CommonRepository.GetValueAsString((int)ReceiveOpSeqOfSeriesSUB.Rows[i]["porelnum"]),
-                                CommonRepository.GetValueAsString(ReceiveOpSeqOfSeriesSUB.Rows[i]["PartNum"].ToString()),
-                                CommonRepository.GetValueAsString(sd.DisQty),
-                                CommonRepository.GetValueAsString(ReceiveOpSeqOfSeriesSUB.Rows[i]["IUM"].ToString()),
-                                CommonRepository.GetValueAsString("待检区"),
-                                CommonRepository.GetValueAsString("ins"),
-                                CommonRepository.GetValueAsString(sd.JobNum),
-                                CommonRepository.GetValueAsString(sd.JobNum),
-                                CommonRepository.GetValueAsString(sd.AssemblySeq),
-                                CommonRepository.GetValueAsString((int)ReceiveOpSeqOfSeriesSUB.Rows[i]["jobseq"]),
-                                CommonRepository.GetValueAsString(ReceiveOpSeqOfSeriesSUB.Rows[i]["CommentText"].ToString().Replace('\'','"')),
-                                CommonRepository.GetValueAsString("PUR-SUB"),
-                                CommonRepository.GetValueAsString("")}) + (i == ReceiveOpSeqOfSeriesSUB.Rows.Count - 1 ? "]" : ",");
-            }
-
-            res = "";
-            if ((res = ErpAPI.ReceiptRepository.porcv(PackSlip, recdate, POInfo.SupplierNo, rcvdtlStr, "", POInfo.Company, true)) != "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
-            {
-                AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 101, res, 0, 0, (int)sd.PoNum, 2);
-                return res;
-            }
-            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 101, "porcv收货执行成功", 0, 0, (int)sd.PoNum, 2);
-
-
+            string PackSlip = POInfo.SupplierNo + "D" + sd.PoNum + ((new Random().Next() % 100000) + 100000);    
             for (int i = ReceiveOpSeqOfSeriesSUB.Rows.Count - 1; i < ReceiveOpSeqOfSeriesSUB.Rows.Count; i++)
             {
                 sql = @"INSERT INTO [dbo].[SubcontractDisMain]
@@ -360,7 +332,8 @@ namespace Appapi.Models
                                ,[Type]
                                ,ReqQty
                                ,StockPosition
-                               ,ResponsibilityRemark) values({0})";
+                               ,ResponsibilityRemark
+                               ,POReceived) values({0})";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
                     {
                         POInfo.SupplierNo,
@@ -393,7 +366,8 @@ namespace Appapi.Models
                         2,
                         POInfo.ReqQty,
                         sd.StockPosition,
-                        sd.ResponsibilityRemark
+                        sd.ResponsibilityRemark,
+                        0,
                     });
                 sql = string.Format(sql, values);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -423,6 +397,7 @@ namespace Appapi.Models
             sd.DMRQualifiedQty = 0;
             sd.DMRRepairQty = Convert.ToDecimal(sd.DMRRepairQty);
             sd.DMRUnQualifiedQty = Convert.ToDecimal(sd.DMRUnQualifiedQty);
+            sd.DMRJobNum = sd.DMRJobNum.Trim();
 
 
             decimal determinedQty = Convert.ToDecimal(theSubcontractDis.TotalDMRQualifiedQty) + Convert.ToDecimal(theSubcontractDis.TotalDMRRepairQty) + Convert.ToDecimal(theSubcontractDis.TotalDMRUnQualifiedQty);
@@ -463,6 +438,43 @@ namespace Appapi.Models
 
 
             string res, type = (int)theSubcontractDis.Type == 1 ? "外协不良1" : "外协不良2";
+
+
+            if(type == "外协不良2" && !theSubcontractDis.POReceived)
+            {
+                string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                string rcvdtlStr = "[";
+                rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
+                    new String[] {
+                                CommonRepository.GetValueAsString(sd.PoNum),
+                                CommonRepository.GetValueAsString(theSubcontractDis.PoLine),
+                                CommonRepository.GetValueAsString(theSubcontractDis.PORelNum),
+                                CommonRepository.GetValueAsString(theSubcontractDis.PartNum),
+                                CommonRepository.GetValueAsString(sd.DisQty),
+                                CommonRepository.GetValueAsString(theSubcontractDis.IUM),
+                                CommonRepository.GetValueAsString("待检区"),
+                                CommonRepository.GetValueAsString("ins"),
+                                CommonRepository.GetValueAsString(sd.JobNum),
+                                CommonRepository.GetValueAsString(sd.JobNum),
+                                CommonRepository.GetValueAsString(sd.AssemblySeq),
+                                CommonRepository.GetValueAsString(theSubcontractDis.JobSeq),
+                                CommonRepository.GetValueAsString(theSubcontractDis.CommentText.Replace('\'','"')),
+                                CommonRepository.GetValueAsString("PUR-SUB"),
+                                CommonRepository.GetValueAsString("")}
+                    ) + "]";
+                
+                if ((res = ErpAPI.ReceiptRepository.porcv(theSubcontractDis.PackSlip, recdate,theSubcontractDis.SupplierNo, rcvdtlStr, "", theSubcontractDis.Company, true)) != "1|处理成功.")//若回写erp成功， 则更新对应的Receipt记录
+                {
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201,  res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
+                    return res;
+                }
+                sql = @"update SubcontractDisMain set POReceived = 1 where m_id = " + sd.M_ID + "";
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "porcv收货执行成功", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, 2);
+            }
+
+
+
             if (theSubcontractDis.DMRID == 0)
             {
                 int DMRID = 0, TranID = 0;
@@ -647,15 +659,21 @@ namespace Appapi.Models
 
                 if (((string)nextJobInfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC" && theSubcontractDis.Plant != "RRSite")
                 {
-                    if (sd.BinNum == "")
-                    {
-                        return "错误：下工序表处，请填写表处现场仓库位";
-                    }
-                    OpReportRepository.InputToBC_Warehouse(theSubcontractDis.DMRJobNum, 0, (int)nextJobInfo.Rows[0]["OprSeq"], sd.BinNum,
-                    (string)nextJobInfo.Rows[0]["OpCode"], (string)nextJobInfo.Rows[0]["OpDesc"], theSubcontractDis.PartNum,
-                    (string)nextJobInfo.Rows[0]["Description"], theSubcontractDis.Plant, theSubcontractDis.Company, (decimal)theSubcontractDis.DMRRepairQty, "外协不良返修接收");
+                    sql = @"select count(*) from  SubcontractDisLog  where ApiNum = 401 and OpDetail = '下工序表处物料入库成功' and  S_ID = " + (int)theSubcontractDis.S_ID + " ";
+                    bool IsStocked = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
 
-                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 401, "下工序表处物料入库成功", 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
+                    if (!IsStocked)
+                    {
+                        if (sd.BinNum == "")
+                        {
+                            return "错误：下工序表处，请填写表处现场仓库位";
+                        }
+                        OpReportRepository.InputToBC_Warehouse(theSubcontractDis.DMRJobNum, 0, (int)nextJobInfo.Rows[0]["OprSeq"], sd.BinNum,
+                        (string)nextJobInfo.Rows[0]["OpCode"], (string)nextJobInfo.Rows[0]["OpDesc"], theSubcontractDis.PartNum,
+                        (string)nextJobInfo.Rows[0]["Description"], theSubcontractDis.Plant, theSubcontractDis.Company, (decimal)theSubcontractDis.DMRRepairQty, "外协不良返修接收");
+
+                        AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 401, "下工序表处物料入库成功", 0, (int)theSubcontractDis.S_ID, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
+                    }
                 }
 
 
@@ -799,7 +817,7 @@ namespace Appapi.Models
                 dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
 
-            if (nextRole == 128 && !nextOpCode.Contains("JJ"))
+            if (nextRole == 128 && !nextOpCode.Contains("JJ") && !nextOpCode.Contains("WL0101"))
             {
                 dt = CommonRepository.NPI_Handler(theSubcontractDis.DMRJobNum.ToUpper(), dt);
                 dt = CommonRepository.WD_Handler(theSubcontractDis.DMRJobNum.ToUpper(), dt);

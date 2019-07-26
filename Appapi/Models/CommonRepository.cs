@@ -334,6 +334,16 @@ namespace Appapi.Models
         }
 
 
+        public static DataTable GetOprsOfAssemblySeq(string JobNum, int AssemblySeq) //取出阶层下的所有工序
+        {
+            string sql = @" Select jobseq ,OpDesc,OpCode
+                            from  erp.JobOper jo
+                            where  jo.jobnum = '{0}'  and assemblyseq={1} and company = '001' order by jobseq asc";
+            sql = string.Format(sql, JobNum, AssemblySeq);
+            DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+            return dt;
+        }
+
         public static object GetPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
         {
             string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum

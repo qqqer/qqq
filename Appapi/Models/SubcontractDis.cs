@@ -41,6 +41,7 @@ namespace Appapi.Models
         public decimal? ReqQty { get; set; }
         public string StockPosition { get; set; }
         public string ResponsibilityRemark { get; set; }
+        public bool POReceived { get; set; }
 
         public int M_ID { get; set; }
 

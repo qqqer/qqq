@@ -162,7 +162,7 @@ namespace Appapi.Models
         }
 
 
-        private static void InsertRepairRecord(int Id, decimal DMRRepairQty, string DMRJobNum, int DMRID, string TransformUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility, string DMRUnQualifiedReasonRemark,string ResponsibilityRemark)
+        private static void InsertRepairRecord(int Id, decimal DMRRepairQty, string DMRJobNum, int DMRID, string TransformUserGroup, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility, string DMRUnQualifiedReasonRemark, string ResponsibilityRemark)
         {
             string sql = @"
                    insert into BPMSub   select StartUser,[CreateUser]
@@ -241,7 +241,7 @@ namespace Appapi.Models
         }
 
 
-        private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark,  string ResponsibilityRemark)
+        private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string ResponsibilityRemark)
         {
             string sql = @"
                insert into BPMSub   select StartUser, [CreateUser]
@@ -571,8 +571,8 @@ namespace Appapi.Models
             if (sumoutqty is DBNull || sumoutqty == null)
                 return "";
 
-            if(SumOfReportedQty + process.Qty > (decimal)sumoutqty)
-                return "错误：表处临时仓发料数不足，还需补发："+ (SumOfReportedQty + process.Qty - (decimal)sumoutqty);
+            if (SumOfReportedQty + process.Qty > (decimal)sumoutqty)
+                return "错误：表处现编仓发料数不足，还需补发：" + (SumOfReportedQty + process.Qty - (decimal)sumoutqty);
 
             return "";
         }
@@ -1220,6 +1220,7 @@ namespace Appapi.Models
             DMRInfo.DMRQualifiedQty = Convert.ToDecimal(DMRInfo.DMRQualifiedQty);
             DMRInfo.DMRRepairQty = Convert.ToDecimal(DMRInfo.DMRRepairQty);
             DMRInfo.DMRUnQualifiedQty = Convert.ToDecimal(DMRInfo.DMRUnQualifiedQty);
+            DMRInfo.DMRJobNum = DMRInfo.DMRJobNum.Trim();
 
 
             decimal determinedQty = Convert.ToDecimal(theReport.DMRQualifiedQty) + Convert.ToDecimal(theReport.DMRRepairQty) + Convert.ToDecimal(theReport.DMRUnQualifiedQty);
@@ -1294,7 +1295,7 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量";
 
-                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility,DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark);
+                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark);
 
                 sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRQualifiedQty + ",DMRQualifiedQty = ISNULL(DMRQualifiedQty,0) + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -1320,9 +1321,9 @@ namespace Appapi.Models
                 AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "返修子流程生成|" + theReport.DMRRepairQty + " + " + DMRInfo.DMRRepairQty);
 
 
-                string XML = OA_XML_Template.Create2188XML(theReport.JobNum,(int)theReport.AssemblySeq,(int)theReport.JobSeq,theReport.OpCode,theReport.OpDesc,(decimal)DMRInfo.DMRRepairQty,
-                    theReport.Plant,DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate,"制程不良返修",DMRInfo.Responsibility,
-                    theReport.DefectNO,DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason),DMRInfo.ResponsibilityRemark);
+                string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRRepairQty,
+                    theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良返修", DMRInfo.Responsibility,
+                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
                 res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
@@ -1580,13 +1581,13 @@ namespace Appapi.Models
                 accept_IDs_sub.Add((int)AcceptInfo.ID);
             }
 
+
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+            string sql = @"select * from bpmsub where Id = " + AcceptInfo.ID + "";
+            OpReport theSubReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
             try
             {
-                string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
-                string sql = @"select * from bpmsub where Id = " + AcceptInfo.ID + "";
-                OpReport theSubReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
-
                 if (theSubReport.IsComplete == true)
                     return "错误：该批次的流程已结束";
 
@@ -1644,11 +1645,11 @@ namespace Appapi.Models
                         ReturnStatus((bool)theSubReport.IsSubProcess, (int)theSubReport.ID, (int)theSubReport.Status, 11, "工序去向已更改，子流程自动回退", 402);
                         return "错误： 工序去向已更改，流程已自动回退至上一节点";
                     }
-                    
+
                     string[] arr = NextSetpInfo.Split('~');
                     if (arr[0] == "仓库")
                         theSubReport.AtRole = 8;
-                    else if(arr[0] != "仓库" && arr[1].Substring(0,2) == "WX")
+                    else if (arr[0] != "仓库" && arr[1].Substring(0, 2) == "WX")
                         theSubReport.AtRole = 16;
                     else if (arr[0] != "仓库" && arr[1].Substring(0, 2) != "WX")
                         theSubReport.AtRole = 128;
@@ -1661,26 +1662,43 @@ namespace Appapi.Models
                     //若去向仓库
                     if (theSubReport.AtRole == 8)
                     {
-                        res = ErpAPI.CommonRepository.D0506_01(null, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (decimal)theSubReport.DMRQualifiedQty, theSubReport.JobNum, theSubReport.NextOpCode, AcceptInfo.BinNum, theSubReport.Company, theSubReport.Plant);
-                        if (res != "1|处理成功")
-                            return "错误：" + res;
+                        sql = @"select count(*) from  bpmlog  where ApiNum = 402 and OpDetail = '最后工序入库成功' and  BPMID = " + theSubReport.ID + " ";
+                        bool IsStocked = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
+                        if (!IsStocked)
+                        {
+                            res = ErpAPI.CommonRepository.D0506_01(null, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (decimal)theSubReport.DMRQualifiedQty, theSubReport.JobNum, theSubReport.NextOpCode, AcceptInfo.BinNum, theSubReport.Company, theSubReport.Plant);
+                            if (res != "1|处理成功")
+                                return "错误：" + res;
+
+                            sql = "update bpmsub set ErpCounter = 5 where id = " + (theSubReport.ID) + "";
+                            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                            AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "最后工序入库成功");
+                        }
                     }
 
 
-                    
+
                     if (theSubReport.AtRole == 128 && theSubReport.NextOpCode.Substring(0, 2) == "BC" && theSubReport.Plant != "RRSite")
                     {
-                        if (AcceptInfo.BinNum == "")
+                        sql = @"select count(*) from  bpmlog  where ApiNum = 402 and OpDetail = '下工序表处物料入库成功' and  BPMID = " + theSubReport.ID + " ";
+                        bool IsStocked = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
+                        if (!IsStocked)
                         {
-                            return "错误：下工序表处，请填写表处现场仓库位";
+                            if (AcceptInfo.BinNum == "")
+                            {
+                                return "错误：下工序表处，请填写表处现场仓库位";
+                            }
+                            InputToBC_Warehouse(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.NextJobSeq, AcceptInfo.BinNum, theSubReport.NextOpCode, theSubReport.NextOpDesc, theSubReport.PartNum, theSubReport.PartDesc, theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRQualifiedQty, "报工DMR让步接收");
+                            AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序表处物料入库成功");
                         }
-                        InputToBC_Warehouse(theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.NextJobSeq, AcceptInfo.BinNum, theSubReport.NextOpCode, theSubReport.NextOpDesc, theSubReport.PartNum, theSubReport.PartDesc, theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRQualifiedQty, "报工DMR让步接收");
-                        AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序表处物料入库成功");
                     }
 
 
 
-                    
+
                     //再回写主表
                     sql = " update bpmsub set " +
                            "NextUser = '" + HttpContext.Current.Session["UserId"].ToString() + "', " +
@@ -1754,6 +1772,8 @@ namespace Appapi.Models
             }
             catch (Exception ex)
             {
+                AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, ex.Message);
+
                 return "错误：" + ex.Message;
             }
             finally
@@ -1772,14 +1792,14 @@ namespace Appapi.Models
                 accept_IDs_main.Add((int)AcceptInfo.ID);
             }
 
+
+            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+
+            string sql = @"select * from BPM where Id = " + AcceptInfo.ID + "";
+
+            OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
             try
             {
-                string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
-                string sql = @"select * from BPM where Id = " + AcceptInfo.ID + "";
-
-                OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
-
                 if (theReport.IsDelete == true)
                     return "错误：该批次的流程已删除";
 
@@ -1843,19 +1863,33 @@ namespace Appapi.Models
                 //若去向仓库
                 if (theReport.AtRole == 8)
                 {
-                    res = ErpAPI.CommonRepository.D0506_01(null, theReport.JobNum, (int)theReport.AssemblySeq, (decimal)theReport.QualifiedQty, theReport.JobNum, theReport.NextOpCode, AcceptInfo.BinNum, theReport.Company, theReport.Plant);
-                    if (res != "1|处理成功")
-                        return "错误：" + res;
+                    sql = @"select count(*) from  bpmlog  where ApiNum = 401 and OpDetail = '最后工序入库成功' and  BPMID = " + theReport.ID + " ";
+                    bool IsStocked = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
+                    if (!IsStocked)
+                    {
+                        res = ErpAPI.CommonRepository.D0506_01(null, theReport.JobNum, (int)theReport.AssemblySeq, (decimal)theReport.QualifiedQty, theReport.JobNum, theReport.NextOpCode, AcceptInfo.BinNum, theReport.Company, theReport.Plant);
+                        if (res != "1|处理成功")
+                            return "错误：" + res;
+
+                        AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "最后工序入库成功");
+                    }
                 }
 
                 if (theReport.AtRole == 128 && theReport.NextOpCode.Substring(0, 2) == "BC" && theReport.Plant != "RRSite")
                 {
-                    if (AcceptInfo.BinNum == "")
+                    sql = @"select count(*) from  bpmlog  where ApiNum = 401 and OpDetail = '下工序表处物料入库成功' and  BPMID = " + theReport.ID + " ";
+                    bool IsStocked = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
+                    if (!IsStocked)
                     {
-                        return "错误：下工序表处，请填写表处现场仓库位";
+                        if (AcceptInfo.BinNum == "")
+                        {
+                            return "错误：下工序表处，请填写表处现场仓库位";
+                        }
+                        InputToBC_Warehouse(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.NextJobSeq, AcceptInfo.BinNum, theReport.NextOpCode, theReport.NextOpDesc, theReport.PartNum, theReport.PartDesc, theReport.Plant, theReport.Company, (decimal)theReport.QualifiedQty, "报工主流程接收");
+                        AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "下工序表处物料入库成功");
                     }
-                    InputToBC_Warehouse(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.NextJobSeq, AcceptInfo.BinNum, theReport.NextOpCode, theReport.NextOpDesc, theReport.PartNum, theReport.PartDesc, theReport.Plant, theReport.Company, (decimal)theReport.QualifiedQty, "报工主流程接收");
-                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, "下工序表处物料入库成功");
                 }
 
                 //再回写主表
@@ -1866,7 +1900,7 @@ namespace Appapi.Models
                        "NextOpCode = '" + arr[1] + "'," +
                         "NextOpDesc = '" + arr[2] + "'," +
                        "Status = 99," +
-                       "atrole =  "+theReport.AtRole+"," +
+                       "atrole =  " + theReport.AtRole + "," +
                        "PreStatus = " + (theReport.Status) + "," +
                        "IsComplete = 1," +
                        "BinNum = '" + CommonRepository.GetValueAsString(AcceptInfo.BinNum) + "' " +
@@ -1892,6 +1926,7 @@ namespace Appapi.Models
             }
             catch (Exception ex)
             {
+                AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 401, OpDate, ex.Message);
                 return "错误：" + ex.Message;
             }
             finally
@@ -2154,7 +2189,7 @@ namespace Appapi.Models
                 dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
 
             }
-            else if ((nextRole == 256 || nextRole == 512) && !OpCode.Contains("JJ"))
+            else if ((nextRole == 256 || nextRole == 512) && !OpCode.Contains("JJ") && !OpCode.Contains("WL0101"))
             {
                 dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
                 dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
@@ -2250,7 +2285,7 @@ namespace Appapi.Models
             }
 
 
-            if (nextRole == 128 && !nextOpCode.Contains("JJ"))
+            if (nextRole == 128 && !nextOpCode.Contains("JJ") && !nextOpCode.Contains("WL0101"))
             {
                 dt = CommonRepository.NPI_Handler(theSubReport.JobNum.ToUpper(), dt);
                 dt = CommonRepository.WD_Handler(theSubReport.JobNum.ToUpper(), dt);
@@ -2275,7 +2310,7 @@ namespace Appapi.Models
             dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
 
 
-            if (!OpCode.Contains("JJ"))
+            if (!OpCode.Contains("JJ") && !OpCode.Contains("WL0101"))
             {
                 dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
                 dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
@@ -2400,7 +2435,7 @@ namespace Appapi.Models
             return Reasons;
         }
 
-      
+
 
         public static string ReturnStatus(bool IsSubProcess, int ID, int oristatus, int ReasonID, string remark, int apinum)
         {
@@ -2588,7 +2623,6 @@ namespace Appapi.Models
 
             }
         }
-
 
 
         public static DataTable GetBC_WarehouseInfo(OpReport condition)
