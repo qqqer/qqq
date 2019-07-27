@@ -2128,7 +2128,7 @@ namespace Appapi.Models
                 dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
 
             }
-            else if ((nextRole == 256 || nextRole == 512) && !OpCode.Contains("JJ"))
+            else if ((nextRole == 256 || nextRole == 512) && !OpCode.Contains("JJ") && !OpCode.Contains("WL0101"))
             {
                 dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
                 dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);
@@ -2224,7 +2224,7 @@ namespace Appapi.Models
             }
 
 
-            if (nextRole == 128 && !nextOpCode.Contains("JJ"))
+            if (nextRole == 128 && !nextOpCode.Contains("JJ") && !nextOpCode.Contains("WL0101"))
             {
                 dt = CommonRepository.NPI_Handler(theSubReport.JobNum.ToUpper(), dt);
                 dt = CommonRepository.WD_Handler(theSubReport.JobNum.ToUpper(), dt);
@@ -2249,7 +2249,7 @@ namespace Appapi.Models
             dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
 
 
-            if (!OpCode.Contains("JJ"))
+            if (!OpCode.Contains("JJ") && !OpCode.Contains("WL0101"))
             {
                 dt = CommonRepository.NPI_Handler(jobnum.ToUpper(), dt);
                 dt = CommonRepository.WD_Handler(jobnum.ToUpper(), dt);

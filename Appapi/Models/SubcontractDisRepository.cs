@@ -766,7 +766,7 @@ namespace Appapi.Models
                 dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
 
-            if (nextRole == 128 && !nextOpCode.Contains("JJ"))
+            if (nextRole == 128 && !nextOpCode.Contains("JJ") && !nextOpCode.Contains("WL0101"))
             {
                 dt = CommonRepository.NPI_Handler(theSubcontractDis.DMRJobNum.ToUpper(), dt);
                 dt = CommonRepository.WD_Handler(theSubcontractDis.DMRJobNum.ToUpper(), dt);
