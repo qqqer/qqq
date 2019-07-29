@@ -446,17 +446,17 @@ namespace Appapi.Models
                 string rcvdtlStr = "[";
                 rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
                     new String[] {
-                                CommonRepository.GetValueAsString(sd.PoNum),
+                                CommonRepository.GetValueAsString(theSubcontractDis.PoNum),
                                 CommonRepository.GetValueAsString(theSubcontractDis.PoLine),
                                 CommonRepository.GetValueAsString(theSubcontractDis.PORelNum),
                                 CommonRepository.GetValueAsString(theSubcontractDis.PartNum),
-                                CommonRepository.GetValueAsString(sd.DisQty),
+                                CommonRepository.GetValueAsString(theSubcontractDis.DisQty),
                                 CommonRepository.GetValueAsString(theSubcontractDis.IUM),
                                 CommonRepository.GetValueAsString("待检区"),
                                 CommonRepository.GetValueAsString("ins"),
-                                CommonRepository.GetValueAsString(sd.JobNum),
-                                CommonRepository.GetValueAsString(sd.JobNum),
-                                CommonRepository.GetValueAsString(sd.AssemblySeq),
+                                CommonRepository.GetValueAsString(theSubcontractDis.JobNum),
+                                CommonRepository.GetValueAsString(theSubcontractDis.JobNum),
+                                CommonRepository.GetValueAsString(theSubcontractDis.AssemblySeq),
                                 CommonRepository.GetValueAsString(theSubcontractDis.JobSeq),
                                 CommonRepository.GetValueAsString(theSubcontractDis.CommentText.Replace('\'','"')),
                                 CommonRepository.GetValueAsString("PUR-SUB"),

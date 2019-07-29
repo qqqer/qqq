@@ -529,7 +529,7 @@ namespace Appapi.Models
 
                 if ((ret = GetExceedError(process)).Contains("错误")) return ret;
 
-                //if((ret = GetBC_WarehouseIssueError(process)).Contains("错误")) return ret;
+                if((ret = GetBC_WarehouseIssueError(process)).Contains("错误")) return ret;
 
                 if ((ret = ChemicalIssue(process)).Contains("错误")) return ret;
 
@@ -679,7 +679,7 @@ namespace Appapi.Models
 
             if ((ret = GetDuplicateError(process)).Contains("错误")) return ret;
 
-            //if ((ret = GetBC_WarehouseIssueError(process)).Contains("错误")) return ret;
+            if ((ret = GetBC_WarehouseIssueError(process)).Contains("错误")) return ret;
 
             if ((ret = ChemicalIssue(process)).Contains("错误")) return ret;
 
@@ -1199,7 +1199,6 @@ namespace Appapi.Models
             }
         }
 
-
         public static string DMRCommit(OpReport DMRInfo) //apinum 601
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
@@ -1353,7 +1352,6 @@ namespace Appapi.Models
 
             return "处理成功";
         }
-
 
         private static string TransferCommitOfSub(OpReport TransmitInfo)//apinum 302
         {
