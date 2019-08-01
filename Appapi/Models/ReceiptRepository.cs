@@ -90,7 +90,7 @@ namespace Appapi.Models
                     }
                 }
 
-                for (int i = p; i < dt.Rows.Count - 1; i++)
+                for (int i = 0; i < dt.Rows.Count - 1; i++)
                 {
                     if ((int)CommonRepository.GetNextOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"]) != (int)dt.Rows[i + 1]["jobseq"])
                     {
@@ -1007,6 +1007,9 @@ namespace Appapi.Models
             else if (theBatch.IsComplete == true)
                 return "错误：该批次的流程已结束";
 
+            else if (Convert.ToDecimal(IQCInfo.OurFailedQty) >0 && IQCInfo.IQCRemark == "")
+                return "错误：因存在我方不良数，必须填写IQC备注";
+
             else if (theBatch.Status != 2)
                 return "错误：流程未在当前节点上，在 " + theBatch.Status.ToString() + "节点";
 
@@ -1309,7 +1312,7 @@ namespace Appapi.Models
                         int nextAssemblySeq, nextJobSeq;
                         string NextOpCode, nextOpDesc;
                         res = ErpAPI.CommonRepository.getJobNextOprTypes(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[dt.Rows.Count - 1]["jobseq"], out nextAssemblySeq, out nextJobSeq, out NextOpCode, out nextOpDesc, theBatch.Company);
-                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && BC_BinNum == "") //下工序厂内且是表处，入库表处临时仓
+                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && BC_BinNum.Trim() == "") //下工序厂内且是表处，入库表处临时仓
                         {
                             return "错误：下工序表处，请填写临时仓库位";
                         }
@@ -1537,14 +1540,14 @@ namespace Appapi.Models
                                         where  SubContract = 0  and jo.JobNum = '" + theBatch.JobNum + "' and jo.AssemblySeq = " + theBatch.AssemblySeq + "  and  jo.OprSeq < " + theBatch.JobSeq + " and jh.Company = '001' order by jo.OprSeq desc";
                             PreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-                            res = SubcontractDisRepository.ApplySubcontractDisQty(new SubcontractDis { PoNum = theBatch.PoNum, JobNum = theBatch.JobNum, AssemblySeq = theBatch.AssemblySeq, JobSeq = (int)PreOpSeq, DisQty = theBatch.OurFailedQty, Type = 1, M_Remark = "收料最后节点自动发起" });
+                            res = SubcontractDisRepository.ApplySubcontractDisQty(new SubcontractDis { PoNum = theBatch.PoNum, JobNum = theBatch.JobNum, AssemblySeq = theBatch.AssemblySeq, JobSeq = (int)PreOpSeq, UnQualifiedReason = theBatch.IQCRemark, DisQty = theBatch.OurFailedQty, Type = 1, M_Remark = "收料最后节点自动发起",FirstUserID = theBatch.ThirdUserID });
 
                             if (res != "处理成功")
                             {
-                                AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起申请失败：" + res);
-                                return "错误：" + res;
+                                AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起失败：" + res);
+                                return res + ", 外协不良品自动发起失败";
                             }
-                            AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起申请成功");
+                            AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起成功");
 
                         }
 

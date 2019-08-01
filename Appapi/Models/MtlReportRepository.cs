@@ -350,6 +350,9 @@ namespace Appapi.Models
             if (0 >= Convert.ToDecimal(ReportInfo.UnQualifiedQty))
                 return "错误：数量需大于0";
 
+            if (ReportInfo.UnQualifiedReasonRemark == "")
+                return "错误：必须填写不良原因备注";
+
             if (ReportInfo.PartNum.Substring(0, 1).Trim().ToLower() == "c")
                 return "错误：化学品暂不能上报";
 
@@ -572,13 +575,15 @@ namespace Appapi.Models
 
                 AddOpLog(DMRInfo.ID, 201, OpDate, "返修子流程生成");
 
+                sql = @"select PartNum , Description from erp.JobAsmbl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " ";
+                DataTable dt3 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返修", DMRInfo.Responsibility,
-                    "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+                    "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark,dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString());
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
-                res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
+                res = client.doCreateWorkflowRequest(XML, 1012);
 
                 if (Convert.ToInt32(res) <= 0)
                     return "错误：转发OA失败:" + res;
@@ -716,7 +721,7 @@ namespace Appapi.Models
 
                 if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC" && theSubReport.Plant != "RRSite")
                 {
-                    if (AcceptInfo.BinNum == "")
+                    if (AcceptInfo.BinNum.Trim() == "")
                     {
                         return "错误：下工序表处，请填写表处现场仓库位";
                     }

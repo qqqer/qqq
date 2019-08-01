@@ -67,11 +67,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="kk\WebService1 - 复制.asmx" />
     <Content Include="Web.config" />
     <Content Include="WebService1.asmx" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Func.cs" />
+    <Compile Include="kk\WebService1 - 复制.asmx.cs">
+      <DependentUpon>WebService1 - 复制.asmx</DependentUpon>
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="XmlHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WebService1.asmx.cs">
       <DependentUpon>WebService1.asmx</DependentUpon>
@@ -80,6 +85,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    <None Include="Properties\PublishProfiles\FolderProfile.pubxml" />
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>

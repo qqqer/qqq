@@ -562,11 +562,20 @@ namespace Appapi.Models
 
         private static string GetBC_WarehouseIssueError(OpReport process)
         {
-            string sql2 = @"SELECT sum(sumoutqty) FROM BC_Plan where  JobNum= '{0}' and AssemblySeq={1} and JobSeq = {2}";
+            string sql2 = @"SELECT sum(sumoutqty) FROM BC_Warehouse where  JobNum= '{0}' and AssemblySeq={1} and JobSeq = {2}";
             sql2 = string.Format(sql2, process.JobNum, process.AssemblySeq, process.JobSeq);
 
             object sumoutqty = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql2, null);
             decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
+
+
+            sql2 = @"SELECT sum(onhandqty) FROM BC_Warehouse where  JobNum= '{0}' and AssemblySeq={1} and JobSeq = {2}";
+            sql2 = string.Format(sql2, process.JobNum, process.AssemblySeq, process.JobSeq);
+
+            object onhandqty = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql2, null);
+
+            if (onhandqty is DBNull || Convert.ToDecimal(onhandqty) == 0) //现编仓上线之前的数量全部看作已发
+                return "";
 
             if (sumoutqty is DBNull || sumoutqty == null)
                 return "";
@@ -1116,8 +1125,8 @@ namespace Appapi.Models
                 if (CheckInfo.UnQualifiedQty < 0)
                     return "错误：不合格数量不能为负";
 
-                if (CheckInfo.UnQualifiedQty > 0 && CheckInfo.UnQualifiedReason == "")
-                    return "错误：不合格原因不能为空";
+                if (CheckInfo.UnQualifiedQty > 0 && (CheckInfo.UnQualifiedReason == "" || CheckInfo.UnQualifiedReasonRemark == ""))
+                    return "错误：不合格原因和备注不能为空";
 
                 if (CheckInfo.QualifiedQty + CheckInfo.UnQualifiedQty != theReport.FirstQty)
                     return "错误：不合格数 + 合格数 不等于报工数";
@@ -1322,10 +1331,10 @@ namespace Appapi.Models
 
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRRepairQty,
                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良返修", DMRInfo.Responsibility,
-                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark,theReport.PartNum,theReport.PartDesc);
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
-                res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
+                res = client.doCreateWorkflowRequest(XML, 1012);
 
                 if (Convert.ToInt32(res) <= 0)
                     return "错误：转发OA失败:" + res;
@@ -1685,7 +1694,7 @@ namespace Appapi.Models
 
                         if (!IsStocked)
                         {
-                            if (AcceptInfo.BinNum == "")
+                            if (AcceptInfo.BinNum.Trim() == "")
                             {
                                 return "错误：下工序表处，请填写表处现场仓库位";
                             }
@@ -1731,7 +1740,7 @@ namespace Appapi.Models
 
                     if (((string)nextinfo.Rows[0]["OpCode"]).Substring(0, 2) == "BC" && theSubReport.Plant != "RRSite")
                     {
-                        if (AcceptInfo.BinNum == "")
+                        if (AcceptInfo.BinNum.Trim() == "")
                         {
                             return "错误：下工序表处，请填写表处现场仓库位";
                         }
@@ -1881,7 +1890,7 @@ namespace Appapi.Models
 
                     if (!IsStocked)
                     {
-                        if (AcceptInfo.BinNum == "")
+                        if (AcceptInfo.BinNum.Trim() == "")
                         {
                             return "错误：下工序表处，请填写表处现场仓库位";
                         }

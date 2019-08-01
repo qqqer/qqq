@@ -7,7 +7,7 @@ using System.Xml;
 
 namespace OA_WebService
 {
-    public class Func
+    public class XmlHandler
     {
         private Hashtable GetParametersFromXML(string XMLParameters)
         {

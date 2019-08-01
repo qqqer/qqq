@@ -109,8 +109,14 @@ namespace Appapi.Models
         //我方不良入口
         public static string ApplySubcontractDisQty(SubcontractDis sd)  //sd.jobseq为厂内工序
         {
+            bool IsFromReceive = false;
+            if (sd.M_Remark == "收料最后节点自动发起")
+                IsFromReceive = true;
+
             sd.JobNum = sd.JobNum.TrimEnd();
-            if ((Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
+
+
+            if (!IsFromReceive && (Convert.ToInt64(HttpContext.Current.Session["RoleID"]) & 2048) == 0)
                 return "错误：该账号没有权限发起外协不良";
 
             string res = CommonRepository.GetJobHeadState(sd.JobNum);
@@ -121,6 +127,8 @@ namespace Appapi.Models
             string  opcode  = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
             if (opcode.Substring(0,2) != "WX")
                 return "错误：该工序号不是厂内工序";
+            if (sd.UnQualifiedReason == "")
+                return "错误：必须填写不良原因备注";
 
 
             object NextOpSeq = CommonRepository.GetNextOpSeq(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq); //JobSeq是打包工序
@@ -194,7 +202,7 @@ namespace Appapi.Models
                         FirstSubcontractedOprInfo.Rows[0]["CommentText"].ToString(),
                         POInfo.Plant,
                         POInfo.Company,
-                        HttpContext.Current.Session["UserId"].ToString(),
+                        IsFromReceive ? sd.FirstUserID : HttpContext.Current.Session["UserId"].ToString(),
                         0,
                         sd.UnQualifiedReason,
                         "",
@@ -238,7 +246,7 @@ namespace Appapi.Models
                         "",
                         ApplyOprInfo.Rows[0]["Plant"].ToString(),
                         "001",
-                        HttpContext.Current.Session["UserId"].ToString(),
+                        IsFromReceive ? sd.FirstUserID : HttpContext.Current.Session["UserId"].ToString(),
                         0,
                         sd.UnQualifiedReason,
                         "",
@@ -259,7 +267,7 @@ namespace Appapi.Models
             sql = string.Format(sql, values);
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 100, "外协不良品流程发起成功", 0, 0, (int)sd.PoNum, 1);
+            AddOpLog(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq, 100, IsFromReceive ? "自动|外协不良品流程发起成功" : "手动|外协不良品流程发起成功", 0, 0, (int)sd.PoNum, 1);
             return "处理成功";
         }
 
@@ -287,6 +295,8 @@ namespace Appapi.Models
                 return "错误：" + ret;
             if (ret.Substring(0, 2) != "S2" && ret.Substring(0, 1) != "P" && ret.Substring(0, 1) != "M")
                 return "错误：该工序不是最后一道委外工序";
+            if (sd.UnQualifiedReason == "")
+                return "错误：必须填写不良原因备注";
 
 
             SubcontractDis POInfo = GetPOInfo((int)sd.PoNum,
@@ -540,19 +550,19 @@ namespace Appapi.Models
 
                     XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)preopseqinfo.Rows[0]["OprSeq"], preopseqinfo.Rows[0]["OpCode"].ToString(), preopseqinfo.Rows[0]["OpDesc"].ToString(), (decimal)sd.DMRRepairQty,
                        theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货我方不良返修", sd.Responsibility,
-                       "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark);
+                       "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark,theSubcontractDis.PartNum,theSubcontractDis.PartDesc);
                 }
 
                 else if (theSubcontractDis.Type == 2)
                 {
                     XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, theSubcontractDis.OpCode, theSubcontractDis.OpDesc, (decimal)sd.DMRRepairQty,
                        theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货供方不良返修", sd.Responsibility,
-                       "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark);
+                       "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark, theSubcontractDis.PartNum, theSubcontractDis.PartDesc);
                 }
 
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
-                res = client.doCreateWorkflowRequest(XML.Replace("&", "amp;"), 1012);
+                res = client.doCreateWorkflowRequest(XML, 1012);
 
                 if (Convert.ToInt32(res) <= 0)
                     return "错误：转发OA失败:" + res;
@@ -664,7 +674,7 @@ namespace Appapi.Models
 
                     if (!IsStocked)
                     {
-                        if (sd.BinNum == "")
+                        if (sd.BinNum.Trim() == "")
                         {
                             return "错误：下工序表处，请填写表处现场仓库位";
                         }
@@ -763,7 +773,7 @@ namespace Appapi.Models
             string sql = @"select * from SubcontractDisMain where m_id = " + m_id + "";
             SubcontractDis theSubcontractDis = CommonRepository.DataTableToList<SubcontractDis>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
-            sql = "select * from userfile where CHARINDEX('" + theSubcontractDis.Company + "', company) > 0 and CHARINDEX('" + theSubcontractDis.Plant + "', plant) > 0 and disabled = 0 and RoleID & 2048 != 0 and RoleID != 2147483647";
+            sql = "select * from userfile where userid = '"+theSubcontractDis.FirstUserID+"' and CHARINDEX('" + theSubcontractDis.Company + "', company) > 0 and CHARINDEX('" + theSubcontractDis.Plant + "', plant) > 0 and disabled = 0 and RoleID & 2048 != 0 and RoleID != 2147483647";
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
 
             return dt;
