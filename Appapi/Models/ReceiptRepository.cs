@@ -1007,7 +1007,7 @@ namespace Appapi.Models
             else if (theBatch.IsComplete == true)
                 return "错误：该批次的流程已结束";
 
-            else if (Convert.ToDecimal(IQCInfo.OurFailedQty) >0 && IQCInfo.IQCRemark == "")
+            else if (Convert.ToDecimal(IQCInfo.OurFailedQty) >0 && IQCInfo.IQCRemark.Trim() == "")
                 return "错误：因存在我方不良数，必须填写IQC备注";
 
             else if (theBatch.Status != 2)
@@ -1022,8 +1022,9 @@ namespace Appapi.Models
                 string ThirdUserGroup = IQCInfo.ThirdUserGroup ?? "";
                 string ReceiptNo = IQCInfo.ReceiptNo ?? "";
 
+                string iqcdate = IQCInfo.Status == 3 ? "'"+OpDate+"'" : "null";
 
-                sql = @"update Receipt set OurFailedQty = " + OurFailedQty + ", PreStatus = " + theBatch.Status + " , IQCRemark = '" + IQCInfo.IQCRemark + "' ,  NBBatchNo = '" + IQCInfo.NBBatchNo + "', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Status= " + IQCInfo.Status + " ,ThirdUserGroup = '{5}', SecondUserID = '{6}', ReceiptNo = '{7}', ReceiveQty2 = {8}, AtRole = {10} where ID = {9}";
+                sql = @"update Receipt set OurFailedQty = " + OurFailedQty + ", PreStatus = " + theBatch.Status + " , IQCRemark = '" + IQCInfo.IQCRemark + "' ,  NBBatchNo = '" + IQCInfo.NBBatchNo + "', IQCDate = "+iqcdate+", IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Status= " + IQCInfo.Status + " ,ThirdUserGroup = '{5}', SecondUserID = '{6}', ReceiptNo = '{7}', ReceiveQty2 = {8}, AtRole = {10} where ID = {9}";
                 sql = string.Format(sql, Convert.ToInt32(IQCInfo.IsAllCheck), InspectionQty, PassedQty, FailedQty, IQCInfo.Result, ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), ReceiptNo, IQCInfo.ReceiveQty2, IQCInfo.ID, IQCInfo.Status == 3 ? 4 : 2);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 

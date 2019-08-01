@@ -433,7 +433,7 @@ namespace Appapi.Models
             if (sd.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(sd.DMRJobNum) != "工单不存在,请联系计划部")
                 return "错误：返修工单号已存在";
 
-            if ((sd.DMRUnQualifiedQty > 0 && sd.DMRUnQualifiedReason == ""))
+            if ((sd.DMRUnQualifiedQty > 0 && sd.DMRUnQualifiedReason.Trim() == ""))
                 return "错误：报废原因不能为空";
 
             if ((sd.DMRUnQualifiedQty > 0 && sd.DMRWarehouseCode == ""))
