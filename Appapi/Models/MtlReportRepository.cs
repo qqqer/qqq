@@ -350,7 +350,7 @@ namespace Appapi.Models
             if (0 >= Convert.ToDecimal(ReportInfo.UnQualifiedQty))
                 return "错误：数量需大于0";
 
-            if (ReportInfo.UnQualifiedReasonRemark == "")
+            if (ReportInfo.UnQualifiedReasonRemark.Trim() == "")
                 return "错误：必须填写不良原因备注";
 
             if (ReportInfo.PartNum.Substring(0, 1).Trim().ToLower() == "c")
@@ -476,19 +476,19 @@ namespace Appapi.Models
             if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.CheckCounter)
                 return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数：" + theReport.CheckCounter;
 
-            if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum == "")
+            if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum.Trim() == "")
                 return "错误：返修工单号不能为空";
 
             if (DMRInfo.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(DMRInfo.DMRJobNum) != "工单不存在,请联系计划部")
                 return "错误：返修工单号已存在";
 
-            if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRUnQualifiedReason == ""))
+            if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRUnQualifiedReason.Trim() == ""))
                 return "错误：报废原因不能为空";
 
-            if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRWarehouseCode == ""))
+            if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRWarehouseCode.Trim() == ""))
                 return "错误：仓库不能为空";
 
-            if (DMRInfo.DMRUnQualifiedQty > 0 && (DMRInfo.DMRBinNum == ""))
+            if (DMRInfo.DMRUnQualifiedQty > 0 && (DMRInfo.DMRBinNum.Trim() == ""))
                 return "错误：库位不能为空";
 
             if (DMRInfo.DMRUnQualifiedQty > 0 && CheckBinNum(theReport.Company, DMRInfo.DMRBinNum, DMRInfo.DMRWarehouseCode) != "ok")

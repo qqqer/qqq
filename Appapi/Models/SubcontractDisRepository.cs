@@ -506,7 +506,7 @@ namespace Appapi.Models
                     theSubcontractDis.TranID = TranID;
                     AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, PreOpSeq + "厂内工序不合格品发起成功，TranID = " + TranID, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                 }
-
+                
 
                 res = ErpAPI.CommonRepository.StartInspProcessing((int)theSubcontractDis.TranID, 0, (decimal)theSubcontractDis.DisQty, "D22", "BLPC", "01", type, theSubcontractDis.Plant, theSubcontractDis.PackSlip, (int)theSubcontractDis.PoLine, out DMRID); //产品其它不良 D22  D
                 if (res.Substring(0, 1).Trim() != "1")

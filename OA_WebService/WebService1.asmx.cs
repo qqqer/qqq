@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -19,7 +20,10 @@ namespace OA_WebService
         [WebMethod]
         public string HelloWorld(string sd)
         {
-            return "<?xml version=\"1.0\" encoding=\"gb2312\"?>";
+            //Hashtable ht = XmlHandler.GetParametersFromXML(sd);
+
+
+            return sd;
         }
     }
 }
