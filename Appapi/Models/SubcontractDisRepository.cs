@@ -549,7 +549,7 @@ namespace Appapi.Models
                     DataTable preopseqinfo = CommonRepository.GetOpInfo(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, preopseq);
 
                     XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)preopseqinfo.Rows[0]["OprSeq"], preopseqinfo.Rows[0]["OpCode"].ToString(), preopseqinfo.Rows[0]["OpDesc"].ToString(), (decimal)sd.DMRRepairQty,
-                       theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货我方不良返修", sd.Responsibility,
+                       theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货我方不良返工", sd.Responsibility,
                        "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark,theSubcontractDis.PartNum,theSubcontractDis.PartDesc);
                 }
 

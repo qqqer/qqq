@@ -20,10 +20,9 @@ namespace ErpAPI
 {
     public static class OpReportRepository
     {
-        public static string TimeAndCost(int BPMID, string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, string plantId, out string Character05, out int tranid)
+        public static string TimeAndCost(int BPMID, string empid, string JobNum, int asmSeq, int oprSeq, decimal LQty, decimal disQty, string disCode, string bjr, DateTime StartDate, DateTime EndDate, string companyId, string plantId)
         { //JobNum as string ,jobQty as decimal,partNum as string
-            Character05 = "";
-            tranid = -1;
+            string Character05 = ""; int tranid = -1;
             Session EpicorSession = CommonRepository.GetEpicorSession();
             if (EpicorSession == null)
             {
@@ -166,7 +165,7 @@ namespace ErpAPI
                     tranid = int.Parse(o == null ? "-1" : o.ToString());
                 }
 
-                sql = "insert into BPMID_LabrSeq values(" + BPMID + "," + LaborHedSeq + ", " + LaborDtlSeq + ")";
+                sql = "insert into BPMID_LabrSeq values(" + BPMID + "," + LaborHedSeq + ", " + LaborDtlSeq + ", " + tranid + " , '" + Character05 + "')";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
 
@@ -190,7 +189,7 @@ namespace ErpAPI
                     tranid = int.Parse(o == null ? "-1" : o.ToString());
                 }
 
-                sql = "insert into BPMID_LabrSeq values(" + BPMID + "," + dt.Rows[0]["LaborHedSeq"].ToString() + ", " + dt.Rows[0]["LaborDtlSeq"].ToString() + ")";
+                sql = "insert into BPMID_LabrSeq values(" + BPMID + "," + dt.Rows[0]["LaborHedSeq"].ToString() + ", " + dt.Rows[0]["LaborDtlSeq"].ToString() + ", "+tranid+" , '"+Character05+"')";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
                 return "1|TimeAndCost执行成功2";
@@ -251,11 +250,11 @@ namespace ErpAPI
 
                 
 
-                return "撤销时间费用成功";
+                return "OK";
             }
             catch (Exception ex)
             {
-                return "ErpAPI|撤销时间费用失败，" + ex.Message;
+                return  ex.Message;
             }
             finally
             {
