@@ -157,7 +157,7 @@ namespace Appapi.Models
             string u = @"
                 <WorkflowRequestInfo>
                     <creatorId>1012</creatorId>
-                    <requestName>不良品返修</requestName>     
+                    <requestName>不良品返工</requestName>     
             
                     <workflowBaseInfo>
                         <workflowId>2188</workflowId>
