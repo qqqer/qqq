@@ -58,7 +58,7 @@ namespace Appapi.Models
             string sql = @"  Select jobseq,PartNum, Description, poline,porelnum ,OpDesc,OpCode, pr.company,pr.ponum from erp.porel pr 
                           left join erp.JobOper jo on pr.jobnum = jo.JobNum and pr.AssemblySeq = jo.AssemblySeq and pr.Company = jo.Company and jobseq = jo.OprSeq 
                           where pr.ponum={0} and pr.jobnum = '{1}'  and pr.assemblyseq={2} and trantype='PUR-SUB' and pr.company = '{3}' order by jobseq  asc";
-            sql = string.Format(sql, theBatch.PoNum, theBatch.JobNum, theBatch.AssemblySeq, theBatch.Company);
+            sql = string.Format(sql, theBatch.PoNum, theBatch.JobNum, theBatch.AssemblySeq, theBatch.Company);//订单级 连续委外组
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             if (dt != null)
@@ -67,6 +67,38 @@ namespace Appapi.Models
                 {
                     if ((int)dt.Rows[i]["jobseq"] == theBatch.JobSeq && ((int)dt.Rows[i]["poline"] != theBatch.PoLine || (int)dt.Rows[i]["porelnum"] != theBatch.PORelNum))
                         dt.Rows.RemoveAt(i);
+                }
+
+                int p = -1; 
+                for (int i = dt.Rows.Count - 1; i >= 0; i--)
+                {
+                    if ((int)dt.Rows[i]["jobseq"] == theBatch.JobSeq)
+                    {
+                        p = i;
+                        break;
+                    }
+                }
+
+
+                for(int i = p; i > 0; i--)
+                {
+                    if((int)CommonRepository.GetPreOpSeq(theBatch.JobNum,(int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"]) != (int)dt.Rows[i-1]["jobseq"])
+                    {
+                        while(i > 0)
+                            dt.Rows.RemoveAt(--i);
+                        break;
+                    }
+                }
+
+                for (int i = 0; i < dt.Rows.Count - 1; i++)
+                {
+                    if ((int)CommonRepository.GetNextOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"]) != (int)dt.Rows[i + 1]["jobseq"])
+                    {
+                        int j = dt.Rows.Count - i - 1;
+                        while (j-- > 0)
+                            dt.Rows.RemoveAt(i+1);
+                        break;
+                    }
                 }
             }
 
@@ -975,6 +1007,9 @@ namespace Appapi.Models
             else if (theBatch.IsComplete == true)
                 return "错误：该批次的流程已结束";
 
+            else if (Convert.ToDecimal(IQCInfo.OurFailedQty) >0 && IQCInfo.IQCRemark.Trim() == "")
+                return "错误：因存在我方不良数，必须填写IQC备注";
+
             else if (theBatch.Status != 2)
                 return "错误：流程未在当前节点上，在 " + theBatch.Status.ToString() + "节点";
 
@@ -987,8 +1022,9 @@ namespace Appapi.Models
                 string ThirdUserGroup = IQCInfo.ThirdUserGroup ?? "";
                 string ReceiptNo = IQCInfo.ReceiptNo ?? "";
 
+                string iqcdate = IQCInfo.Status == 3 ? "'"+OpDate+"'" : "null";
 
-                sql = @"update Receipt set OurFailedQty = " + OurFailedQty + ", PreStatus = " + theBatch.Status + " , IQCRemark = '" + IQCInfo.IQCRemark + "' ,  NBBatchNo = '" + IQCInfo.NBBatchNo + "', IQCDate = '" + OpDate + "', IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Status= " + IQCInfo.Status + " ,ThirdUserGroup = '{5}', SecondUserID = '{6}', ReceiptNo = '{7}', ReceiveQty2 = {8}, AtRole = {10} where ID = {9}";
+                sql = @"update Receipt set OurFailedQty = " + OurFailedQty + ", PreStatus = " + theBatch.Status + " , IQCRemark = '" + IQCInfo.IQCRemark + "' ,  NBBatchNo = '" + IQCInfo.NBBatchNo + "', IQCDate = "+iqcdate+", IsAllCheck = {0},  InspectionQty = {1}, PassedQty = {2}, FailedQty = {3}, Result = '{4}', Status= " + IQCInfo.Status + " ,ThirdUserGroup = '{5}', SecondUserID = '{6}', ReceiptNo = '{7}', ReceiveQty2 = {8}, AtRole = {10} where ID = {9}";
                 sql = string.Format(sql, Convert.ToInt32(IQCInfo.IsAllCheck), InspectionQty, PassedQty, FailedQty, IQCInfo.Result, ThirdUserGroup, HttpContext.Current.Session["UserId"].ToString(), ReceiptNo, IQCInfo.ReceiveQty2, IQCInfo.ID, IQCInfo.Status == 3 ? 4 : 2);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
@@ -1277,7 +1313,7 @@ namespace Appapi.Models
                         int nextAssemblySeq, nextJobSeq;
                         string NextOpCode, nextOpDesc;
                         res = ErpAPI.CommonRepository.getJobNextOprTypes(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[dt.Rows.Count - 1]["jobseq"], out nextAssemblySeq, out nextJobSeq, out NextOpCode, out nextOpDesc, theBatch.Company);
-                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && BC_BinNum == "") //下工序厂内且是表处，入库表处临时仓
+                        if (res.Substring(0, 1).Trim().ToLower() == "m" && NextOpCode.Substring(0, 2) == "BC" && BC_BinNum.Trim() == "") //下工序厂内且是表处，入库表处临时仓
                         {
                             return "错误：下工序表处，请填写临时仓库位";
                         }
@@ -1446,7 +1482,7 @@ namespace Appapi.Models
 
 
                                 //为当前工序下的化学品发料
-                                string issue_res = "";  //若issue_res不为空， 则表明虽通过了之前的发料验证，但实际发料时不够发导致失败。    存在解决该问题的算法O(mlgm + m*n)   m：需要发几次物料A    n：物料A所有库存批次
+                                string issue_res = "";  //若issue_res不为空， 则表明虽通过了之前的发料验证，但实际发料时不够发导致失败。    存在解决该问题的算法O(mlgm + m*n) = O(mn)   m：需要发几次物料A    n：物料A所有库存批次
                                 DataTable mtls = CommonRepository.GetMtlsOfOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[i]["jobseq"], theBatch.Company);
                                 if (mtls != null)
                                 {
@@ -1505,14 +1541,14 @@ namespace Appapi.Models
                                         where  SubContract = 0  and jo.JobNum = '" + theBatch.JobNum + "' and jo.AssemblySeq = " + theBatch.AssemblySeq + "  and  jo.OprSeq < " + theBatch.JobSeq + " and jh.Company = '001' order by jo.OprSeq desc";
                             PreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-                            res = SubcontractDisRepository.ApplySubcontractDisQty(new SubcontractDis { PoNum = theBatch.PoNum, JobNum = theBatch.JobNum, AssemblySeq = theBatch.AssemblySeq, JobSeq = (int)PreOpSeq, DisQty = theBatch.OurFailedQty, Type = 1, M_Remark = "收料最后节点自动发起" });
+                            res = SubcontractDisRepository.ApplySubcontractDisQty(new SubcontractDis { PoNum = theBatch.PoNum, JobNum = theBatch.JobNum, AssemblySeq = theBatch.AssemblySeq, JobSeq = (int)PreOpSeq, UnQualifiedReason = theBatch.IQCRemark, DisQty = theBatch.OurFailedQty, Type = 1, M_Remark = "收料最后节点自动发起",FirstUserID = theBatch.ThirdUserID });
 
                             if (res != "处理成功")
                             {
-                                AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起申请失败：" + res);
-                                return "错误：" + res;
+                                AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起失败：" + res);
+                                return res + ", 外协不良品自动发起失败";
                             }
-                            AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起申请成功");
+                            AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "外协不良品自动发起成功");
 
                         }
 

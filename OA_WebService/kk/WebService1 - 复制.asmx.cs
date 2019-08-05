@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
@@ -15,15 +14,12 @@ namespace OA_WebService
     [System.ComponentModel.ToolboxItem(false)]
     // 若要允许使用 ASP.NET AJAX 从脚本中调用此 Web 服务，请取消注释以下行。 
     // [System.Web.Script.Services.ScriptService]
-    public class WebService1 : System.Web.Services.WebService
+    public class WebService2 : System.Web.Services.WebService
     {
         [WebMethod]
         public string HelloWorld(string sd)
         {
-            //Hashtable ht = XmlHandler.GetParametersFromXML(sd);
-
-
-            return sd;
+            return "<?xml version=\"1.0\" encoding=\"gb2312\"?>";
         }
     }
 }

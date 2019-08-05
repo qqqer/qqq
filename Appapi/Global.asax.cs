@@ -46,13 +46,8 @@ namespace Appapi
 
         //protected void Application_BeginRequest(object sender, EventArgs e)
         //{
-        //HttpContext.Current.Response.AddHeader("Access-Control-Allow-Headers", "*,Content-Type");
-        //HttpContext.Current.Response.AddHeader("Access-Control-Allow‌​-Credentials", "true");
-        //    //HttpCookie cookie = new HttpCookie("ASP.NET_SessionId");
-        //    //cookie.Domain = HttpContext.Current.Request.Headers.GetValues("Origin").First();
-        //    //cookie.Value = HttpContext.Current.Session.SessionID;
-        //    //HttpContext.Current.Response.SetCookie(cookie);
-        //    //HttpContext.Current.Response.End();
+        //    if(HttpContext.Current.Request.ContentType == "application/json")
+        //         HttpContext.Current.Request.Params;
         //}
 
 

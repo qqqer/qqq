@@ -90,5 +90,11 @@ namespace Appapi.Models
 
         public decimal? OnHandQty { get; set; } //表处临时仓字段
         public decimal? SumOutQty { get; set; } //表处临时仓字段
+
+        public string DMRUnQualifiedReasonRemark { get; set; }
+        public string DMRUnQualifiedReasonDesc { get; set; }
+        public string ResponsibilityRemark { get; set; }
+        public string UnQualifiedReasonRemark { get; set; }
+        public string UnQualifiedReasonDesc { get; set; }
     }
 }

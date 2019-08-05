@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Web;
 
@@ -143,5 +144,187 @@ namespace Appapi.Models
 
             return u;
         }
+
+
+        public static string Create2188XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal DMRRepairQty,
+        string plant, string DMRJobNum, string CheckUserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
+        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc)
+        {
+            string sql = "select  plantid  from uf_cust_planter where custid = '" + PartDesc.Substring(0, 4) + "'";
+            string planner = CommonRepository.GetValueAsString(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null));
+
+
+            string u = @"
+                <WorkflowRequestInfo>
+                    <creatorId>1012</creatorId>
+                    <requestName>不良品返修</requestName>     
+            
+                    <workflowBaseInfo>
+                        <workflowId>2188</workflowId>
+                    </workflowBaseInfo>
+
+                    <workflowMainTableInfo>
+                        <requestRecords>
+                            <weaver.workflow.webservices.WorkflowRequestTableRecord>   
+                                <workflowRequestTableFields>
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>jobnum</fieldName>
+                                    <fieldValue>{0}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>AssemblySeq</fieldName>
+                                    <fieldValue>{1}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>JobSeq</fieldName>
+                                    <fieldValue>{2}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>OpCode</fieldName>
+                                    <fieldValue>{3}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>OpDesc</fieldName>
+                                    <fieldValue>{4}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>DMRRepairQty</fieldName>
+                                    <fieldValue>{5}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>plant</fieldName>
+                                    <fieldValue>{6}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>DMRJobNum</fieldName>
+                                    <fieldValue>{7}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>CheckUserid</fieldName>
+                                    <fieldValue>{8}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                    <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>CheckDate</fieldName>
+                                    <fieldValue>{9}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>UnQualifiedType</fieldName>
+                                    <fieldValue>{10}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>Responsibility</fieldName>
+                                    <fieldValue>{11}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+					            <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>DefectNO</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{12}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>DMRUnQualifiedReasonRemark</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{13}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>DMRUnQualifiedReasonDesc</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{14}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>ResponsibilityRemark</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{15}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>CheckUser</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{16}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>partcode</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{17}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>partdesc</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{18}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>custid</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{19}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>plantid</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{20}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+                                </workflowRequestTableFields>
+                            </weaver.workflow.webservices.WorkflowRequestTableRecord>
+                        </requestRecords>
+                    </workflowMainTableInfo>
+                </WorkflowRequestInfo>";
+
+            u = string.Format(u, jobnum, AssemblySeq, JobSeq,  OpCode, System.Security.SecurityElement.Escape(OpDesc), DMRRepairQty,
+         plant,  DMRJobNum,  CheckUserid,  CheckDate,  UnQualifiedType,  Responsibility,  DefectNO,
+         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(CheckUserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner);
+
+            return u;
+        }
+
     }
 }
