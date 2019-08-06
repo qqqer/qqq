@@ -1237,7 +1237,7 @@ namespace Appapi.Models
                         if (res.Substring(0, 1).Trim() != "1")
                         {
                             AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "下工序虚拟检验时间费用写入失败|" + res);
-                            return "错误：下工序虚拟检验时间费用写入失败，" + res;
+                            return "错误：下工序"+arr[2]+"时间费用自动写入失败，" + res;
                         }
 
                         AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "下工序虚拟检验时间费用写入成功|" + res);
@@ -1803,7 +1803,7 @@ namespace Appapi.Models
                             if (res.Substring(0, 1).Trim() != "1")
                             {
                                 AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序虚拟检验时间费用写入失败|" + res);
-                                return "错误：下工序虚拟检验时间费用写入失败，" + res;
+                                return "错误：下工序"+arr[2]+"时间费用自动写入失败，" + res;
                             }
 
                             AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序虚拟检验时间费用写入成功|" + res);
