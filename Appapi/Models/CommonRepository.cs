@@ -354,6 +354,15 @@ namespace Appapi.Models
             return PreOpSeq;
         }
 
+        public static object GetValidPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
+        {
+            string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " and  jo.Opcode != 'BC0205' and  jo.Opcode != 'ZP0501' and jh.Company = '001' order by jo.OprSeq desc";
+
+            object ValidPreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return ValidPreOpSeq;
+        }
 
         public static DataTable GetOpInfo(string JobNum, int AssemblySeq, int JobSeq)//
         {

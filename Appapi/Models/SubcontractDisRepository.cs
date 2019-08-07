@@ -125,7 +125,7 @@ namespace Appapi.Models
 
             string sql = @"select opcode  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + sd.JobSeq + "  and company = '001'";
             string  opcode  = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
-            if (opcode.Substring(0,2) != "WX")
+            if (opcode.Substring(0,2) == "WX")
                 return "错误：该工序号不是厂内工序";
             if (sd.UnQualifiedReason == "")
                 return "错误：必须填写不良原因备注";

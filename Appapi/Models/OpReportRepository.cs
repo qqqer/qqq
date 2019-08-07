@@ -367,7 +367,7 @@ namespace Appapi.Models
             if (res.Substring(0, 1).Trim() == "0")
                 return res;
 
-            if (nextJobSeq != -1 && (NextOpCode == "XXX" || NextOpCode == "YYY")) //跳过虚拟检验工序
+            if (nextJobSeq != -1 && (NextOpCode == "BC0205" || NextOpCode == "ZP0501")) //跳过虚拟检验工序
             {
                 res = ErpAPI.CommonRepository.getJobNextOprTypes(jobnum, nextAssemblySeq, nextJobSeq, out nextAssemblySeq, out nextJobSeq, out NextOpCode, out nextOpDesc, companyId);
                 if (res.Substring(0, 1).Trim() == "0")
@@ -497,8 +497,8 @@ namespace Appapi.Models
                     return "0|错误：该返修工单所属的返修流程未结束。原工单的对应工序没有结束，请用查询工具查询对应的记录，让相应的人员接收确认";
             }
 
-            object PreOpSeq = CommonRepository.GetPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
-            if (PreOpSeq != null && GetSumOfAcceptedQty(arr[0], int.Parse(arr[1]), (int)PreOpSeq) == 0)
+            object ValidPreOpSeq = CommonRepository.GetValidPreOpSeq(arr[0], int.Parse(arr[1]), int.Parse(arr[2]));
+            if (ValidPreOpSeq != null && GetSumOfAcceptedQty(arr[0], int.Parse(arr[1]), (int)ValidPreOpSeq) == 0)
             {
                 return "0|错误：该工序接收数量为0，无法开始当前工序";
             }
@@ -815,8 +815,8 @@ namespace Appapi.Models
 
         public static string GetPartInfoError(OpReport process)
         {
-            object PreOpSeq = CommonRepository.GetPreOpSeq(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
-            if (PreOpSeq == null)
+            object ValidPreOpSeq = CommonRepository.GetValidPreOpSeq(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
+            if (ValidPreOpSeq == null)
             {
                 decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(process.JobNum, (int)process.AssemblySeq);
                 decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
@@ -829,7 +829,7 @@ namespace Appapi.Models
             else
             {
                 decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
-                decimal SumOfAcceptedQty = GetSumOfAcceptedQty(process.JobNum, (int)process.AssemblySeq, (int)PreOpSeq);
+                decimal SumOfAcceptedQty = GetSumOfAcceptedQty(process.JobNum, (int)process.AssemblySeq, (int)ValidPreOpSeq);
 
                 if (SumOfAcceptedQty < SumOfReportedQty + process.Qty)
                     return "错误：累计已转数将超出累计接收数。该工序的累计已转数：" + (SumOfReportedQty.ToString("N2") + "(+" + process.Qty) + ")，该工序的累计接收数：" + SumOfAcceptedQty.ToString("N2");
@@ -840,8 +840,8 @@ namespace Appapi.Models
 
         public static string GetExceedError(OpReport process)
         {
-            object PreOpSeq = CommonRepository.GetPreOpSeq(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
-            if (PreOpSeq == null)
+            object ValidPreOpSeq = CommonRepository.GetValidPreOpSeq(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
+            if (ValidPreOpSeq == null)
             {
                 decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(process.JobNum, (int)process.AssemblySeq);
                 decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
@@ -854,7 +854,7 @@ namespace Appapi.Models
             else
             {
                 decimal SumOfReportedQty = GetSumOfReportedQty(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
-                decimal SumOfAcceptedQty = GetSumOfAcceptedQty(process.JobNum, (int)process.AssemblySeq, (int)PreOpSeq);
+                decimal SumOfAcceptedQty = GetSumOfAcceptedQty(process.JobNum, (int)process.AssemblySeq, (int)ValidPreOpSeq);
 
                 if (SumOfAcceptedQty < SumOfReportedQty + process.Qty)
                     return "错误：累计已转数将超出累计接收数。该工序的累计已转数：" + (SumOfReportedQty.ToString("N2") + "(+" + process.Qty) + ")，该工序的累计接收数：" + SumOfAcceptedQty.ToString("N2");
@@ -1192,13 +1192,13 @@ namespace Appapi.Models
                     return "错误：不合格数 + 合格数 不等于报工数";
 
 
-                string error = CleanALLLaborOftheReport(theReport);      //提交时若存在过时间费用则删除该条流程的所有历史时间费用    
-                if (error != "")
-                {
-                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "历史时间费用清理失败|" + error);
-                    return "错误：时间费用已存在，请尝试重新提交";
-                }
-                #endregion
+                //string error = CleanALLLaborOftheReport(theReport);      //提交时若存在过时间费用则删除该条流程的所有历史时间费用    
+                //if (error != "")
+                //{
+                //    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "历史时间费用清理失败|" + error);
+                //    return "错误：时间费用已存在，请尝试重新提交";
+                //}
+                //#endregion
 
 
                 sql = @"select count(*) from  BPMID_LabrSeq where  BPMID = " + theReport.ID + " ";
@@ -1279,9 +1279,9 @@ namespace Appapi.Models
             {
                 AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, ex.Message);
 
-                string error = CleanALLLaborOftheReport(theReport);
-                if (error != "")
-                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "CleanALLLaborOftheReport|" + error);
+                //string error = CleanALLLaborOftheReport(theReport);
+                //if (error != "")
+                //    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "CleanALLLaborOftheReport|" + error);
 
                 return "错误：提交失败，请尝试重新提交";
             }
@@ -2449,7 +2449,7 @@ namespace Appapi.Models
 
         public static DataTable GetJobSeq(string JobNum, int AssemblySeq)
         {
-            string sql = @"select OprSeq,OpDesc,OpCode, jo.QtyCompleted from erp.JobAsmbl ja left join erp.JobOper jo on ja.JobNum = jo.JobNum and ja.AssemblySeq = jo.AssemblySeq where  ja.jobnum = '" + JobNum + "' and ja.AssemblySeq= '" + AssemblySeq + "' order by OprSeq asc";
+            string sql = @"select OprSeq,OpDesc,OpCode, jo.QtyCompleted from erp.JobAsmbl ja left join erp.JobOper jo on ja.JobNum = jo.JobNum and ja.AssemblySeq = jo.AssemblySeq where  ja.jobnum = '" + JobNum + "' and ja.AssemblySeq= '" + AssemblySeq + "' and  jo.Opcode != 'BC0205' and  jo.Opcode != 'ZP0501' order by OprSeq asc";
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(JobNum, AssemblySeq);
