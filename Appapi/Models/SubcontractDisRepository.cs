@@ -123,10 +123,20 @@ namespace Appapi.Models
             if (res != "正常")
                 return "0|错误：" + res;
 
-            string sql = @"select opcode  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + sd.JobSeq + "  and company = '001'";
-            string  opcode  = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
-            if (opcode.Substring(0,2) == "WX" && opcode != "WX0147")
+
+
+            string sql = @"select  SubContract  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + sd.JobSeq + "  and company = '001'";
+            object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            if(o == null)
+                return "错误：该工序不存在";
+
+
+            bool IsSubContract = Convert.ToBoolean(o);
+            if (!IsSubContract)
                 return "错误：该工序号不是厂内工序";
+
+
             if (sd.UnQualifiedReason == "")
                 return "错误：必须填写不良原因备注";
 
@@ -136,7 +146,7 @@ namespace Appapi.Models
             if (NextOpSeq != null)
             {
                 sql = @"select  opcode  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + NextOpSeq + "  and company = '001'";
-                opcode = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+                string opcode = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
                 if (opcode.Substring(0, 2) != "WX")
                     return "错误：下工序不是委外工序";
             }
@@ -284,7 +294,13 @@ namespace Appapi.Models
                 return "错误：" + res;
 
             string sql = @"select  SubContract  from erp.JobOper where jobnum = '" + sd.JobNum + "' and AssemblySeq = " + sd.AssemblySeq + " and OprSeq = " + sd.JobSeq + "  and company = '001'";
-            bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+
+            object o = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            if (o == null)
+                return "错误：该工序不存在";
+
+            bool IsSubContract = Convert.ToBoolean(o);
             if (!IsSubContract)
                 return "错误：该工序不是委外工序";
 
