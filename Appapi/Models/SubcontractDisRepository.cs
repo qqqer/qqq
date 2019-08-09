@@ -225,8 +225,8 @@ namespace Appapi.Models
                         1,
                         CommonRepository.GetValueAsString(sd.M_Remark),
                         POInfo.ReqQty,
-                        sd.StockPosition,
-                        sd.ResponsibilityRemark,
+                        CommonRepository.GetValueAsString(sd.StockPosition),
+                        CommonRepository.GetValueAsString(sd.ResponsibilityRemark),
                         0
                     });
             }
