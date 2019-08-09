@@ -1303,7 +1303,9 @@ namespace Appapi.Models
 
                         DataTable dt = GetAllOpSeqOfSeriesSUB(theBatch);
 
+
                         object PreOpSeq = CommonRepository.GetPreOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[0]["jobseq"]);
+
                         if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
                             return "错误： 收货数超出该阶层的可生产数量";
                         if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
@@ -1537,9 +1539,11 @@ namespace Appapi.Models
 
                         if (theBatch.OurFailedQty > 0)
                         {
-                            sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
-                                        where  SubContract = 0  and jo.JobNum = '" + theBatch.JobNum + "' and jo.AssemblySeq = " + theBatch.AssemblySeq + "  and  jo.OprSeq < " + theBatch.JobSeq + " and jh.Company = '001' order by jo.OprSeq desc";
-                            PreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+                            if (PreOpSeq == null)
+                            {
+                                AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "上一道非该供应商的工序不存在，外协不良品自动发起失败");
+                                return "错误：上一道非该供应商的工序不存在，外协不良品自动发起失败";
+                            }
 
                             res = SubcontractDisRepository.ApplySubcontractDisQty(new SubcontractDis { PoNum = theBatch.PoNum, JobNum = theBatch.JobNum, AssemblySeq = theBatch.AssemblySeq, JobSeq = (int)PreOpSeq, UnQualifiedReason = theBatch.IQCRemark, DisQty = theBatch.OurFailedQty, Type = 1, M_Remark = "收料最后节点自动发起",FirstUserID = theBatch.ThirdUserID });
 
