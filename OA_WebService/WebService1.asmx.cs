@@ -2,6 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Web;
 using System.Web.Services;
 
@@ -20,9 +22,11 @@ namespace OA_WebService
         [WebMethod]
         public string HelloWorld(string sd)
         {
-            //Hashtable ht = XmlHandler.GetParametersFromXML(sd);
-
-
+            ////Hashtable ht = XmlHandler.GetParametersFromXML(sd);
+            //string result = "Hello world! Time is: " + DateTime.Now;
+            //var resp = new HttpResponseMessage(HttpStatusCode.OK);
+            //resp.Content = new StringContent(sd, System.Text.Encoding.UTF8, "text/plain");
+            
             return sd;
         }
     }

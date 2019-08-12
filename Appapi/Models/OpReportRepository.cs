@@ -43,7 +43,8 @@ namespace Appapi.Models
 
                         if (ret != "OK" && ret != "Labor record not found.")
                         {
-                            return ret;
+                            error = ret;
+                            return error;
                         }
                         else //OK
                         {
@@ -1198,7 +1199,6 @@ namespace Appapi.Models
                 //    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "历史时间费用清理失败|" + error);
                 //    return "错误：时间费用已存在，请尝试重新提交";
                 //}
-                //#endregion
 
 
                 sql = @"select count(*) from  BPMID_LabrSeq where  BPMID = " + theReport.ID + " ";
@@ -1247,6 +1247,7 @@ namespace Appapi.Models
 
                 sql = @"select TranID, Character05 from BPMID_LabrSeq where BPMID = " + theReport.ID + " order by DtlSeq asc";
                 DataTable dt3 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql);
+
                 string Character05 = dt3.Rows[0]["Character05"].ToString();
                 int TranID = int.Parse(dt3.Rows[0]["TranID"].ToString());
 
@@ -1278,12 +1279,7 @@ namespace Appapi.Models
             catch (Exception ex)
             {
                 AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, ex.Message);
-
-                //string error = CleanALLLaborOftheReport(theReport);
-                //if (error != "")
-                //    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "CleanALLLaborOftheReport|" + error);
-
-                return "错误：提交失败，请尝试重新提交";
+                return "错误：提交失败，请尝试重新提交. " + ex.Message;
             }
             finally
             {
@@ -1419,7 +1415,7 @@ namespace Appapi.Models
 
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRRepairQty,
                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良返工", DMRInfo.Responsibility,
-                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc);
+                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,"");
 
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
@@ -2642,10 +2638,17 @@ namespace Appapi.Models
 
             if (theReport.Status == 2)
             {
+                string error = CleanALLLaborOftheReport(theReport);      //提交时若存在过时间费用则删除该条流程的所有历史时间费用    
+                if (error != "")
+                {
+                    AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 16, OpDate, "历史时间费用清理失败|" + error);
+                    return;
+                }
+
                 sql = "update bpm set isdelete = 1 where id = " + ID + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 16, OpDate, "二节点删除流程");
+                AddOpLog(ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 16, OpDate, "二节点删除流程成功");
             }
 
         }
@@ -2722,20 +2725,20 @@ namespace Appapi.Models
                                ,[Company])
                                 VALUES({0})";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
-                                    {
-                                        JobNum,
-                                        AssemblySeq,
-                                        NextJobSeq,
-                                        NextOpCode,
-                                        NextOpDesc,
-                                        PartNum,
-                                        PartDesc,
-                                        Qty,
-                                        0,
-                                        BinNum,
-                                        Plant,
-                                        Company
-                                    });
+                                {
+                                    JobNum,
+                                    AssemblySeq,
+                                    NextJobSeq,
+                                    NextOpCode,
+                                    NextOpDesc,
+                                    PartNum,
+                                    PartDesc,
+                                    Qty,
+                                    0,
+                                    BinNum,
+                                    Plant,
+                                    Company
+                                });
                 sql = string.Format(sql, values);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 AddBC_WarehouseLog(JobNum, AssemblySeq, NextJobSeq, sql, 0, Qty, BinNum, comefrom);

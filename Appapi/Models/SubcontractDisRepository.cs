@@ -567,14 +567,14 @@ namespace Appapi.Models
 
                     XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)preopseqinfo.Rows[0]["OprSeq"], preopseqinfo.Rows[0]["OpCode"].ToString(), preopseqinfo.Rows[0]["OpDesc"].ToString(), (decimal)sd.DMRRepairQty,
                        theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货我方不良返工", sd.Responsibility,
-                       "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark,theSubcontractDis.PartNum,theSubcontractDis.PartDesc);
+                       "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark,theSubcontractDis.PartNum,theSubcontractDis.PartDesc,"");
                 }
 
                 else if (theSubcontractDis.Type == 2)
                 {
                     XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, theSubcontractDis.OpCode, theSubcontractDis.OpDesc, (decimal)sd.DMRRepairQty,
                        theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货供方不良返工", sd.Responsibility,
-                       "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark, theSubcontractDis.PartNum, theSubcontractDis.PartDesc);
+                       "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark, theSubcontractDis.PartNum, theSubcontractDis.PartDesc,"");
                 }
 
 
