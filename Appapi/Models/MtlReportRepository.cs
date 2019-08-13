@@ -26,7 +26,7 @@ namespace Appapi.Models
 
 
 
-        private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, int DMRID, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility, string DMRUnQualifiedReasonRemark,string DMRUnQualifiedReasonDesc, string ResponsibilityRemark)
+        private static void InsertConcessionRecord(int Id, decimal DMRQualifiedQty, string TransformUserGroup, int DMRID, string DMRWarehouseCode, string DMRBinNum, string DMRUnQualifiedReason, string Responsibility, string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
@@ -300,7 +300,7 @@ namespace Appapi.Models
             string sql = "select IssuedQty from erp.JobMtl where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and MtlSeq = " + MtlSeq + "";
 
             decimal IssuedQty = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-           
+
             return IssuedQty;
         }
 
@@ -325,7 +325,7 @@ namespace Appapi.Models
         }
 
 
-        private static decimal GetSumOfReportQty(string JobNum, int AssemblySeq, int MtlSeq,  string PartNum)
+        private static decimal GetSumOfReportQty(string JobNum, int AssemblySeq, int MtlSeq, string PartNum)
         {
             string sql = " select sum(UnQualifiedQty) from  MtlReport where isdelete = 0 and JobNum='" + JobNum + "' and MtlSeq = " + MtlSeq + " and PartNum = '" + PartNum + "' and AssemblySeq = " + AssemblySeq + "";
 
@@ -361,7 +361,7 @@ namespace Appapi.Models
             decimal MtlIssuedQty = GetMtlIssuedQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq);
             decimal SumOfReportQty = GetSumOfReportQty(ReportInfo.JobNum, (int)ReportInfo.AssemblySeq, (int)ReportInfo.MtlSeq, ReportInfo.PartNum);
             if (MtlIssuedQty < ReportInfo.UnQualifiedQty)
-                return "错误：累计上报数量："+ SumOfReportQty.ToString("N2") + "(+" + ((decimal)ReportInfo.UnQualifiedQty).ToString("N2") + ")，将大于物料的已发料数量：" + MtlIssuedQty.ToString("N2") +"，或该物料未发料";
+                return "错误：累计上报数量：" + SumOfReportQty.ToString("N2") + "(+" + ((decimal)ReportInfo.UnQualifiedQty).ToString("N2") + ")，将大于物料的已发料数量：" + MtlIssuedQty.ToString("N2") + "，或该物料未发料";
 
 
             string sql = @"select jh.Company, Plant from erp.JobHead jh  where jh.JobNum = '" + ReportInfo.JobNum + "' ";
@@ -459,7 +459,7 @@ namespace Appapi.Models
             decimal determinedQty = Convert.ToDecimal(theReport.DMRQualifiedQty) + Convert.ToDecimal(theReport.DMRRepairQty) + Convert.ToDecimal(theReport.DMRUnQualifiedQty);
 
 
-            if(DMRInfo.TransformUserGroup == null || DMRInfo.TransformUserGroup == "")
+            if (DMRInfo.TransformUserGroup == null || DMRInfo.TransformUserGroup == "")
                 return "错误：下步接收人为空";
 
             if (DMRInfo.DMRQualifiedQty < 0)
@@ -507,7 +507,7 @@ namespace Appapi.Models
                 if (theReport.ErpCounter < 1)//不合格品界面
                 {
                     int TranID = -1;
-                    res = ErpAPI.CommonRepository.Startnonconf(theReport.JobNum, (int)theReport.AssemblySeq, theReport.Company, (int)theReport.MtlSeq, (decimal)theReport.UnQualifiedQty, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, theReport.UnQualifiedReason, theReport.Plant, theReport.LotNum,"物料", out TranID);
+                    res = ErpAPI.CommonRepository.Startnonconf(theReport.JobNum, (int)theReport.AssemblySeq, theReport.Company, (int)theReport.MtlSeq, (decimal)theReport.UnQualifiedQty, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, theReport.UnQualifiedReason, theReport.Plant, theReport.LotNum, "物料", out TranID);
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 
@@ -517,7 +517,7 @@ namespace Appapi.Models
                     sql = "update MtlReport set ErpCounter = 1 ," +
                         "tranid = " + (TranID == -1 ? "null" : TranID.ToString()) + "," +
                         "CheckCounter = " + theReport.UnQualifiedQty + " " +
-                        "where id = " + DMRInfo.ID + ""; 
+                        "where id = " + DMRInfo.ID + "";
 
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
@@ -526,14 +526,14 @@ namespace Appapi.Models
                 {
                     int DMRID = 0;
 
-                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "物料", theReport.Plant,"",0, out DMRID); //产品其它不良 D22  D
+                    res = ErpAPI.CommonRepository.StartInspProcessing((int)theReport.TranID, 0, (decimal)theReport.UnQualifiedQty, "D22", "BLPC", "01", "物料", theReport.Plant, "", 0, out DMRID); //产品其它不良 D22  D
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res;
 
                     theReport.DMRID = DMRID;
 
                     sql = " update MtlReport set ErpCounter = 2, DMRID = " + (DMRID == -1 ? "null" : DMRID.ToString()) + " where id = " + DMRInfo.ID + "";
-                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);                 
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 }
             }
             catch (Exception ex)
@@ -552,7 +552,7 @@ namespace Appapi.Models
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交让步数量、返修数量、报废数量";
 
-                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason,DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+                InsertConcessionRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRQualifiedQty, DMRInfo.TransformUserGroup, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
 
                 sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRQualifiedQty + ",DMRQualifiedQty = ISNULL(DMRQualifiedQty,0) + " + DMRInfo.DMRQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -589,7 +589,7 @@ namespace Appapi.Models
 
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
-                    "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark,dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
+                    "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
                     RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString());
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
@@ -607,25 +607,31 @@ namespace Appapi.Models
                 sql = @"select IUM from erp.JobMtl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq= " + theReport.MtlSeq + "";
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
+
+
+
+                #region OA部分
                 decimal amount = 23;
+                int OARequestID = 0;
 
+                if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]))
+                {
 
+                    string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
+                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
+                     "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
+                     RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString());
 
-                string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
-                 theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
-                 "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
-                 RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString());
+                    OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                    res = client.doCreateWorkflowRequest(XML, 1012);
 
-                OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
-                res = client.doCreateWorkflowRequest(XML, 1012);
+                    if (Convert.ToInt32(res) <= 0)
+                        return "错误：转发OA失败:" + res;
 
-                if (Convert.ToInt32(res) <= 0)
-                    return "错误：转发OA失败:" + res;
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
+                }
+                #endregion
 
-                AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
-
-
-               
 
                 sql = @"INSERT INTO [dbo].[DiscardReview]
                        ([MtlReportID]
@@ -661,26 +667,29 @@ namespace Appapi.Models
                     ,'{12}'
                     ,'{13}'
                     ,'{14}')";
-                sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["ShareSwitch"]),
-                    amount, 1, res, DMRInfo.DMRUnQualifiedReason,  DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, 
-                    DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, 
+                sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]),
+                    amount, 1, OARequestID, DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,
+                    DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark,
                     CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
-               
+
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(DMRInfo.ID, 201, OpDate, "报废申请插入成功");
+                AddOpLog(DMRInfo.ID, 201, OpDate, "报废申请记录生成成功");
 
 
-                //res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
-                //if (res.Substring(0, 1).Trim() != "1")
-                //    return "错误：" + res + ". 请重新提交报废数量";
+                if (amount < Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]))
+                {
+                    res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
+                    if (res.Substring(0, 1).Trim() != "1")
+                        return "错误：" + res + ". 请重新提交报废数量";
 
-                //InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup,DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
 
-                //sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
-                //Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                //AddOpLog(DMRInfo.ID, 201, OpDate, "报废子流程生成");
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "报废子流程生成");
+                }
             }
 
             return "处理成功";
@@ -781,7 +790,7 @@ namespace Appapi.Models
 
 
 
-            string append ="", type = "返修提交|";
+            string append = "", type = "返修提交|";
             if ((theSubReport.DMRQualifiedQty) != null)
             {
                 type = "让步提交|";
@@ -801,7 +810,7 @@ namespace Appapi.Models
                     OpReportRepository.InputToBC_Warehouse(theSubReport.DMRJobNum, 0, (int)nextinfo.Rows[0]["OprSeq"], AcceptInfo.BinNum,
                     (string)nextinfo.Rows[0]["OpCode"], (string)nextinfo.Rows[0]["OpDesc"], theSubReport.PartNum,
                     (string)nextinfo.Rows[0]["Description"], theSubReport.Plant, theSubReport.Company, (decimal)theSubReport.DMRRepairQty, "物料DMR返修接收");
-                    
+
                     AddOpLog(theSubReport.ID, 401, OpDate, "下工序表处物料入库成功");
                 }
                 if (theSubReport.Plant != "RRSite")
