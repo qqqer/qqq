@@ -313,6 +313,14 @@ namespace Appapi.Models
                                     <isEdit>true</isEdit>
                                     <fieldValue>{20}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>RelatedOprInfo</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{21}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
                                 </workflowRequestTableFields>
                             </weaver.workflow.webservices.WorkflowRequestTableRecord>
                         </requestRecords>
@@ -321,7 +329,7 @@ namespace Appapi.Models
 
             u = string.Format(u, jobnum, AssemblySeq, JobSeq,  OpCode, System.Security.SecurityElement.Escape(OpDesc), DMRRepairQty,
          plant,  DMRJobNum,  CheckUserid,  CheckDate,  UnQualifiedType,  Responsibility,  DefectNO,
-         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(CheckUserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner);
+         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(CheckUserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner,RelatedOprInfo);
 
             return u;
         }
