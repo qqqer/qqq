@@ -198,7 +198,7 @@ namespace Appapi.Models
 
 
 
-        private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark)
+        public static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark)
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
@@ -608,15 +608,14 @@ namespace Appapi.Models
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
-
-
                 #region OA部分
-                decimal amount = 23;
+                decimal amount = GetPartUnitCost(theReport.PartNum, theReport.Plant) * (decimal)DMRInfo.DMRUnQualifiedQty;
                 int OARequestID = 0;
+                int StatusCode = 4; //自动确认报废
+
 
                 if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]))
                 {
-
                     string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
                      theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
                      "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
@@ -629,6 +628,8 @@ namespace Appapi.Models
                         return "错误：转发OA失败:" + res;
 
                     AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
+
+                    StatusCode = 1; //OA处理中
                 }
                 #endregion
 
@@ -668,7 +669,7 @@ namespace Appapi.Models
                     ,'{13}'
                     ,'{14}')";
                 sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]),
-                    amount, 1, OARequestID, DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,
+                    amount, StatusCode, OARequestID, DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,
                     DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark,
                     CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
 
@@ -1005,8 +1006,26 @@ namespace Appapi.Models
         }
 
 
+        public static decimal GetPartUnitCost(string partnum, string plant)
+        {
+            int costid = 0;
 
-        private static void AddOpLog(int? MtlReportID, int ApiNum, string OpDate, string OpDetail)
+            if (plant == "MfgSys") costid = 1;
+            if (plant == "RRSite") costid = 2;
+            if (plant == "HDSite") costid = 3;
+
+            decimal  cost = 0;
+
+            string ss = @"select  case when TypeCode = 'M' then (StdLaborCost + StdBurdenCost + StdMaterialCost + StdMtlBurCost + StdSubContCost) else AvgMaterialCost end from erp.PartCost pc left join erp.part pa on pc.PartNum = pa.PartNum  where pa. PartNum = '" + partnum + "' and costid = " + costid + "";
+
+            cost = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, ss, null);
+
+            return cost;
+        }
+
+
+
+        public static void AddOpLog(int? MtlReportID, int ApiNum, string OpDate, string OpDetail)
         {
             string sql = @"insert into MtlReportLog(UserId, Opdate, ApiNum,  OpDetail, MtlReportID) Values('{0}', {1}, {2}, '{3}', {4}) ";
             sql = string.Format(sql, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, OpDetail, MtlReportID == null ? "null" : MtlReportID.ToString());

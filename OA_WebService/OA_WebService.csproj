@@ -68,15 +68,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="kk\WebService1 - 复制.asmx" />
     <Content Include="Web.config" />
     <Content Include="WebService1.asmx" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="kk\WebService1 - 复制.asmx.cs">
-      <DependentUpon>WebService1 - 复制.asmx</DependentUpon>
-      <SubType>Component</SubType>
-    </Compile>
+    <Compile Include="BLL\MTL.cs" />
+    <Compile Include="BLL\PRO.cs" />
+    <Compile Include="BLL\SUB.cs" />
+    <Compile Include="Model\DiscardReview.cs" />
     <Compile Include="XmlHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="WebService1.asmx.cs">
@@ -93,6 +92,20 @@
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Appapi\AppAPI.csproj">
+      <Project>{5ab9420d-f168-4979-815a-95f229a64787}</Project>
+      <Name>AppAPI</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Common\Common.csproj">
+      <Project>{4f6d6bb3-d978-4871-9d43-0763abbe3e34}</Project>
+      <Name>Common</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\ERPAPI\ErpAPI.csproj">
+      <Project>{5c6f0571-6a74-453e-a60e-3aeb7033751d}</Project>
+      <Name>ErpAPI</Name>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
