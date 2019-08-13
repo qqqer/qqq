@@ -609,30 +609,12 @@ namespace Appapi.Models
 
                 decimal amount = 23;
 
-                sql = @"INSERT INTO [dbo].[DiscardReview]
-                       ([MtlReportID]
-                       ,[ReviewCreateUserID]
-                       ,[ReviewCreateDate]
-                       ,[ReviewQty]
-                       ,[TopLimit]
-                       ,[Amount]
-                       ,[SatusCode])
-                 VALUES(
-                       {0}
-                       ,'{1}'
-                       ,getdate()
-                       ,{2}
-                       ,{3}
-                       ,{4}
-                       ,{5})";
-                sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["ShareSwitch"]),
-                    amount, 1);
 
 
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
-                   theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
-                   "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
-                   RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString());
+                 theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
+                 "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
+                 RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString());
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
                 res = client.doCreateWorkflowRequest(XML, 1012);
@@ -643,7 +625,50 @@ namespace Appapi.Models
                 AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
 
 
+               
 
+                sql = @"INSERT INTO [dbo].[DiscardReview]
+                       ([MtlReportID]
+                       ,[ReviewCreateUserID]
+                       ,[ReviewCreateDate]
+                       ,[ReviewQty]
+                       ,[TopLimit]
+                       ,[Amount]
+                       ,[SatusCode]
+                       ,OARequestID
+                        ,DR_DMRUnQualifiedReason
+                        ,DR_DMRWarehouseCode
+                        ,DR_DMRBinNum
+                        ,DR_TransformUserGroup
+                        ,DR_Responsibility
+                        ,DR_DMRUnQualifiedReasonRemark
+                        ,DR_DMRUnQualifiedReasonDesc
+                        ,DR_ResponsibilityRemark)
+                 VALUES(
+                       {0}
+                       ,'{1}'
+                       ,getdate()
+                       ,{2}
+                       ,{3}
+                       ,{4}
+                       ,{5}
+                       ,{6}
+                    ,'{7}'
+                    ,'{8}'
+                    ,'{9}'
+                    ,'{10}'
+                    ,'{11}'
+                    ,'{12}'
+                    ,'{13}'
+                    ,'{14}')";
+                sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["ShareSwitch"]),
+                    amount, 1, res, DMRInfo.DMRUnQualifiedReason,  DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, 
+                    DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, 
+                    CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+               
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                AddOpLog(DMRInfo.ID, 201, OpDate, "报废申请插入成功");
 
 
                 //res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
