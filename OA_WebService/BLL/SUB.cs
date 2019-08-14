@@ -7,5 +7,9 @@ namespace OA_WebService
 {
     public class SUB
     {
+        internal static string DMRDiscardHandler(string paraXML)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

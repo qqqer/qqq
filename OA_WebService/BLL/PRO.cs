@@ -7,5 +7,9 @@ namespace OA_WebService
 {
     public class PRO
     {
+        internal static string DMRDiscardHandler(string paraXML)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

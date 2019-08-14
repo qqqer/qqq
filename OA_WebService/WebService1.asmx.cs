@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Services;
+using OA_WebService.Model;
 
 namespace OA_WebService
 {
@@ -22,12 +23,34 @@ namespace OA_WebService
         [WebMethod]
         public string HelloWorld(string sd)
         {
-            ////Hashtable ht = XmlHandler.GetParametersFromXML(sd);
+            //Hashtable ht = XmlHandler.GetParametersFromXML(sd);
             //string result = "Hello world! Time is: " + DateTime.Now;
             //var resp = new HttpResponseMessage(HttpStatusCode.OK);
             //resp.Content = new StringContent(sd, System.Text.Encoding.UTF8, "text/plain");
             
             return sd;
+        }
+
+
+        [WebMethod]
+        public string MTL2199(string paraXML)
+        {
+            string ret =  MTL.DMRDiscardHandler(paraXML);
+            return ret;
+        }
+
+        [WebMethod]
+        public string PRO2199(string paraXML)
+        {
+            string ret = PRO.DMRDiscardHandler(paraXML);
+            return ret;
+        }
+
+        [WebMethod]
+        public string SUB2199(string paraXML)
+        {
+            string ret = SUB.DMRDiscardHandler(paraXML);
+            return ret;
         }
     }
 }

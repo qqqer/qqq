@@ -153,11 +153,11 @@ namespace Appapi.Models
             string sql = "select  plantid  from uf_cust_planter where custid = '" + PartDesc.Substring(0, 4) + "'";
             string planner = CommonRepository.GetValueAsString(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null));
 
-            int plantid1 = -1;
+            int plant1 = -1;
 
-            if (plant == "MfgSys") plantid1 = 0;
-            if (plant == "RRSite") plantid1 = 2;
-            if (plant == "HDSite") plantid1 = 1;
+            if (plant == "MfgSys") plant1 = 0;
+            if (plant == "RRSite") plant1 = 2;
+            if (plant == "HDSite") plant1 = 1;
 
             string u = @"
                 <WorkflowRequestInfo>
@@ -335,7 +335,7 @@ namespace Appapi.Models
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
                                 <weaver.workflow.webservices.WorkflowRequestTableField>
-                                    <fieldName>plantid1</fieldName>
+                                    <fieldName>plant1</fieldName>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{23}</fieldValue>
@@ -349,7 +349,7 @@ namespace Appapi.Models
 
             u = string.Format(u, jobnum, AssemblySeq, JobSeq,  OpCode, System.Security.SecurityElement.Escape(OpDesc), DMRRepairQty,
          plant,  DMRJobNum,  checkuserid,  CheckDate,  UnQualifiedType,  Responsibility,  DefectNO,
-         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(checkuserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner,RelatedOprInfo, precheckuser,plantid1);
+         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(checkuserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner,RelatedOprInfo, precheckuser,plant1);
 
             return u;
         }
@@ -360,11 +360,11 @@ namespace Appapi.Models
         string plant, decimal Amount, decimal TopLimit, string CheckUserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
         string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser)
         {
-            int plantid1 = -1;
+            int plant1 = -1;
 
-            if (plant == "MfgSys") plantid1 = 0;
-            if (plant == "RRSite") plantid1 = 2;
-            if (plant == "HDSite") plantid1 = 1;
+            if (plant == "MfgSys") plant1 = 0;
+            if (plant == "RRSite") plant1 = 2;
+            if (plant == "HDSite") plant1 = 1;
 
             string u = @"
                 <WorkflowRequestInfo>
@@ -541,7 +541,7 @@ namespace Appapi.Models
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
                                 <weaver.workflow.webservices.WorkflowRequestTableField>
-                                    <fieldName>plantid1</fieldName>
+                                    <fieldName>plant1</fieldName>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{23}</fieldValue>
@@ -557,7 +557,7 @@ namespace Appapi.Models
          plant, Amount , CheckUserid, CheckDate, UnQualifiedType, Responsibility, DefectNO,
          System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark), DMRUnQualifiedReasonDesc, ResponsibilityRemark,
          CommonRepository.GetUserName(CheckUserid), PartNum, System.Security.SecurityElement.Escape(PartDesc), PartDesc.Substring(0, 4),  
-         RelatedOprInfo,precheckuser, TopLimit,plantid1);
+         RelatedOprInfo,precheckuser, TopLimit,plant1);
 
             return u;
         }

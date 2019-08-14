@@ -24,7 +24,7 @@ namespace OA_WebService.Model
         public string DR_DMRUnQualifiedReasonRemark { get; set; }
         public string DR_DMRUnQualifiedReasonDesc { get; set; }
         public string DR_ResponsibilityRemark { get; set; }
-        public int SatusCode { get; set; }
+        public int StatusCode { get; set; }
         public string OAReviewer { get; set; }
         public DateTime? OAReviewDate { get; set; }
         public string OAComment { get; set; }

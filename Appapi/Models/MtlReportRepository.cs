@@ -198,10 +198,8 @@ namespace Appapi.Models
 
 
 
-        public static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark)
+        public static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string OpDate)
         {
-            string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
             string sql = @"select * from MtlReport where Id = " + Id + "";
             OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
@@ -610,9 +608,12 @@ namespace Appapi.Models
                 sql = @"select IUM from erp.JobMtl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq= " + theReport.MtlSeq + "";
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
+                sql = @"select QtyPer from erp.JobMtl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq= " + theReport.MtlSeq + "";
+                object QtyPer = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
 
                 #region OA部分
-                decimal amount = GetPartUnitCost(theReport.PartNum, theReport.Plant) * (decimal)DMRInfo.DMRUnQualifiedQty;
+                decimal amount = GetPartUnitCost(theReport.PartNum, theReport.Plant) * (decimal)DMRInfo.DMRUnQualifiedQty * (decimal)QtyPer;
                 int OARequestID = 0;
                 int StatusCode = 4; //自动确认报废
 
@@ -643,6 +644,11 @@ namespace Appapi.Models
 
                     AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
 
+
+                    sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "checkcounter -= " + DMRInfo.DMRUnQualifiedQty+ " 更新成功");
                     StatusCode = 1; //OA处理中
                 }
                 #endregion
@@ -655,7 +661,7 @@ namespace Appapi.Models
                        ,[ReviewQty]
                        ,[TopLimit]
                        ,[Amount]
-                       ,[SatusCode]
+                       ,[StatusCode]
                        ,OARequestID
                         ,DR_DMRUnQualifiedReason
                         ,DR_DMRWarehouseCode
@@ -689,7 +695,7 @@ namespace Appapi.Models
 
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(DMRInfo.ID, 201, OpDate, "报废申请记录生成成功");
+                AddOpLog(DMRInfo.ID, 201, OpDate, "报废缓存记录生成成功");
 
 
                 if (amount < Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]))
@@ -698,7 +704,9 @@ namespace Appapi.Models
                     if (res.Substring(0, 1).Trim() != "1")
                         return "错误：" + res + ". 请重新提交报废数量";
 
-                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, 
+                        DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup, DMRInfo.Responsibility, 
+                        DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff"));
 
                     sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
