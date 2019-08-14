@@ -153,6 +153,11 @@ namespace Appapi.Models
             string sql = "select  plantid  from uf_cust_planter where custid = '" + PartDesc.Substring(0, 4) + "'";
             string planner = CommonRepository.GetValueAsString(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null));
 
+            int plantid1 = -1;
+
+            if (plant == "MfgSys") plantid1 = 0;
+            if (plant == "RRSite") plantid1 = 2;
+            if (plant == "HDSite") plantid1 = 1;
 
             string u = @"
                 <WorkflowRequestInfo>
@@ -308,7 +313,7 @@ namespace Appapi.Models
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
                                 <weaver.workflow.webservices.WorkflowRequestTableField>
-                                    <fieldName>plantid1</fieldName>
+                                    <fieldName>plantid</fieldName>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{20}</fieldValue>
@@ -329,6 +334,13 @@ namespace Appapi.Models
                                     <fieldValue>{22}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>plantid1</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{23}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
                                 </workflowRequestTableFields>
                             </weaver.workflow.webservices.WorkflowRequestTableRecord>
                         </requestRecords>
@@ -337,7 +349,7 @@ namespace Appapi.Models
 
             u = string.Format(u, jobnum, AssemblySeq, JobSeq,  OpCode, System.Security.SecurityElement.Escape(OpDesc), DMRRepairQty,
          plant,  DMRJobNum,  checkuserid,  CheckDate,  UnQualifiedType,  Responsibility,  DefectNO,
-         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(checkuserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner,RelatedOprInfo, precheckuser);
+         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(checkuserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner,RelatedOprInfo, precheckuser,plantid1);
 
             return u;
         }
@@ -348,6 +360,12 @@ namespace Appapi.Models
         string plant, decimal Amount, decimal TopLimit, string CheckUserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
         string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser)
         {
+            int plantid1 = -1;
+
+            if (plant == "MfgSys") plantid1 = 0;
+            if (plant == "RRSite") plantid1 = 2;
+            if (plant == "HDSite") plantid1 = 1;
+
             string u = @"
                 <WorkflowRequestInfo>
                     <creatorId>1012</creatorId>
@@ -522,6 +540,13 @@ namespace Appapi.Models
                                     <fieldValue>{22}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>plantid1</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{23}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
                                 </workflowRequestTableFields>
                             </weaver.workflow.webservices.WorkflowRequestTableRecord>
                         </requestRecords>
@@ -532,7 +557,7 @@ namespace Appapi.Models
          plant, Amount , CheckUserid, CheckDate, UnQualifiedType, Responsibility, DefectNO,
          System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark), DMRUnQualifiedReasonDesc, ResponsibilityRemark,
          CommonRepository.GetUserName(CheckUserid), PartNum, System.Security.SecurityElement.Escape(PartDesc), PartDesc.Substring(0, 4),  
-         RelatedOprInfo,precheckuser, TopLimit);
+         RelatedOprInfo,precheckuser, TopLimit,plantid1);
 
             return u;
         }
