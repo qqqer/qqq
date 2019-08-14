@@ -147,8 +147,8 @@ namespace Appapi.Models
 
 
         public static string Create2188XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal DMRRepairQty,
-        string plant, string DMRJobNum, string CheckUserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
-        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo)
+        string plant, string DMRJobNum, string checkuserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
+        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser)
         {
             string sql = "select  plantid  from uf_cust_planter where custid = '" + PartDesc.Substring(0, 4) + "'";
             string planner = CommonRepository.GetValueAsString(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null));
@@ -308,7 +308,7 @@ namespace Appapi.Models
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
                                 <weaver.workflow.webservices.WorkflowRequestTableField>
-                                    <fieldName>plantid</fieldName>
+                                    <fieldName>plantid1</fieldName>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{20}</fieldValue>
@@ -319,6 +319,14 @@ namespace Appapi.Models
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{21}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>precheckuser</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{22}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
                                 </workflowRequestTableFields>
@@ -328,29 +336,25 @@ namespace Appapi.Models
                 </WorkflowRequestInfo>";
 
             u = string.Format(u, jobnum, AssemblySeq, JobSeq,  OpCode, System.Security.SecurityElement.Escape(OpDesc), DMRRepairQty,
-         plant,  DMRJobNum,  CheckUserid,  CheckDate,  UnQualifiedType,  Responsibility,  DefectNO,
-         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(CheckUserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner,RelatedOprInfo);
+         plant,  DMRJobNum,  checkuserid,  CheckDate,  UnQualifiedType,  Responsibility,  DefectNO,
+         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark),  DMRUnQualifiedReasonDesc,  ResponsibilityRemark, CommonRepository.GetUserName(checkuserid),PartNum, System.Security.SecurityElement.Escape(PartDesc),PartDesc.Substring(0,4),planner,RelatedOprInfo, precheckuser);
 
             return u;
         }
 
 
 
-        public static string Create2199XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal DMRRepairQty,
-        string plant, string DMRJobNum, string CheckUserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
-        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo)
+        public static string Create2199XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal ReviewQty,
+        string plant, decimal Amount, decimal TopLimit, string CheckUserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
+        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser)
         {
-            string sql = "select  plantid  from uf_cust_planter where custid = '" + PartDesc.Substring(0, 4) + "'";
-            string planner = CommonRepository.GetValueAsString(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null));
-
-
             string u = @"
                 <WorkflowRequestInfo>
                     <creatorId>1012</creatorId>
-                    <requestName>不良品返工</requestName>     
+                    <requestName>不良品报废</requestName>     
             
                     <workflowBaseInfo>
-                        <workflowId>2188</workflowId>
+                        <workflowId>2199</workflowId>
                     </workflowBaseInfo>
 
                     <workflowMainTableInfo>
@@ -393,7 +397,7 @@ namespace Appapi.Models
                                 </weaver.workflow.webservices.WorkflowRequestTableField>
 
                                 <weaver.workflow.webservices.WorkflowRequestTableField>     
-                                    <fieldName>DMRRepairQty</fieldName>
+                                    <fieldName>ReviewQty</fieldName>
                                     <fieldValue>{5}</fieldValue>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
@@ -407,7 +411,7 @@ namespace Appapi.Models
                                 </weaver.workflow.webservices.WorkflowRequestTableField>
 
                                 <weaver.workflow.webservices.WorkflowRequestTableField>     
-                                    <fieldName>DMRJobNum</fieldName>
+                                    <fieldName>Amount</fieldName>
                                     <fieldValue>{7}</fieldValue>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
@@ -496,19 +500,26 @@ namespace Appapi.Models
                                     <isEdit>true</isEdit>
                                     <fieldValue>{19}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
-
+                                
                                 <weaver.workflow.webservices.WorkflowRequestTableField>
-                                    <fieldName>plantid</fieldName>
+                                    <fieldName>RelatedOprInfo</fieldName>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{20}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
                                 <weaver.workflow.webservices.WorkflowRequestTableField>
-                                    <fieldName>RelatedOprInfo</fieldName>
+                                    <fieldName>precheckuser</fieldName>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{21}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>TopLimit</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{22}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
                                 </workflowRequestTableFields>
@@ -517,9 +528,11 @@ namespace Appapi.Models
                     </workflowMainTableInfo>
                 </WorkflowRequestInfo>";
 
-            u = string.Format(u, jobnum, AssemblySeq, JobSeq, OpCode, System.Security.SecurityElement.Escape(OpDesc), DMRRepairQty,
-         plant, DMRJobNum, CheckUserid, CheckDate, UnQualifiedType, Responsibility, DefectNO,
-         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark), DMRUnQualifiedReasonDesc, ResponsibilityRemark, CommonRepository.GetUserName(CheckUserid), PartNum, System.Security.SecurityElement.Escape(PartDesc), PartDesc.Substring(0, 4), planner, RelatedOprInfo);
+            u = string.Format(u, jobnum, AssemblySeq, JobSeq, OpCode, System.Security.SecurityElement.Escape(OpDesc), ReviewQty,
+         plant, Amount , CheckUserid, CheckDate, UnQualifiedType, Responsibility, DefectNO,
+         System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark), DMRUnQualifiedReasonDesc, ResponsibilityRemark,
+         CommonRepository.GetUserName(CheckUserid), PartNum, System.Security.SecurityElement.Escape(PartDesc), PartDesc.Substring(0, 4),  
+         RelatedOprInfo,precheckuser, TopLimit);
 
             return u;
         }

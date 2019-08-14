@@ -34,7 +34,7 @@ namespace OA_WebService
 
             MtlReportRepository.AddOpLog(discardReview.MtlReportID, 201, "", "报废子流程生成");
 
-            return "";
+            return "OK";
         }
     }
 }

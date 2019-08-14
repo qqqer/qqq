@@ -590,13 +590,16 @@ namespace Appapi.Models
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
                     "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
-                    RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString());
+                    RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString(), "");
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
                 res = client.doCreateWorkflowRequest(XML, 1012);
 
                 if (Convert.ToInt32(res) <= 0)
+                {
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA失败:" + res);
                     return "错误：转发OA失败:" + res;
+                }
 
                 AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
 
@@ -616,10 +619,21 @@ namespace Appapi.Models
 
                 if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]))
                 {
-                    string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRRepairQty,
-                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
+                    sql = @"select PartNum , Description from erp.JobAsmbl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " ";
+                    DataTable dt3 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+
+                    sql = @"select RelatedOperation from erp.JobMtl where JobNum = '" + theReport.JobNum + "' and  AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq = " + theReport.MtlSeq + "";
+                    int RelatedOperation = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+                    sql = @"select  OpCode , OpDesc from erp.JobOper where JobNum = '" + theReport.JobNum + "' and  AssemblySeq = " + theReport.AssemblySeq + " and OprSeq = " + RelatedOperation + " ";
+                    DataTable dt4 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
+
+
+                    string XML = OA_XML_Template.Create2199XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
+                     theReport.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良返工", DMRInfo.Responsibility,
                      "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
-                     RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString());
+                     RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString(),"");
 
                     OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
                     res = client.doCreateWorkflowRequest(XML, 1012);

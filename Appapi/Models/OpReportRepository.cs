@@ -1415,7 +1415,7 @@ namespace Appapi.Models
 
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRRepairQty,
                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良返工", DMRInfo.Responsibility,
-                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,"");
+                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,"", CommonRepository.GetUserName(theReport.CheckUser));
 
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
@@ -1432,6 +1432,15 @@ namespace Appapi.Models
                 sql = @"select IUM  from erp.JobAsmbl where JobNum = '" + theReport.JobNum + "' and AssemblySeq = " + theReport.AssemblySeq + "";
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
+
+
+                decimal amount = GetProductionUnitCost(theReport.JobNum, theReport.AssemblySeq);
+                int OARequestID = 0;
+                int StatusCode = 4; //自动确认报废
+
+
+
+
                 res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交报废数量";
@@ -1445,6 +1454,17 @@ namespace Appapi.Models
             }
 
             return "处理成功";
+        }
+
+        private static decimal GetProductionUnitCost(string jobnum, int asseq)
+        {
+            decimal cost = 0;
+
+            string ss = @"  select sum(TLABurdenCost +TLALaborCost + TLASubcontractCost + TLAMaterialCost + TLAMtlBurCost) TActTotalCost
+                 from erp.JobAsmbl where  Company = '001' and JobNum = '"+jobnum+"' and AssemblySeq >= "+asseq+"";
+            cost = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, ss, null);
+
+            return cost;
         }
 
         private static string TransferCommitOfSub(OpReport TransmitInfo)//apinum 302
