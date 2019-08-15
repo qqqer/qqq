@@ -21,10 +21,8 @@ namespace OA_WebService
                 Hashtable ht = XmlHandler.GetParametersFromXML(paraXML);
                 int StatusCode = (string)ht["StatusCode"] == "同意" ? 3 : 2;
                 int OARequestID = (int)ht["OARequestID"];
-
-
-
-
+                string OAReviewer = (string)ht["OAReviewer"];
+                string OAComment = (string)ht["OAComment"];
 
 
                 string sql = @"select  *  from DiscardReview where OARequestID = " + OARequestID + "";
