@@ -24,10 +24,10 @@ namespace OA_WebService
         public string HelloWorld(string sd)
         {
             //Hashtable ht = XmlHandler.GetParametersFromXML(sd);
+            // ht["AA"].ToString();
             //string result = "Hello world! Time is: " + DateTime.Now;
             //var resp = new HttpResponseMessage(HttpStatusCode.OK);
             //resp.Content = new StringContent(sd, System.Text.Encoding.UTF8, "text/plain");
-            
             return sd;
         }
 
