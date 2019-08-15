@@ -595,11 +595,11 @@ namespace Appapi.Models
 
                 if (Convert.ToInt32(res) <= 0)
                 {
-                    AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA失败:" + res);
-                    return "错误：转发OA失败:" + res;
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "返修转发OA失败:" + res);
+                    return "错误：返修转发OA失败:" + res;
                 }
 
-                AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
+                AddOpLog(DMRInfo.ID, 201, OpDate, "返修转发OA成功，OA流程id：" + res);
 
             }
 
@@ -640,9 +640,12 @@ namespace Appapi.Models
                     res = client.doCreateWorkflowRequest(XML, 1012);
 
                     if (Convert.ToInt32(res) <= 0)
-                        return "错误：转发OA失败:" + res;
+                    {
+                        AddOpLog(DMRInfo.ID, 201, OpDate, "报废转发OA失败:" + res);
+                        return "错误：报废转发OA失败:" + res;
+                    }
 
-                    AddOpLog(DMRInfo.ID, 201, OpDate, "转发OA成功，OA流程id：" + res);
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "报废转发OA成功，OA流程id：" + res);
 
 
                     sql = " update MtlReport set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";

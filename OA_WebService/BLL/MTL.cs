@@ -16,9 +16,9 @@ namespace OA_WebService
             try
             {
                 string OAReviewDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-
-           
+                
                 Hashtable ht = XmlHandler.GetParametersFromXML(paraXML);
+
                 int StatusCode = (string)ht["StatusCode"] == "同意" ? 3 : 2;
                 int OARequestID = (int)ht["OARequestID"];
                 string OAReviewer = (string)ht["OAReviewer"];
@@ -31,26 +31,28 @@ namespace OA_WebService
                 sql = @"select * from MtlReport where Id = " + discardReview.MtlReportID + "";
                 OpReport theReport = CommonRepository.DataTableToList<OpReport>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql)).First(); //获取该批次记录
 
-                sql = @"select IUM from erp.JobMtl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq= " + theReport.MtlSeq + "";
-                object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-
+                
                 if (StatusCode == 2) //OA拒绝报废
                 {
                     sql = " update MtlReport set checkcounter = checkcounter + " + discardReview.ReviewQty + "  where id = " + discardReview.MtlReportID + "";
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
                     MtlReportRepository.AddOpLog(discardReview.MtlReportID, 201, "", "checkcounter += " + discardReview.ReviewQty + " 更新成功");
 
                     sql = " update DiscardReview set StatusCode = " + StatusCode + ", OAReviewDate = '" + OAReviewDate + "', OAReviewer = '" + OAReviewer + "',OAComment = '" + OAComment + "'  where OARequestID = " + OARequestID + "";
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
                     MtlReportRepository.AddOpLog(discardReview.MtlReportID, 201, "", "StatusCode = " + StatusCode + " 更新成功");
                 }
                 else if (StatusCode == 3) //OA同意报废
                 {
+                    sql = @"select IUM from erp.JobMtl where JobNum ='" + theReport.JobNum + "'  and   AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq= " + theReport.MtlSeq + "";
+                    object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
                     string res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)discardReview.ReviewQty, discardReview.DR_DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
                     if (res.Substring(0, 1).Trim() != "1")
+                    {
+                        MtlReportRepository.AddOpLog(discardReview.MtlReportID, 201, "", res + ". 请重新提交报废数量");
                         return "错误：" + res + ". 请重新提交报废数量";
+                    }
 
                     MtlReportRepository.InsertDiscardRecord((int)discardReview.MtlReportID, (decimal)discardReview.ReviewQty, discardReview.DR_DMRUnQualifiedReason,
                         (int)theReport.DMRID, discardReview.DR_DMRWarehouseCode, discardReview.DR_DMRBinNum, discardReview.DR_TransformUserGroup,

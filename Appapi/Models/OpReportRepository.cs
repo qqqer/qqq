@@ -280,7 +280,7 @@ namespace Appapi.Models
         }
 
 
-        private static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string ResponsibilityRemark)
+        public static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string ResponsibilityRemark)
         {
             string sql = @"
                insert into BPMSub   select StartUser, [CreateUser]
@@ -1422,9 +1422,12 @@ namespace Appapi.Models
                 res = client.doCreateWorkflowRequest(XML, 1012);
 
                 if (Convert.ToInt32(res) <= 0)
-                    return "错误：转发OA失败:" + res;
+                {
+                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "返修转发OA失败:" + res);
+                    return "错误：返修转发OA失败:" + res;
+                }
 
-                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "转发OA成功，OA流程id：" + res);
+                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "返修转发OA成功，OA流程id：" + res);
             }
 
             if (DMRInfo.DMRUnQualifiedQty > 0)
@@ -1433,24 +1436,98 @@ namespace Appapi.Models
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
-
-                decimal amount = GetProductionUnitCost(theReport.JobNum, theReport.AssemblySeq);
+                decimal amount = GetProductionUnitCost(theReport.JobNum, (int)theReport.AssemblySeq);
                 int OARequestID = 0;
                 int StatusCode = 4; //自动确认报废
 
 
+                if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]))
+                {
+                    string XML = OA_XML_Template.Create2199XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
+                     theReport.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良返工", DMRInfo.Responsibility,
+                     "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,
+                    "", CommonRepository.GetUserName(theReport.CheckUser));
+
+                    OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                    res = client.doCreateWorkflowRequest(XML, 1012);
+
+                    if (Convert.ToInt32(res) <= 0)
+                    {
+                        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废转发OA失败:" + res);
+
+                        return "错误：报废转发OA失败:" + res;
+                    }
+                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废转发OA成功，OA流程id：" + res);
 
 
-                res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
-                if (res.Substring(0, 1).Trim() != "1")
-                    return "错误：" + res + ". 请重新提交报废数量";
+                    sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "checkcounter -= " + DMRInfo.DMRUnQualifiedQty + " 更新成功");
 
-                InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark);
+                    StatusCode = 1; //OA处理中
+                }
 
-                sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+
+                    sql = @"INSERT INTO [dbo].[DiscardReview]
+                       ([bpmID]
+                       ,[ReviewCreateUserID]
+                       ,[ReviewCreateDate]
+                       ,[ReviewQty]
+                       ,[TopLimit]
+                       ,[Amount]
+                       ,[StatusCode]
+                       ,OARequestID
+                        ,DR_DMRUnQualifiedReason
+                        ,DR_DMRWarehouseCode
+                        ,DR_DMRBinNum
+                        ,DR_TransformUserGroup
+                        ,DR_Responsibility
+                        ,DR_DMRUnQualifiedReasonRemark
+                        ,DR_DMRUnQualifiedReasonDesc
+                        ,DR_ResponsibilityRemark)
+                 VALUES(
+                       {0}
+                       ,'{1}'
+                       ,getdate()
+                       ,{2}
+                       ,{3}
+                       ,{4}
+                       ,{5}
+                       ,{6}
+                    ,'{7}'
+                    ,'{8}'
+                    ,'{9}'
+                    ,'{10}'
+                    ,'{11}'
+                    ,'{12}'
+                    ,'{13}'
+                    ,'{14}')";
+                sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]),
+                    amount, StatusCode, OARequestID, DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,
+                    DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark,
+                    CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废缓存记录生成成功");
 
-                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
+
+
+                if (amount < Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]))
+                {
+                    res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
+                    if (res.Substring(0, 1).Trim() != "1")
+                    {
+                        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, res + ". 请重新提交报废数量");
+                        return "错误：" + res + ". 请重新提交报废数量";
+                    }
+
+                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark);
+
+                    sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
+                }
             }
 
             return "处理成功";
@@ -2824,7 +2901,7 @@ namespace Appapi.Models
         }//添加操作记录
 
 
-        private static void AddOpLog(int? id, string JobNum, int AssemblySeq, int JobSeq, int ApiNum, string OpDate, string OpDetail)
+        public static void AddOpLog(int? id, string JobNum, int AssemblySeq, int JobSeq, int ApiNum, string OpDate, string OpDetail)
         {
             string sql = @"insert into BPMLog(JobNum, AssemblySeq, UserId, Opdate, ApiNum, JobSeq, OpDetail,bpmid) Values('{0}', {1}, '{2}', {3}, {4}, {5}, @OpDetail,{6}) ";
             sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, JobSeq, id == null ? "null" : id.ToString());
