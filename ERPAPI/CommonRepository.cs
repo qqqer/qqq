@@ -699,9 +699,8 @@ namespace ErpAPI
 
 
                 //更新返修工单可生产数
-                sql = "update jobhead set UDReqQty_c = " + DMRRepairQty + " where jobnum = '" + DMRJobNum + "'";
+                sql = "update jobhead set UDReqQty_c = " + DMRRepairQty + " , Character05 = '" + jobnum + "'  where jobnum = '" + DMRJobNum + "'";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-
 
                 //工序接收返修
                 DMRProcessingDataSet ds = adapter.GetByID(DMRID);
@@ -733,15 +732,10 @@ namespace ErpAPI
 
                 adapter.ChangeWarehouse(ds);
                 ds.Tables["DMRActn"].Rows[i]["BinNum"] = "01";
-
-
                 ds.Tables["DMRActn"].Rows[i]["ReasonCode"] = "D03"; //返修D03，  让步接收D01
 
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
-
-                sql = " update JobHead set Character05 = '"+jobnum+"' where  JobNum = '"+DMRJobNum+"'";
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                 return "1";
             }
