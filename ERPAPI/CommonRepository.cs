@@ -630,7 +630,8 @@ namespace ErpAPI
         string PartNum,
         decimal DMRRepairQty,//返修         
         string DMRJobNum,
-        string IUM)
+        string IUM,
+        string jobnum)
         {
             Session EpicorSession = CommonRepository.GetEpicorSession();
             if (EpicorSession == null)
@@ -738,6 +739,9 @@ namespace ErpAPI
 
                 //保存
                 adapter.CustomUpdate(ds, out opLegalNumberMessage);
+
+                sql = " update JobHead set Character05 = '"+jobnum+"' where  JobNum = '"+DMRJobNum+"'";
+                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                 return "1";
             }

@@ -280,7 +280,7 @@ namespace Appapi.Models
         }
 
 
-        public static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string ResponsibilityRemark)
+        public static void InsertDiscardRecord(int Id, decimal DMRUnQualifiedQty, string DMRUnQualifiedReason, int DMRID, string DMRWarehouseCode, string DMRBinNum, string TransformUserGroup, string Responsibility, string DMRUnQualifiedReasonRemark, string ResponsibilityRemark, string opuserid)
         {
             string sql = @"
                insert into BPMSub   select StartUser, [CreateUser]
@@ -353,7 +353,7 @@ namespace Appapi.Models
 ,UnQualifiedReasonDesc
          from bpm where id = " + Id + "";
 
-            sql = string.Format(sql, DMRUnQualifiedQty, Id, 1, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRID, TransformUserGroup, HttpContext.Current.Session["UserId"].ToString(), Responsibility, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason), ResponsibilityRemark);
+            sql = string.Format(sql, DMRUnQualifiedQty, Id, 1, DMRUnQualifiedReason, DMRWarehouseCode, DMRBinNum, DMRID, TransformUserGroup, opuserid, Responsibility, DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRUnQualifiedReason), ResponsibilityRemark);
 
             Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
         }
@@ -1141,7 +1141,7 @@ namespace Appapi.Models
 
             try
             {
-             
+
 
                 if (theReport.IsDelete == true)
                     return "错误：该批次的流程已删除";
@@ -1237,7 +1237,7 @@ namespace Appapi.Models
                         if (res.Substring(0, 1).Trim() != "1")
                         {
                             AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "下工序虚拟检验时间费用写入失败|" + res);
-                            return "错误：下工序"+arr[2]+"时间费用自动写入失败，" + res;
+                            return "错误：下工序" + arr[2] + "时间费用自动写入失败，" + res;
                         }
 
                         AddOpLog(theReport.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 201, OpDate, "下工序虚拟检验时间费用写入成功|" + res);
@@ -1400,7 +1400,7 @@ namespace Appapi.Models
                 sql = @"select IUM  from erp.JobAsmbl where JobNum = '" + theReport.JobNum + "' and AssemblySeq = " + theReport.AssemblySeq + "";
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-                res = ErpAPI.CommonRepository.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, IUM.ToString());
+                res = ErpAPI.CommonRepository.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, IUM.ToString(), theReport.JobNum);
                 if (res.Substring(0, 1).Trim() != "1")
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
 
@@ -1415,7 +1415,7 @@ namespace Appapi.Models
 
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRRepairQty,
                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良返工", DMRInfo.Responsibility,
-                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,"", CommonRepository.GetUserName(theReport.CheckUser));
+                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc, "", CommonRepository.GetUserName(theReport.CheckUser));
 
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
@@ -1436,15 +1436,16 @@ namespace Appapi.Models
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
-                decimal amount = GetProductionUnitCost(theReport.JobNum, (int)theReport.AssemblySeq);
-                int OARequestID = 0;
-                int StatusCode = 4; //自动确认报废
-
+                decimal amount = GetProductionUnitCost(theReport.JobNum, (int)theReport.AssemblySeq) * (decimal)DMRInfo.DMRUnQualifiedQty;
+                int OARequestID;
+                int StatusCode;
+                string OAReviewer;
+                int BPMSubID;
 
                 if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]))
                 {
                     string XML = OA_XML_Template.Create2199XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
-                     theReport.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良返工", DMRInfo.Responsibility,
+                     theReport.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良报废", DMRInfo.Responsibility,
                      "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,
                     "", CommonRepository.GetUserName(theReport.CheckUser));
 
@@ -1465,10 +1466,38 @@ namespace Appapi.Models
                     AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "checkcounter -= " + DMRInfo.DMRUnQualifiedQty + " 更新成功");
 
                     StatusCode = 1; //OA处理中
+                    OARequestID = int.Parse(res);
+                    OAReviewer = "";
+                    BPMSubID = 0;
+                }
+                else //自动处理
+                {
+                    res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
+                    if (res.Substring(0, 1).Trim() != "1")
+                    {
+                        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, res + ". 请重新提交报废数量");
+                        return "错误：" + res + ". 请重新提交报废数量";
+                    }
+
+                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup,
+                        DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark, HttpContext.Current.Session["UserId"].ToString());
+
+                    sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
+
+                    OAReviewer = "System";
+                    OARequestID = 0;
+                    StatusCode = 4;
+
+                    sql = @"select id from BPMSub where UnQualifiedType = 1 and RelatedID  = " + DMRInfo.ID + " order by CheckDate desc";
+                    object bpmsubid = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    BPMSubID = Convert.ToInt32(bpmsubid);
                 }
 
 
-                    sql = @"INSERT INTO [dbo].[DiscardReview]
+                sql = @"INSERT INTO [dbo].[DiscardReview]
                        ([bpmID]
                        ,[ReviewCreateUserID]
                        ,[ReviewCreateDate]
@@ -1484,7 +1513,9 @@ namespace Appapi.Models
                         ,DR_Responsibility
                         ,DR_DMRUnQualifiedReasonRemark
                         ,DR_DMRUnQualifiedReasonDesc
-                        ,DR_ResponsibilityRemark)
+                        ,DR_ResponsibilityRemark
+                        ,BPMSubID
+                        ,OAReviewer)
                  VALUES(
                        {0}
                        ,'{1}'
@@ -1501,33 +1532,16 @@ namespace Appapi.Models
                     ,'{11}'
                     ,'{12}'
                     ,'{13}'
-                    ,'{14}')";
+                    ,'{14}'
+                    ,{15}
+                    ,'{16}')";
                 sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]),
                     amount, StatusCode, OARequestID, DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,
                     DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark,
-                    CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
+                    CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, BPMSubID, OAReviewer);
 
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                 AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废缓存记录生成成功");
-
-
-
-                if (amount < Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]))
-                {
-                    res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
-                    if (res.Substring(0, 1).Trim() != "1")
-                    {
-                        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, res + ". 请重新提交报废数量");
-                        return "错误：" + res + ". 请重新提交报废数量";
-                    }
-
-                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark);
-
-                    sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
-                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
-                }
             }
 
             return "处理成功";
@@ -1538,9 +1552,10 @@ namespace Appapi.Models
             decimal cost = 0;
 
             string ss = @"  select sum(TLABurdenCost +TLALaborCost + TLASubcontractCost + TLAMaterialCost + TLAMtlBurCost) TActTotalCost
-                 from erp.JobAsmbl where  Company = '001' and JobNum = '"+jobnum+"' and AssemblySeq >= "+asseq+"";
+                 from erp.JobAsmbl where  Company = '001' and JobNum = '" + jobnum + "' and AssemblySeq >= " + asseq + "";
             cost = (decimal)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, ss, null);
 
+            cost /= CommonRepository.GetReqQtyOfAssemblySeq(jobnum, 0);
             return cost;
         }
 
@@ -1897,7 +1912,7 @@ namespace Appapi.Models
                             if (res.Substring(0, 1).Trim() != "1")
                             {
                                 AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序虚拟检验时间费用写入失败|" + res);
-                                return "错误：下工序"+arr[2]+"时间费用自动写入失败，" + res;
+                                return "错误：下工序" + arr[2] + "时间费用自动写入失败，" + res;
                             }
 
                             AddOpLog(theSubReport.ID, theSubReport.JobNum, (int)theSubReport.AssemblySeq, (int)theSubReport.JobSeq, 402, OpDate, "下工序虚拟检验时间费用写入成功|" + res);
@@ -2904,7 +2919,10 @@ namespace Appapi.Models
         public static void AddOpLog(int? id, string JobNum, int AssemblySeq, int JobSeq, int ApiNum, string OpDate, string OpDetail)
         {
             string sql = @"insert into BPMLog(JobNum, AssemblySeq, UserId, Opdate, ApiNum, JobSeq, OpDetail,bpmid) Values('{0}', {1}, '{2}', {3}, {4}, {5}, @OpDetail,{6}) ";
-            sql = string.Format(sql, JobNum, AssemblySeq, HttpContext.Current.Session["UserId"].ToString(), "getdate()", ApiNum, JobSeq, id == null ? "null" : id.ToString());
+
+            string opuser = HttpContext.Current.Session == null ? "OA_WebService" : HttpContext.Current.Session["UserId"].ToString();
+
+            sql = string.Format(sql, JobNum, AssemblySeq, opuser, "getdate()", ApiNum, JobSeq, id == null ? "null" : id.ToString());
 
             SqlParameter[] ps = new SqlParameter[] { new SqlParameter("@OpDetail", OpDetail) };
 

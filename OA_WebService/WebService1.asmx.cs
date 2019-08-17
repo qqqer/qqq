@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Web;
 using System.Web.Services;
+using System.Web.Services.Protocols;
 using OA_WebService.Model;
 
 namespace OA_WebService
@@ -16,40 +17,30 @@ namespace OA_WebService
     [WebService(Namespace = "http://tempuri.org/")]
     [WebServiceBinding(ConformsTo = WsiProfiles.BasicProfile1_1)]
     [System.ComponentModel.ToolboxItem(false)]
+    //[SoapDocumentService(RoutingStyle = SoapServiceRoutingStyle.RequestElement)]
     // 若要允许使用 ASP.NET AJAX 从脚本中调用此 Web 服务，请取消注释以下行。 
     // [System.Web.Script.Services.ScriptService]
     public class WebService1 : System.Web.Services.WebService
     {
         [WebMethod]
-        public string HelloWorld(string sd)
+        public string Commit2199(string paraXML)
         {
-            //Hashtable ht = XmlHandler.GetParametersFromXML(sd);
-            // ht["AA"].ToString();
-            //string result = "Hello world! Time is: " + DateTime.Now;
-            //var resp = new HttpResponseMessage(HttpStatusCode.OK);
-            //resp.Content = new StringContent(sd, System.Text.Encoding.UTF8, "text/plain");
-            return sd;
-        }
+            paraXML = HttpUtility.HtmlDecode(paraXML);
+            Hashtable ht = XmlHandler.GetParametersFromXML(paraXML);
+            string ret = "";
+            if (ht["type"].ToString() == "制程不良报废")
+            {
+                ret = PRO.DMRDiscardHandler(ht);
+            }
+            else if (ht["type"].ToString() == "物料不良报废")
+            {
+                ret = MTL.DMRDiscardHandler(ht);
+            }
+            else if (ht["type"].ToString() == "外协不良报废")
+            {
+                ret = SUB.DMRDiscardHandler(paraXML);
+            }
 
-
-        [WebMethod]
-        public string MTL2199(string paraXML)
-        {
-            string ret =  MTL.DMRDiscardHandler(paraXML);
-            return ret;
-        }
-
-        [WebMethod]
-        public string PRO2199(string paraXML)
-        {
-            string ret = PRO.DMRDiscardHandler(paraXML);
-            return ret;
-        }
-
-        [WebMethod]
-        public string SUB2199(string paraXML)
-        {
-            string ret = SUB.DMRDiscardHandler(paraXML);
             return ret;
         }
     }
