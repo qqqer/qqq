@@ -1547,7 +1547,7 @@ namespace Appapi.Models
             return "处理成功";
         }
 
-        private static decimal GetProductionUnitCost(string jobnum, int asseq)
+        public static decimal GetProductionUnitCost(string jobnum, int asseq)
         {
             decimal cost = 0;
 
@@ -1575,7 +1575,7 @@ namespace Appapi.Models
             if (theSubReport.Status != 3)
                 return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
-            if (theSubReport.DMRQualifiedQty != null && TransmitInfo.NextUserGroup == "")
+            if ((theSubReport.DMRQualifiedQty != null || theSubReport.DMRRepairQty != 0) && TransmitInfo.NextUserGroup == "")
                 return "错误：下步接收人不能为空";
 
             //以下只会执行一个if

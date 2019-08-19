@@ -38,7 +38,7 @@ namespace OA_WebService
             }
             else if (ht["type"].ToString() == "外协不良报废")
             {
-                ret = SUB.DMRDiscardHandler(paraXML);
+                ret = SUB.DMRDiscardHandler(ht);
             }
 
             return ret;
