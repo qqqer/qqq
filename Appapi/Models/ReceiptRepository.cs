@@ -48,7 +48,7 @@ namespace Appapi.Models
         private static int GetLastOpSeqOfSeriesSUB(Receipt theBatch)//取出该订单中的连续委外工序中（包括当前处理的批次工序）最后一道的工序号
         {
             DataTable dt = GetAllOpSeqOfSeriesSUB(theBatch);
-            return (int)dt.Rows[dt.Rows.Count - 1]["jobseq"];
+            return Convert.ToInt32(dt.Rows[dt.Rows.Count - 1]["jobseq"]) ;
         }
 
 
@@ -109,7 +109,7 @@ namespace Appapi.Models
 
         private static long GetNextRole(int id)
         {
-            long nextRole = 1152921504606846976;//2^60
+            long nextRole = 0;//2^60
 
             string sql = "select * from receipt where id = " + id + "";
             var t = CommonRepository.DataTableToList<Receipt>(Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql));
@@ -1136,7 +1136,7 @@ namespace Appapi.Models
             else //status == 3  选人。
             {
                 TransferInfo.AtRole = GetNextRole(theBatch.ID);
-                if (TransferInfo.AtRole == 1152921504606846976) //2^60
+                if (TransferInfo.AtRole == 0)
                     return "错误：无法确定去向";
 
                 TransferInfo.Status = 4;

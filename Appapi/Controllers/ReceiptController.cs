@@ -222,7 +222,7 @@ namespace Appapi.Controllers
         [HttpGet]
         public DataTable GetNextUserGroup(long nextStatus, string company, string plant, int id)//ApiNum: 1
         {
-            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(1152921504606846976, company, plant,id) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetNextUserGroup(0, company, plant,id) : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }//返回下个节点可选人员
 
 

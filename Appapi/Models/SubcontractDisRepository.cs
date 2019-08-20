@@ -571,16 +571,17 @@ namespace Appapi.Models
                     int preopseq =(int) CommonRepository.GetPreOpSeq(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq);
 
                     DataTable preopseqinfo = CommonRepository.GetOpInfo(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, preopseq);
+                    string type1 = theSubcontractDis.M_Remark == "收料最后节点自动发起" ? ",IQC" : ",外协";
 
                     XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)preopseqinfo.Rows[0]["OprSeq"], preopseqinfo.Rows[0]["OpCode"].ToString(), preopseqinfo.Rows[0]["OpDesc"].ToString(), (decimal)sd.DMRRepairQty,
-                       theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货我方不良返工", sd.Responsibility,
+                       theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协我方不良返工"+type1, sd.Responsibility,
                        "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark,theSubcontractDis.PartNum,theSubcontractDis.PartDesc,"", CommonRepository.GetUserName(theSubcontractDis.FirstUserID));
                 }
 
                 else if (theSubcontractDis.Type == 2)
                 {
                     XML = OA_XML_Template.Create2188XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, theSubcontractDis.OpCode, theSubcontractDis.OpDesc, (decimal)sd.DMRRepairQty,
-                       theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协收货供方不良返工", sd.Responsibility,
+                       theSubcontractDis.Plant, sd.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协供方不良返工", sd.Responsibility,
                        "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark, theSubcontractDis.PartNum, theSubcontractDis.PartDesc,"", CommonRepository.GetUserName(theSubcontractDis.FirstUserID));
                 }
 
@@ -604,8 +605,10 @@ namespace Appapi.Models
 
                 if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["SUBTopLimit"]))
                 {
+                    string type1 = theSubcontractDis.M_Remark == "收料最后节点自动发起" ? ",IQC" : ",外协";
+
                     string XML = OA_XML_Template.Create2199XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, theSubcontractDis.OpCode, theSubcontractDis.OpDesc, (decimal)sd.DMRUnQualifiedQty,
-                     theSubcontractDis.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["SUBTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协不良报废", sd.Responsibility,
+                     theSubcontractDis.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["SUBTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协不良报废"+type1, sd.Responsibility,
                      "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark, theSubcontractDis.PartNum, theSubcontractDis.PartDesc,
                     "", CommonRepository.GetUserName(theSubcontractDis.FirstUserID));
 
