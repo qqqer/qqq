@@ -754,6 +754,20 @@ namespace Appapi.Models
                 sql = sql.Replace("'", "");
                 AddOpLog(GetReceiptID(batInfo), batInfo.BatchNo, 102, "insert", OpDate, sql);
 
+
+                if (RB.PartNum.Substring(0, 3).ToUpper() == "C01" || RB.PartNum.Substring(0, 3).ToUpper() == "C02")
+                {
+                    string XML = OA_XML_Template.Create2204XML(RB.PartNum, RB.PartDesc, batInfo.BatchNo, (decimal)batInfo.ReceiveQty1);
+
+                    OAServiceReference.WorkflowServiceXmlPortTypeClient client1 = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                    res = client1.doCreateWorkflowRequest(XML, 1012);
+
+                    if (Convert.ToInt32(res) <= 0)
+                        return "错误：转发OA失败:" + res;
+
+                    AddOpLog(GetReceiptID(batInfo), batInfo.BatchNo, 102, "update", OpDate, "油漆/粉末送样交接OA发起成功");
+                }
+
                 return "处理成功";
             }
             catch
@@ -918,6 +932,20 @@ namespace Appapi.Models
                 sql = sql.Replace("'", "");
                 AddOpLog(GetReceiptID(batInfo), batInfo.BatchNo, 103, "insert", OpDate, sql);
 
+
+                if (RB.PartNum.Substring(0, 3).ToUpper() == "C01" || RB.PartNum.Substring(0, 3).ToUpper() == "C02")
+                {
+                    string XML = OA_XML_Template.Create2204XML(RB.PartNum, RB.PartDesc, batInfo.BatchNo, (decimal)batInfo.ReceiveQty1);
+
+                    OAServiceReference.WorkflowServiceXmlPortTypeClient client1 = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                    string res1 = client1.doCreateWorkflowRequest(XML, 1012);
+
+                    if (Convert.ToInt32(res1) <= 0)
+                        return "错误：转发OA失败:" + res1;
+
+                    AddOpLog(GetReceiptID(batInfo), batInfo.BatchNo, 103, "update", OpDate, "油漆/粉末送样交接OA发起成功");
+                }
+
                 return "处理成功";
             }
 
@@ -957,6 +985,20 @@ namespace Appapi.Models
 
                 sql = sql.Replace("'", "");
                 AddOpLog(batInfo.ID, batInfo.BatchNo, 103, "update", OpDate, sql);
+
+
+                if (RB.PartNum.Substring(0, 3).ToUpper() == "C01" || RB.PartNum.Substring(0, 3).ToUpper() == "C02")
+                {
+                    string XML = OA_XML_Template.Create2204XML(RB.PartNum, RB.PartDesc, batInfo.BatchNo, (decimal)batInfo.ReceiveQty1);
+
+                    OAServiceReference.WorkflowServiceXmlPortTypeClient client1 = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                    string res1 = client1.doCreateWorkflowRequest(XML, 1012);
+
+                    if (Convert.ToInt32(res1) <= 0)
+                        return "错误：转发OA失败:" + res1;
+
+                    AddOpLog(GetReceiptID(batInfo), batInfo.BatchNo, 103, "update", OpDate, "油漆/粉末送样交接OA发起成功");
+                }
 
                 return "处理成功"; //更新提交成功                
             }

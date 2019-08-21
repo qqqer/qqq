@@ -562,5 +562,59 @@ namespace Appapi.Models
             return u;
         }
 
+
+        public static string Create2204XML(string partnum, string partdesc, string batchno, decimal qty)
+        {
+            string u = @"
+                <WorkflowRequestInfo>
+                    <creatorId>1012</creatorId>
+                    <requestName>油漆/粉末送样交接</requestName>     
+            
+                    <workflowBaseInfo>
+                        <workflowId>2204</workflowId>
+                    </workflowBaseInfo>
+
+                    <workflowMainTableInfo>
+                        <requestRecords>
+                            <weaver.workflow.webservices.WorkflowRequestTableRecord>   
+                                <workflowRequestTableFields>
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>partnum</fieldName>
+                                    <fieldValue>{0}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>partdesc</fieldName>
+                                    <fieldValue>{1}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>batchno</fieldName>
+                                    <fieldValue>{2}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>     
+                                    <fieldName>qty2</fieldName>
+                                    <fieldValue>{3}</fieldValue>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>
+
+                                </workflowRequestTableFields>
+                            </weaver.workflow.webservices.WorkflowRequestTableRecord>
+                        </requestRecords>
+                    </workflowMainTableInfo>
+                </WorkflowRequestInfo>";
+
+            u = string.Format(u, partnum, System.Security.SecurityElement.Escape(partdesc), batchno, qty);
+
+            return u;
+        }
     }
 }

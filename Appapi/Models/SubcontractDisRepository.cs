@@ -427,6 +427,10 @@ namespace Appapi.Models
             if (sd.TransferUserGroup == "")
                 return "错误：下步接收人不能为空";
 
+            string res1 = CommonRepository.GetJobHeadState(theSubcontractDis.JobNum);
+            if (res1 != "正常")
+                return "错误：" + res1;
+
 
             sd.DMRQualifiedQty = 0;
             sd.DMRRepairQty = Convert.ToDecimal(sd.DMRRepairQty);
@@ -476,6 +480,10 @@ namespace Appapi.Models
 
             if(type == "外协不良2" && !theSubcontractDis.POReceived)
             {
+                string ret = CheckPO((int)sd.PoNum, (int)theSubcontractDis.PoLine, (int)theSubcontractDis.PORelNum);
+                if (ret != "OK")
+                    return "错误：" + ret;
+
                 string recdate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
                 string rcvdtlStr = "[";
                 rcvdtlStr += ReceiptRepository.ConstructRcvdtlStr(
