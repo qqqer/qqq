@@ -194,7 +194,7 @@ namespace Appapi.Models
             string values = "";
             if (sd.PoNum != 0)
             {
-                DataTable FirstSubcontractedOprInfo = CommonRepository.GetSpecifiedSubcontractedOprInfo((int)sd.PoNum, sd.JobNum, (int)sd.AssemblySeq, (int)NextOpSeq, "001");
+                DataTable FirstSubcontractedOprInfo = CommonRepository.GetFirstSubcontractedOprInfo((int)sd.PoNum, sd.JobNum, (int)sd.AssemblySeq, "001");
                 SubcontractDis POInfo = GetPOInfo((int)sd.PoNum, (int)FirstSubcontractedOprInfo.Rows[0]["poline"], (int)FirstSubcontractedOprInfo.Rows[0]["porelnum"]);
 
                 values = CommonRepository.ConstructInsertValues(new ArrayList

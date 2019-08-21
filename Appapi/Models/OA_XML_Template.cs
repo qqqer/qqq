@@ -139,7 +139,7 @@ namespace Appapi.Models
                 </WorkflowRequestInfo>";
 
             u = string.Format(u,users, receipt.Company, receipt.SupplierNo, receipt.SupplierName, receipt.PoNum,
-                receipt.PoLine, receipt.PORelNum, receipt.PartNum, receipt.PartDesc, receipt.BatchNo, 
+                receipt.PoLine, receipt.PORelNum, receipt.PartNum, System.Security.SecurityElement.Escape(receipt.PartDesc), receipt.BatchNo, 
                 ((decimal)(receipt.ReceiveQty2)).ToString("N2"), receipt.Plant,receipt.ID, users, System.Security.SecurityElement.Escape(receipt.CommentText));
 
             return u;
