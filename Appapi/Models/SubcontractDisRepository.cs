@@ -480,7 +480,7 @@ namespace Appapi.Models
 
             if(type == "外协不良2" && !theSubcontractDis.POReceived)
             {
-                string ret = CheckPO((int)sd.PoNum, (int)theSubcontractDis.PoLine, (int)theSubcontractDis.PORelNum);
+                string ret = CheckPO((int)theSubcontractDis.PoNum, (int)theSubcontractDis.PoLine, (int)theSubcontractDis.PORelNum);
                 if (ret != "OK")
                     return "错误：" + ret;
 
