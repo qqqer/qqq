@@ -590,8 +590,19 @@ namespace Appapi.Models
                     //if (CommonRepository.IsOpSeqComplete(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq))
                     //    return "错误：该工序已收满";
 
-                    if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
+                    if (PreOpSeq != null && CommonRepository.IsSubContract(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
                         return "错误： 收货数超出上一道非该供应商工序的完成数量";
+                    else if((PreOpSeq != null && !CommonRepository.IsSubContract(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq)))
+                    {
+                        decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0);
+                        decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
+                        decimal SolvedOurFailedQty = GetSolvedOurFailedQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
+
+                        if (OpSeqCompleteQty < batInfo.ReceiveQty1 + TotalQtyOfJobSeq - SolvedOurFailedQty)
+                        {
+                            return "错误： 收货数超出上一道非该供应商工序的完成数量";
+                        }
+                    }
                 }
 
                 string sql = "select * from SerialNumber where name = 'BAT'";
@@ -777,6 +788,14 @@ namespace Appapi.Models
 
         }
 
+        private static decimal GetSolvedOurFailedQty(string jobNum, int assemblySeq, int preOpSeq)
+        {
+            string sql = @"   select (TotalDMRQualifiedQty + TotalDMRRepairQty +TotalDMRUnQualifiedQty) as delta from SubcontractDisMain where JobNum = '"+jobNum+"' and Type = 1  and AssemblySeq = "+assemblySeq+" and M_IsDelete = 0 and  commitjobseq = "+preOpSeq+" ";
+            decimal delta = Convert.ToDecimal(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+
+            return delta;
+        }
+
 
         /// <summary>
         /// 有二维码收货
@@ -824,6 +843,17 @@ namespace Appapi.Models
                 //    return "错误：该工序已收满";
                 if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, id))
                     return "错误： 收货数超出上一道非该供应商工序的完成数量";
+                else if ((PreOpSeq != null && !CommonRepository.IsSubContract(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq)))
+                {
+                    decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0);
+                    decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
+                    decimal SolvedOurFailedQty = GetSolvedOurFailedQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
+
+                    if (OpSeqCompleteQty < batInfo.ReceiveQty1 + TotalQtyOfJobSeq - SolvedOurFailedQty)
+                    {
+                        return "错误： 收货数超出上一道非该供应商工序的完成数量";
+                    }
+                }
             }
 
 
@@ -1343,12 +1373,23 @@ namespace Appapi.Models
                         DataTable dt = GetAllOpSeqOfSeriesSUB(theBatch);
 
 
-                        object PreOpSeq = CommonRepository.GetPreOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[0]["jobseq"]);
+                        object PreOpSeq = CommonRepository.GetValidPreOpSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[0]["jobseq"]);
 
                         if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
                             return "错误： 收货数超出该阶层的可生产数量";
                         if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
                             return "错误： 收货数超出上一道非该供应商工序的完成数量";
+                        else if ((PreOpSeq != null && !CommonRepository.IsSubContract(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq)))
+                        {
+                            decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0);
+                            decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
+                            decimal SolvedOurFailedQty = GetSolvedOurFailedQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
+
+                            if (OpSeqCompleteQty < AcceptInfo.ArrivedQty + TotalQtyOfJobSeq - SolvedOurFailedQty)
+                            {
+                                return "错误： 收货数超出上一道非该供应商工序的完成数量";
+                            }
+                        }
 
 
                         int nextAssemblySeq, nextJobSeq;
@@ -1578,13 +1619,16 @@ namespace Appapi.Models
 
                         if (theBatch.OurFailedQty > 0)
                         {
-                            if (PreOpSeq == null)
+                            object PreValidInternalOprSeq = CommonRepository.GetPreValidInternalOprSeq(theBatch.JobNum, (int)theBatch.AssemblySeq, (int)dt.Rows[0]["jobseq"]); 
+
+                            if (PreValidInternalOprSeq == null)
                             {
                                 AddOpLog(AcceptInfo.ID, theBatch.BatchNo, 401, "update", OpDate, "上一道非该供应商的工序不存在，外协不良品自动发起失败");
                                 return "错误：上一道非该供应商的工序不存在，外协不良品自动发起失败";
                             }
 
-                            res = SubcontractDisRepository.ApplySubcontractDisQty(new SubcontractDis { PoNum = theBatch.PoNum, JobNum = theBatch.JobNum, AssemblySeq = theBatch.AssemblySeq, JobSeq = (int)PreOpSeq, UnQualifiedReason = theBatch.IQCRemark, DisQty = theBatch.OurFailedQty, Type = 1, M_Remark = "收料最后节点自动发起",FirstUserID = theBatch.ThirdUserID });
+
+                            res = SubcontractDisRepository.ApplySubcontractDisQty(new SubcontractDis { PoNum = theBatch.PoNum, JobNum = theBatch.JobNum, AssemblySeq = theBatch.AssemblySeq, JobSeq = (int)PreValidInternalOprSeq, UnQualifiedReason = theBatch.IQCRemark, DisQty = theBatch.OurFailedQty, Type = 1, M_Remark = "收料最后节点自动发起",FirstUserID = theBatch.ThirdUserID });
 
                             if (res != "处理成功")
                             {

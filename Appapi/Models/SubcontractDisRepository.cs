@@ -144,7 +144,7 @@ namespace Appapi.Models
                 return "错误：必须填写不良原因备注";
 
 
-            object NextOpSeq = CommonRepository.GetNextOpSeq(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq); //JobSeq是打包工序
+            object NextOpSeq = CommonRepository.GetNextValidOpSeq(sd.JobNum, (int)sd.AssemblySeq, (int)sd.JobSeq); //JobSeq是打包工序
 
             if (NextOpSeq != null)
             {
@@ -190,7 +190,8 @@ namespace Appapi.Models
                                ,ReqQty
                                ,StockPosition
                                ,ResponsibilityRemark
-                               ,POReceived) values({0})";
+                               ,POReceived
+                               ,CommitJobSeq) values({0})";
             string values = "";
             if (sd.PoNum != 0)
             {
@@ -231,7 +232,8 @@ namespace Appapi.Models
                         POInfo.ReqQty,
                         CommonRepository.GetValueAsString(sd.StockPosition),
                         CommonRepository.GetValueAsString(sd.ResponsibilityRemark),
-                        0
+                        0,
+                        sd.JobSeq
                     });
             }
             else
@@ -276,7 +278,8 @@ namespace Appapi.Models
                         0,
                         sd.StockPosition,
                         sd.ResponsibilityRemark,
-                        0
+                        0,
+                        sd.JobSeq
                     });
             }
             sql = string.Format(sql, values);
@@ -367,7 +370,8 @@ namespace Appapi.Models
                                ,ReqQty
                                ,StockPosition
                                ,ResponsibilityRemark
-                               ,POReceived) values({0})";
+                               ,POReceived
+                               ,CommitJobSeq) values({0})";
                 string values = CommonRepository.ConstructInsertValues(new ArrayList
                     {
                         POInfo.SupplierNo,
@@ -402,6 +406,7 @@ namespace Appapi.Models
                         sd.StockPosition,
                         sd.ResponsibilityRemark,
                         0,
+                        sd.JobSeq
                     });
                 sql = string.Format(sql, values);
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
@@ -522,12 +527,16 @@ namespace Appapi.Models
                 int DMRID = 0, TranID = 0;
                 if (theSubcontractDis.Type == 1 && theSubcontractDis.TranID == 0) //我方不良，以不合格品发起
                 {
-                    object PreOpSeq = CommonRepository.GetPreOpSeq(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq); //获取上一道厂内工序号PreOpSeq， JobSeq是厂内工序的下道委外工序
+                    object PreValidInternalOprSeq;
+                    if (theSubcontractDis.CommitJobSeq == null)
+                        PreValidInternalOprSeq = CommonRepository.GetPreValidInternalOprSeq(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq); //获取上一道厂内工序号PreOpSeq， JobSeq是厂内工序的下道委外工序
+                    else
+                        PreValidInternalOprSeq = theSubcontractDis.CommitJobSeq;
 
-                    res = ErpAPI.CommonRepository.Startnonconf(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, theSubcontractDis.Company, (int)PreOpSeq, (decimal)theSubcontractDis.DisQty, sd.DMRWarehouseCode, sd.DMRBinNum, "B19", theSubcontractDis.Plant, "", type, out TranID); //B19 其他不良
+                    res = ErpAPI.CommonRepository.Startnonconf(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, theSubcontractDis.Company, (int)PreValidInternalOprSeq, (decimal)theSubcontractDis.DisQty, sd.DMRWarehouseCode, sd.DMRBinNum, "B19", theSubcontractDis.Plant, "", type, out TranID); //B19 其他不良
                     if (res.Substring(0, 1).Trim() != "1")
                     {
-                        AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, PreOpSeq + "厂内工序不合格品发起失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
+                        AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, PreValidInternalOprSeq + "厂内工序不合格品发起失败：" + res, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                         return "错误：" + res;
                     }
 
@@ -536,7 +545,7 @@ namespace Appapi.Models
 
 
                     theSubcontractDis.TranID = TranID;
-                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, PreOpSeq + "厂内工序不合格品发起成功，TranID = " + TranID, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
+                    AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, PreValidInternalOprSeq + "厂内工序不合格品发起成功，TranID = " + TranID, theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
                 }
                 
 
@@ -576,7 +585,7 @@ namespace Appapi.Models
                 string XML = "";
                 if (theSubcontractDis.Type == 1)
                 {
-                    int preopseq =(int) CommonRepository.GetPreOpSeq(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq);
+                    int preopseq =(int) CommonRepository.GetValidPreOpSeq(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq);
 
                     DataTable preopseqinfo = CommonRepository.GetOpInfo(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, preopseq);
                     string type1 = theSubcontractDis.M_Remark == "收料最后节点自动发起" ? ",IQC" : ",外协";

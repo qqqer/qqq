@@ -42,6 +42,7 @@ namespace Appapi.Models
         public string StockPosition { get; set; }
         public string ResponsibilityRemark { get; set; }
         public bool POReceived { get; set; }
+        public int? CommitJobSeq { get; set; }
 
         public int M_ID { get; set; }
 

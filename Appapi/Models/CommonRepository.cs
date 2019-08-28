@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Configuration;
 using System.Data;
 using System.Linq;
 using System.Reflection;
@@ -357,6 +358,18 @@ namespace Appapi.Models
             return dt;
         }
 
+
+        public static object GetPreValidInternalOprSeq(string JobNum, int AssemblySeq, int JobSeq)//若没有返回null
+        {
+            string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                  where jo. SubContract = 0 and jo.opcode not in(" + ConfigurationManager.AppSettings["InvalidOprCode"] + ") and jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " and jh.Company = '001' order by jo.OprSeq desc";
+
+            object PreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return PreOpSeq;
+        }
+
+
         public static object GetPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
         {
             string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
@@ -370,7 +383,7 @@ namespace Appapi.Models
         public static object GetValidPreOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
         {
             string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
-                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " and  jo.Opcode != 'BC0205' and  jo.Opcode != 'ZP0501' and jh.Company = '001' order by jo.OprSeq desc";
+                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq < " + JobSeq + " and  jo.Opcode not in (" + ConfigurationManager.AppSettings["InvalidOprCode"] + ") and jh.Company = '001' order by jo.OprSeq desc";
 
             object ValidPreOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
@@ -379,8 +392,8 @@ namespace Appapi.Models
 
         public static DataTable GetOpInfo(string JobNum, int AssemblySeq, int JobSeq)//
         {
-            string sql = @"select * from erp.JobOper 
-                  where JobNum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + "  and  OprSeq = " + JobSeq + "";
+            string sql = @"select jo.*, jh.Company, jh.Plant from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq = " + JobSeq + " and jh.company = '001'";
 
             DataTable  dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
@@ -399,12 +412,32 @@ namespace Appapi.Models
         }
 
 
+        public static object GetNextValidOpSeq(string JobNum, int AssemblySeq, int JobSeq)//取出同阶层中JobSeq的上一道工序号，若没有返回null
+        {
+            string sql = @"select top 1 jo.OprSeq from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+                  where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq > " + JobSeq + "  and  jo.Opcode not in (" + ConfigurationManager.AppSettings["InvalidOprCode"] + ") and jh.Company = '001' order by jo.OprSeq asc";
+
+            object NextOpSeq = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+
+            return NextOpSeq;
+        }
+
+
         public static bool IsOpSeqComplete(string JobNum, int AssemblySeq, int JobSeq)
         {
             string sql = @"select  OpComplete  from erp.JobOper where jobnum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and  OprSeq = " + JobSeq + "";
 
             return Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
         }
+
+
+        public static bool IsSubContract(string JobNum, int AssemblySeq, int JobSeq)
+        {
+            string sql = @"select  SubContract  from erp.JobOper where jobnum = '" + JobNum + "' and AssemblySeq = " + AssemblySeq + " and  OprSeq = " + JobSeq + "";
+
+            return Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+        }
+
 
         public static string GetReasonDesc(string ReasonCode)
         {
