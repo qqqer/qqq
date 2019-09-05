@@ -839,13 +839,13 @@ namespace Appapi.Models
 
                 if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, id))
                     return "错误： 收货数超出该阶层的可生产数量";
-                //if (CommonRepository.IsOpSeqComplete(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq))
-                //    return "错误：该工序已收满";
-                if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, id))
+
+
+                if (PreOpSeq != null && CommonRepository.IsSubContract(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, id))
                     return "错误： 收货数超出上一道非该供应商工序的完成数量";
                 else if ((PreOpSeq != null && !CommonRepository.IsSubContract(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq)))
                 {
-                    decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0);
+                    decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, id);
                     decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
                     decimal SolvedOurFailedQty = GetSolvedOurFailedQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
 
@@ -1377,11 +1377,11 @@ namespace Appapi.Models
 
                         if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
                             return "错误： 收货数超出该阶层的可生产数量";
-                        if (PreOpSeq != null && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
+                        if (PreOpSeq != null && CommonRepository.IsSubContract(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) && CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq) < AcceptInfo.ArrivedQty + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID))
                             return "错误： 收货数超出上一道非该供应商工序的完成数量";
                         else if ((PreOpSeq != null && !CommonRepository.IsSubContract(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq)))
                         {
-                            decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0);
+                            decimal TotalQtyOfJobSeq = GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, AcceptInfo.ID);
                             decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
                             decimal SolvedOurFailedQty = GetSolvedOurFailedQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
 

@@ -148,7 +148,7 @@ namespace Appapi.Models
 
         public static string Create2188XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal DMRRepairQty,
         string plant, string DMRJobNum, string checkuserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
-        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser)
+        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser,string gys, string cgy)
         {
             string sql = "select  plantid  from uf_cust_planter where custid = '" + PartDesc.Substring(0, 4) + "'";
             string planner = CommonRepository.GetValueAsString(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null));
@@ -545,6 +545,21 @@ namespace Appapi.Models
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{23}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>gys</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{24}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+
+
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>cgy</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{25}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
                                 </workflowRequestTableFields>

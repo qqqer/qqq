@@ -368,7 +368,7 @@ namespace Appapi.Models
             if (res.Substring(0, 1).Trim() == "0")
                 return res;
 
-            if (nextJobSeq != -1 && (NextOpCode == "BC0205" || NextOpCode == "ZP0501")) //跳过虚拟检验工序
+            if (nextJobSeq != -1 && ConfigurationManager.AppSettings["InvalidOprCode"].Contains(NextOpCode)) //跳过虚拟检验工序
             {
                 res = ErpAPI.CommonRepository.getJobNextOprTypes(jobnum, nextAssemblySeq, nextJobSeq, out nextAssemblySeq, out nextJobSeq, out NextOpCode, out nextOpDesc, companyId);
                 if (res.Substring(0, 1).Trim() == "0")
@@ -1415,7 +1415,7 @@ namespace Appapi.Models
 
                 string XML = OA_XML_Template.Create2188XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRRepairQty,
                     theReport.Plant, DMRInfo.DMRJobNum, HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良返工", DMRInfo.Responsibility,
-                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc, "", CommonRepository.GetUserName(theReport.CheckUser));
+                    theReport.DefectNO, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc, "", CommonRepository.GetUserName(theReport.CheckUser),"","");
 
 
                 OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
@@ -1436,112 +1436,112 @@ namespace Appapi.Models
                 object IUM = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
 
-                decimal amount = GetProductionUnitCost(theReport.JobNum, (int)theReport.AssemblySeq) * (decimal)DMRInfo.DMRUnQualifiedQty;
-                int OARequestID;
-                int StatusCode;
-                string OAReviewer;
-                int BPMSubID;
+                //decimal amount = GetProductionUnitCost(theReport.JobNum, (int)theReport.AssemblySeq) * (decimal)DMRInfo.DMRUnQualifiedQty;
+                //int OARequestID;
+                //int StatusCode;
+                //string OAReviewer;
+                //int BPMSubID;
 
-                if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]))
+                //if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]))
+                //{
+                //    string XML = OA_XML_Template.Create2199XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
+                //     theReport.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良报废", DMRInfo.Responsibility,
+                //     "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,
+                //    "", CommonRepository.GetUserName(theReport.CheckUser));
+
+                //    OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
+                //    res = client.doCreateWorkflowRequest(XML, 1012);
+
+                //    if (Convert.ToInt32(res) <= 0)
+                //    {
+                //        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废转发OA失败:" + res);
+
+                //        return "错误：报废转发OA失败:" + res;
+                //    }
+                //    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废转发OA成功，OA流程id：" + res);
+
+
+                //    sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                //    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                //    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "checkcounter -= " + DMRInfo.DMRUnQualifiedQty + " 更新成功");
+
+                //    StatusCode = 1; //OA处理中
+                //    OARequestID = int.Parse(res);
+                //    OAReviewer = "";
+                //    BPMSubID = 0;
+                //}
+                //else //自动处理
+                //{
+                res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
+                if (res.Substring(0, 1).Trim() != "1")
                 {
-                    string XML = OA_XML_Template.Create2199XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
-                     theReport.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良报废", DMRInfo.Responsibility,
-                     "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,
-                    "", CommonRepository.GetUserName(theReport.CheckUser));
-
-                    OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
-                    res = client.doCreateWorkflowRequest(XML, 1012);
-
-                    if (Convert.ToInt32(res) <= 0)
-                    {
-                        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废转发OA失败:" + res);
-
-                        return "错误：报废转发OA失败:" + res;
-                    }
-                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废转发OA成功，OA流程id：" + res);
-
-
-                    sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
-                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "checkcounter -= " + DMRInfo.DMRUnQualifiedQty + " 更新成功");
-
-                    StatusCode = 1; //OA处理中
-                    OARequestID = int.Parse(res);
-                    OAReviewer = "";
-                    BPMSubID = 0;
-                }
-                else //自动处理
-                {
-                    res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
-                    if (res.Substring(0, 1).Trim() != "1")
-                    {
-                        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, res + ". 请重新提交报废数量");
-                        return "错误：" + res + ". 请重新提交报废数量";
-                    }
-
-                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup,
-                        DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark, HttpContext.Current.Session["UserId"].ToString());
-
-                    sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
-                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-
-                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
-
-                    OAReviewer = "System";
-                    OARequestID = 0;
-                    StatusCode = 4;
-
-                    sql = @"select id from BPMSub where UnQualifiedType = 1 and RelatedID  = " + DMRInfo.ID + " order by CheckDate desc";
-                    object bpmsubid = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                    BPMSubID = Convert.ToInt32(bpmsubid);
+                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, res + ". 请重新提交报废数量");
+                    return "错误：" + res + ". 请重新提交报废数量";
                 }
 
+                InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup,
+                    DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark, HttpContext.Current.Session["UserId"].ToString());
 
-                sql = @"INSERT INTO [dbo].[DiscardReview]
-                       ([bpmID]
-                       ,[ReviewCreateUserID]
-                       ,[ReviewCreateDate]
-                       ,[ReviewQty]
-                       ,[TopLimit]
-                       ,[Amount]
-                       ,[StatusCode]
-                       ,OARequestID
-                        ,DR_DMRUnQualifiedReason
-                        ,DR_DMRWarehouseCode
-                        ,DR_DMRBinNum
-                        ,DR_TransformUserGroup
-                        ,DR_Responsibility
-                        ,DR_DMRUnQualifiedReasonRemark
-                        ,DR_DMRUnQualifiedReasonDesc
-                        ,DR_ResponsibilityRemark
-                        ,BPMSubID
-                        ,OAReviewer)
-                 VALUES(
-                       {0}
-                       ,'{1}'
-                       ,getdate()
-                       ,{2}
-                       ,{3}
-                       ,{4}
-                       ,{5}
-                       ,{6}
-                    ,'{7}'
-                    ,'{8}'
-                    ,'{9}'
-                    ,'{10}'
-                    ,'{11}'
-                    ,'{12}'
-                    ,'{13}'
-                    ,'{14}'
-                    ,{15}
-                    ,'{16}')";
-                sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]),
-                    amount, StatusCode, OARequestID, DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,
-                    DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark,
-                    CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, BPMSubID, OAReviewer);
-
+                sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
-                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废缓存记录生成成功");
+
+                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
+
+                //    OAReviewer = "System";
+                //    OARequestID = 0;
+                //    StatusCode = 4;
+
+                //    sql = @"select id from BPMSub where UnQualifiedType = 1 and RelatedID  = " + DMRInfo.ID + " order by CheckDate desc";
+                //    object bpmsubid = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                //    BPMSubID = Convert.ToInt32(bpmsubid);
+                //}
+
+
+                //sql = @"INSERT INTO [dbo].[DiscardReview]
+                //       ([bpmID]
+                //       ,[ReviewCreateUserID]
+                //       ,[ReviewCreateDate]
+                //       ,[ReviewQty]
+                //       ,[TopLimit]
+                //       ,[Amount]
+                //       ,[StatusCode]
+                //       ,OARequestID
+                //        ,DR_DMRUnQualifiedReason
+                //        ,DR_DMRWarehouseCode
+                //        ,DR_DMRBinNum
+                //        ,DR_TransformUserGroup
+                //        ,DR_Responsibility
+                //        ,DR_DMRUnQualifiedReasonRemark
+                //        ,DR_DMRUnQualifiedReasonDesc
+                //        ,DR_ResponsibilityRemark
+                //        ,BPMSubID
+                //        ,OAReviewer)
+                // VALUES(
+                //       {0}
+                //       ,'{1}'
+                //       ,getdate()
+                //       ,{2}
+                //       ,{3}
+                //       ,{4}
+                //       ,{5}
+                //       ,{6}
+                //    ,'{7}'
+                //    ,'{8}'
+                //    ,'{9}'
+                //    ,'{10}'
+                //    ,'{11}'
+                //    ,'{12}'
+                //    ,'{13}'
+                //    ,'{14}'
+                //    ,{15}
+                //    ,'{16}')";
+                //sql = string.Format(sql, theReport.ID, HttpContext.Current.Session["UserId"].ToString(), DMRInfo.DMRUnQualifiedQty, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]),
+                //    amount, StatusCode, OARequestID, DMRInfo.DMRUnQualifiedReason, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum,
+                //    DMRInfo.TransformUserGroup, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark,
+                //    CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, BPMSubID, OAReviewer);
+
+                //Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                //AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废缓存记录生成成功");
             }
 
             return "处理成功";
@@ -1575,7 +1575,7 @@ namespace Appapi.Models
             if (theSubReport.Status != 3)
                 return "错误：流程未在当前节点上，在 " + theSubReport.Status + "节点";
 
-            if ((theSubReport.DMRQualifiedQty != null || theSubReport.DMRRepairQty != 0) && TransmitInfo.NextUserGroup == "")
+            if ((theSubReport.DMRQualifiedQty != null || theSubReport.DMRRepairQty != null) && TransmitInfo.NextUserGroup == "")
                 return "错误：下步接收人不能为空";
 
             //以下只会执行一个if
@@ -2558,7 +2558,7 @@ namespace Appapi.Models
 
         public static DataTable GetJobSeq(string JobNum, int AssemblySeq)
         {
-            string sql = @"select OprSeq,OpDesc,OpCode, jo.QtyCompleted from erp.JobAsmbl ja left join erp.JobOper jo on ja.JobNum = jo.JobNum and ja.AssemblySeq = jo.AssemblySeq where  ja.jobnum = '" + JobNum + "' and ja.AssemblySeq= '" + AssemblySeq + "' and  jo.Opcode != 'BC0205' and  jo.Opcode != 'ZP0501' order by OprSeq asc";
+            string sql = @"select OprSeq,OpDesc,OpCode, jo.QtyCompleted from erp.JobAsmbl ja left join erp.JobOper jo on ja.JobNum = jo.JobNum and ja.AssemblySeq = jo.AssemblySeq where  ja.jobnum = '" + JobNum + "' and ja.AssemblySeq= '" + AssemblySeq + "' and  jo.Opcode not in ("+ ConfigurationManager.AppSettings["InvalidOprCode"] + ") order by OprSeq asc";
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(JobNum, AssemblySeq);

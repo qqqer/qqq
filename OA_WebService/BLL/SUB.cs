@@ -18,12 +18,12 @@ namespace OA_WebService
                 string OAReviewDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
 
-                int StatusCode = (string)ht["StatusCode"] == "同意" ? 3 : 2;
+                int StatusCode = (string)ht["StatusCode"] == "0" ? 3 : 2;
                 int OARequestID = Convert.ToInt32(ht["OARequestID"]);
                 string OAComment = (string)ht["OAComment"];
 
 
-                string sql = @"select top 1 lastname from  workflow_currentoperator wc left join HrmResource hr on wc.userid = hr.id  where requestid = " + OARequestID + " and groupid < 4 order by groupid desc";
+                string sql = @"select top 1 lastname from  workflow_currentoperator wc left join HrmResource hr on wc.userid = hr.id  where requestid = " + OARequestID + " and groupid < 5 order by groupid desc";
                 string OAReviewer = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null);
 
 
