@@ -148,7 +148,7 @@ namespace Appapi.Models
 
         public static string Create2188XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal DMRRepairQty,
         string plant, string DMRJobNum, string checkuserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
-        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser,string gys, string cgy)
+        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser)
         {
             string sql = "select  plantid  from uf_cust_planter where custid = '" + PartDesc.Substring(0, 4) + "'";
             string planner = CommonRepository.GetValueAsString(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.OA_strConn, CommandType.Text, sql, null));
@@ -358,7 +358,7 @@ namespace Appapi.Models
 
         public static string Create2199XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal ReviewQty,
         string plant, decimal Amount, decimal TopLimit, string CheckUserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
-        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser)
+        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser, string gys, string cgy)
         {
             int plant1 = -1;
 
@@ -572,7 +572,7 @@ namespace Appapi.Models
          plant, Amount , CheckUserid, CheckDate, UnQualifiedType, Responsibility, DefectNO,
          System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark), DMRUnQualifiedReasonDesc, ResponsibilityRemark,
          CommonRepository.GetUserName(CheckUserid), PartNum, System.Security.SecurityElement.Escape(PartDesc), PartDesc.Substring(0, 4),  
-         RelatedOprInfo,precheckuser, TopLimit,plant1);
+         RelatedOprInfo,precheckuser, TopLimit,plant1,gys,cgy);
 
             return u;
         }
