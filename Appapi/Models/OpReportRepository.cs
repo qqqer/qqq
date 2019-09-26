@@ -449,7 +449,7 @@ namespace Appapi.Models
         {
             string OpDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
 
-            string[] arr = values.Split(' '); //工单号~阶层号~工序序号~工序代码
+            string[] arr = values.Split('~'); //工单号~阶层号~工序序号~工序代码
 
 
             string res = CommonRepository.GetJobHeadState(arr[0]);
@@ -487,7 +487,19 @@ namespace Appapi.Models
                 return "0|错误：该账号没有该工序操作权限";
 
 
-            sql = "select count(*) from BPMsub where DMRJobNum = '" + arr[0] + "'";
+
+            sql = @"select jo.QtyCompleted from erp.JobAsmbl ja left join erp.JobOper jo on ja.JobNum = jo.JobNum and ja.AssemblySeq = jo.AssemblySeq where  ja.jobnum = '" + arr[0] + "' and ja.AssemblySeq= " + arr[1] + " and  jo.oprseq = " + arr[2] + "";
+            decimal QtyCompleted = Convert.ToDecimal(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+            decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(arr[0], int.Parse(arr[1]));
+            if (QtyCompleted >= ReqQtyOfAssemblySeq)
+                return "0|错误：该工序已完成";
+
+
+            //if (CommonRepository.IsOpSeqComplete(arr[0], int.Parse(arr[1]), int.Parse(arr[2])))
+            //      return "0|错误：该工序已完成";
+
+
+                sql = "select count(*) from BPMsub where DMRJobNum = '" + arr[0] + "'";
             bool IsDMRJobNum = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
 
             if (IsDMRJobNum)
@@ -1315,7 +1327,7 @@ namespace Appapi.Models
             DMRInfo.DMRJobNum = DMRInfo.DMRJobNum.Trim();
 
 
-            decimal determinedQty = Convert.ToDecimal(theReport.DMRQualifiedQty) + Convert.ToDecimal(theReport.DMRRepairQty) + Convert.ToDecimal(theReport.DMRUnQualifiedQty);
+            // decimal determinedQty = Convert.ToDecimal(theReport.UnQualifiedQty) - Convert.ToDecimal(theReport.CheckCounter);
 
             if (DMRInfo.DMRQualifiedQty < 0)
                 return "错误：让步数量不能为负";
@@ -1329,22 +1341,25 @@ namespace Appapi.Models
             if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRUnQualifiedQty + DMRInfo.DMRRepairQty == 0)
                 return "错误：数量不能都为0";
 
-            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.UnQualifiedQty - determinedQty)
-                return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数：" + (theReport.UnQualifiedQty - determinedQty);
+            if (DMRInfo.DMRQualifiedQty + DMRInfo.DMRRepairQty + DMRInfo.DMRUnQualifiedQty > theReport.CheckCounter)
+                return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数：" + theReport.CheckCounter;
 
-            if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum == "")
+            if (DMRInfo.DMRRepairQty > 0 && DMRInfo.DMRJobNum.Trim() == "")
                 return "错误：返修工单号不能为空";
+
+            if (DMRInfo.DMRJobNum.Trim() != "" && DMRInfo.DMRRepairQty == 0)
+                return "错误：返修数量不能为0";
 
             if (DMRInfo.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(DMRInfo.DMRJobNum) != "工单不存在,请联系计划部")
                 return "错误：返修工单号已存在";
 
-            if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRUnQualifiedReason == ""))
+            if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRUnQualifiedReason.Trim() == ""))
                 return "错误：报废原因不能为空";
 
-            if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRWarehouseCode == ""))
+            if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRWarehouseCode.Trim() == ""))
                 return "错误：仓库不能为空";
 
-            if (DMRInfo.DMRUnQualifiedQty > 0 && (DMRInfo.DMRBinNum == ""))
+            if (DMRInfo.DMRUnQualifiedQty > 0 && (DMRInfo.DMRBinNum.Trim() == ""))
                 return "错误：库位不能为空";
 
             if (DMRInfo.DMRUnQualifiedQty > 0 && CheckBinNum(theReport.Company, DMRInfo.DMRBinNum, DMRInfo.DMRWarehouseCode) != "ok")
@@ -1444,10 +1459,12 @@ namespace Appapi.Models
 
                 if (amount >= Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]))
                 {
-                    string XML = OA_XML_Template.Create2199XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
+                    decimal ReqQty = CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq);
+
+                    string XML = OA_XML_Template.Create2221XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, theReport.OpCode, theReport.OpDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
                      theReport.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["PROTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "制程不良报废", DMRInfo.Responsibility,
                      "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, theReport.PartNum, theReport.PartDesc,
-                    "", CommonRepository.GetUserName(theReport.CheckUser),"","");
+                    "", CommonRepository.GetUserName(theReport.CheckUser), "", "", ReqQty, theReport.CheckDate);
 
                     OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
                     res = client.doCreateWorkflowRequest(XML, 1012);
@@ -1473,19 +1490,19 @@ namespace Appapi.Models
                 else //自动处理
                 {
                     res = ErpAPI.CommonRepository.RefuseDMRProcessing(theReport.Company, theReport.Plant, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, IUM.ToString());
-                if (res.Substring(0, 1).Trim() != "1")
-                {
-                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, res + ". 请重新提交报废数量");
-                    return "错误：" + res + ". 请重新提交报废数量";
-                }
+                    if (res.Substring(0, 1).Trim() != "1")
+                    {
+                        AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, res + ". 请重新提交报废数量");
+                        return "错误：" + res + ". 请重新提交报废数量";
+                    }
 
-                InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup,
-                    DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark, HttpContext.Current.Session["UserId"].ToString());
+                    InsertDiscardRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRUnQualifiedQty, DMRInfo.DMRUnQualifiedReason, (int)theReport.DMRID, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.TransformUserGroup,
+                        DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, DMRInfo.ResponsibilityRemark, HttpContext.Current.Session["UserId"].ToString());
 
-                sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
-                Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                    sql = " update bpm set checkcounter = checkcounter - " + DMRInfo.DMRUnQualifiedQty + ",DMRUnQualifiedQty = ISNULL(DMRUnQualifiedQty,0) + " + DMRInfo.DMRUnQualifiedQty + "  where id = " + (DMRInfo.ID) + "";
+                    Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
+                    AddOpLog(DMRInfo.ID, theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.JobSeq, 601, OpDate, "报废子流程生成|" + theReport.DMRUnQualifiedQty + " + " + DMRInfo.DMRUnQualifiedQty);
 
                     OAReviewer = "System";
                     OARequestID = 0;
@@ -2558,7 +2575,7 @@ namespace Appapi.Models
 
         public static DataTable GetJobSeq(string JobNum, int AssemblySeq)
         {
-            string sql = @"select OprSeq,OpDesc,OpCode, jo.QtyCompleted from erp.JobAsmbl ja left join erp.JobOper jo on ja.JobNum = jo.JobNum and ja.AssemblySeq = jo.AssemblySeq where  ja.jobnum = '" + JobNum + "' and ja.AssemblySeq= '" + AssemblySeq + "' and  jo.Opcode not in ("+ ConfigurationManager.AppSettings["InvalidOprCode"] + ") order by OprSeq asc";
+            string sql = @"select OprSeq,OpDesc,OpCode, jo.QtyCompleted from erp.JobAsmbl ja left join erp.JobOper jo on ja.JobNum = jo.JobNum and ja.AssemblySeq = jo.AssemblySeq where  ja.jobnum = '" + JobNum + "' and ja.AssemblySeq= '" + AssemblySeq + "' and  jo.Opcode not in (" + ConfigurationManager.AppSettings["InvalidOprCode"] + ") order by OprSeq asc";
             DataTable dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
             decimal ReqQtyOfAssemblySeq = CommonRepository.GetReqQtyOfAssemblySeq(JobNum, AssemblySeq);

@@ -36,7 +36,7 @@ namespace OA_WebService
             {
                 ret = MTL.DMRDiscardHandler(ht);
             }
-            else if (ht["type"].ToString() == "外协不良报废")
+            else if (ht["type"].ToString().Contains("外协不良报废"))
             {
                 ret = SUB.DMRDiscardHandler(ht);
             }

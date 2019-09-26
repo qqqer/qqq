@@ -356,9 +356,10 @@ namespace Appapi.Models
 
 
 
-        public static string Create2199XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal ReviewQty,
+        public static string Create2221XML(string jobnum, int AssemblySeq, int JobSeq, string OpCode, string OpDesc, decimal ReviewQty,
         string plant, decimal Amount, decimal TopLimit, string CheckUserid, string CheckDate, string UnQualifiedType, string Responsibility, string DefectNO,
-        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser, string gys, string cgy)
+        string DMRUnQualifiedReasonRemark, string DMRUnQualifiedReasonDesc, string ResponsibilityRemark, string PartNum, string PartDesc, string RelatedOprInfo, string precheckuser, string gys, string cgy,
+        decimal ReqQty, DateTime kdtime)
         {
             int plant1 = -1;
 
@@ -372,7 +373,7 @@ namespace Appapi.Models
                     <requestName>不良品报废</requestName>     
             
                     <workflowBaseInfo>
-                        <workflowId>2199</workflowId>
+                        <workflowId>2221</workflowId>
                     </workflowBaseInfo>
 
                     <workflowMainTableInfo>
@@ -554,14 +555,20 @@ namespace Appapi.Models
                                     <fieldValue>{24}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
-
                                 <weaver.workflow.webservices.WorkflowRequestTableField>
-                                    <fieldName>cgy</fieldName>
+                                    <fieldName>workorderqty</fieldName>
                                     <isView>true</isView>
                                     <isEdit>true</isEdit>
                                     <fieldValue>{25}</fieldValue>
                                 </weaver.workflow.webservices.WorkflowRequestTableField>  
 
+                                <weaver.workflow.webservices.WorkflowRequestTableField>
+                                    <fieldName>kdtime</fieldName>
+                                    <isView>true</isView>
+                                    <isEdit>true</isEdit>
+                                    <fieldValue>{26}</fieldValue>
+                                </weaver.workflow.webservices.WorkflowRequestTableField>  
+                                
                                 </workflowRequestTableFields>
                             </weaver.workflow.webservices.WorkflowRequestTableRecord>
                         </requestRecords>
@@ -572,7 +579,7 @@ namespace Appapi.Models
          plant, Amount , CheckUserid, CheckDate, UnQualifiedType, Responsibility, DefectNO,
          System.Security.SecurityElement.Escape(DMRUnQualifiedReasonRemark), DMRUnQualifiedReasonDesc, ResponsibilityRemark,
          CommonRepository.GetUserName(CheckUserid), PartNum, System.Security.SecurityElement.Escape(PartDesc), PartDesc.Substring(0, 4),  
-         RelatedOprInfo,precheckuser, TopLimit,plant1,gys,cgy);
+         RelatedOprInfo,precheckuser, TopLimit,plant1,gys.ToUpper(),ReqQty,kdtime);
 
             return u;
         }

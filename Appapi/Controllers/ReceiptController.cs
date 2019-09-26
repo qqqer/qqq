@@ -535,6 +535,20 @@ namespace Appapi.Controllers
         {
             return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetReason() : throw new HttpResponseException(HttpStatusCode.Forbidden);
         }
+
+        //Get:  /api/Receipt/GetShipDetailListByPreparationNum
+        [HttpGet]
+        public DataTable GetShipDetailListByPreparationNum(string PreparationNum)
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.GetShipDetailListByPreparationNum(PreparationNum) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
+
+        //Get:  /api/Receipt/IsPOPartNumAndQRPartNumEqual
+        [HttpGet]
+        public bool IsPOPartNumAndQRPartNumEqual(int ID, string QR)
+        {
+            return HttpContext.Current.Session.Count != 0 ? ReceiptRepository.IsPOPartNumAndQRPartNumEqual(ID,QR) : throw new HttpResponseException(HttpStatusCode.Forbidden);
+        }
         #endregion
 
 

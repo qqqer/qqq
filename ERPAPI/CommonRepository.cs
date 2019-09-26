@@ -704,8 +704,12 @@ namespace ErpAPI
                 sql = @"select ReleasePerson_c from JobHead where jobnum = '" + jobnum + "'";
                 string ReleasePerson_c = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
+                sql = @"select CommentText from JobHead where jobnum = '" + jobnum + "'";
+                string CommentText = (string)(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+
+
                 //更新返修工单可生产数
-                sql = "update jobhead set ReleasePerson_c = '"+ ReleasePerson_c + "', PlanPerson_c = '" + PlanPerson_c+"',  UDReqQty_c = " + DMRRepairQty + " , Character05 = '" + jobnum + "'  where jobnum = '" + DMRJobNum + "'";
+                sql = "update jobhead set  ReleasePerson_c = '" + ReleasePerson_c + "', PlanPerson_c = '" + PlanPerson_c+"',  UDReqQty_c = " + DMRRepairQty + " , Character05 = '" + jobnum + "'  where jobnum = '" + DMRJobNum + "'";
                 Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
                 //工序接收返修

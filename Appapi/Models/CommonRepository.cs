@@ -392,7 +392,7 @@ namespace Appapi.Models
 
         public static DataTable GetOpInfo(string JobNum, int AssemblySeq, int JobSeq)//
         {
-            string sql = @"select jo.*, jh.Company, jh.Plant from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
+            string sql = @"select jo.*, jh.Plant from erp.JobOper jo left join erp.JobHead jh on jo.Company = jh.Company and jo.JobNum = jh.JobNum
                   where jo.JobNum = '" + JobNum + "' and jo.AssemblySeq = " + AssemblySeq + "  and  jo.OprSeq = " + JobSeq + " and jh.company = '001'";
 
             DataTable  dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);

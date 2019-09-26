@@ -17,7 +17,7 @@ namespace OA_WebService
             {
                 string OAReviewDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
                 
-                int StatusCode = (string)ht["StatusCode"] == "0" ? 3 : 2;
+                int StatusCode = ((string)ht["StatusCode"]).Contains("不同意") ? 2 : 3;
                 int OARequestID = Convert.ToInt32(ht["OARequestID"]);
                 string OAComment = (string)ht["OAComment"];
 

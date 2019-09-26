@@ -62,6 +62,14 @@ namespace Appapi.Models
             return commoninfo;
         }
 
+        public static decimal GetNotPOReceivedOfType2(int ponum, int poline, int porelnum)
+        {
+            string sql = "select sum(DisQty) from SubcontractDisMain where  ponum = " + ponum + " and POLine = " + poline + " and PORelNum = " + porelnum + " and Type = 2 and M_IsDelete = 0";
+            object sum = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            return sum is DBNull || sum == null ? 0 : (decimal)sum;
+        }
+
 
         private static string CheckPO(int PoNum, int PoLine, int PORelNum)
         {
@@ -433,7 +441,7 @@ namespace Appapi.Models
                 return "错误：下步接收人不能为空";
 
             string res1 = CommonRepository.GetJobHeadState(theSubcontractDis.JobNum);
-            if (res1 != "正常")
+            if (res1 != "正常" && res1 != "该工单已完成,请联系计划部")
                 return "错误：" + res1;
 
 
@@ -457,22 +465,25 @@ namespace Appapi.Models
             if (sd.DMRQualifiedQty + sd.DMRUnQualifiedQty + sd.DMRRepairQty == 0)
                 return "错误：数量不能都为0";
 
-            if (sd.DMRQualifiedQty + sd.DMRRepairQty + sd.DMRUnQualifiedQty > theSubcontractDis.DisQty - determinedQty)
-                return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数：" + (theSubcontractDis.DisQty - determinedQty);
+            if (sd.DMRQualifiedQty + sd.DMRRepairQty + sd.DMRUnQualifiedQty > theSubcontractDis.CheckCounter)
+                return "错误：让步数 + 返修数 + 废弃数 超过剩余待检数：" + theSubcontractDis.CheckCounter;
 
-            if (sd.DMRRepairQty > 0 && sd.DMRJobNum == "")
+            if (sd.DMRRepairQty > 0 && sd.DMRJobNum.Trim() == "")
                 return "错误：返修工单号不能为空";
 
             if (sd.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(sd.DMRJobNum) != "工单不存在,请联系计划部")
                 return "错误：返修工单号已存在";
 
+            if (sd.DMRJobNum.Trim() != "" && sd.DMRRepairQty == 0)
+                return "错误：返修数量不能为0";
+
             if ((sd.DMRUnQualifiedQty > 0 && sd.DMRUnQualifiedReason.Trim() == ""))
                 return "错误：报废原因不能为空";
 
-            if ((sd.DMRUnQualifiedQty > 0 && sd.DMRWarehouseCode == ""))
+            if ((sd.DMRUnQualifiedQty > 0 && sd.DMRWarehouseCode.Trim() == ""))
                 return "错误：仓库不能为空";
 
-            if (sd.DMRUnQualifiedQty > 0 && (sd.DMRBinNum == ""))
+            if (sd.DMRUnQualifiedQty > 0 && (sd.DMRBinNum.Trim() == ""))
                 return "错误：库位不能为空";
 
             if (sd.DMRUnQualifiedQty > 0 && OpReportRepository.CheckBinNum(theSubcontractDis.Company, sd.DMRBinNum, sd.DMRWarehouseCode) != "ok")
@@ -573,7 +584,7 @@ namespace Appapi.Models
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
                 }
 
-                InsertRepairRecord(sd.M_ID, (decimal)sd.DMRRepairQty, sd.DMRJobNum, (int)theSubcontractDis.DMRID, sd.TransferUserGroup, sd.DMRWarehouseCode, sd.DMRBinNum, sd.DMRUnQualifiedReason,sd.DMRUnQualifiedReasonRemark,sd.ResponsibilityRemark,sd.Responsibility);
+                InsertRepairRecord(sd.M_ID, (decimal)sd.DMRRepairQty, sd.DMRJobNum, (int)theSubcontractDis.DMRID, sd.TransferUserGroup, sd.DMRWarehouseCode, sd.DMRBinNum, sd.DMRUnQualifiedReason, sd.DMRUnQualifiedReasonRemark, sd.ResponsibilityRemark, sd.Responsibility);
 
 
                 sql = " update SubcontractDisMain set  ExistSubProcess = 1, checkcounter = checkcounter - " + sd.DMRRepairQty + ",TotalDMRRepairQty = ISNULL(TotalDMRRepairQty,0) + " + sd.DMRRepairQty + "  where m_id = " + (sd.M_ID) + "";
@@ -624,10 +635,13 @@ namespace Appapi.Models
                 {
                     string type1 = theSubcontractDis.M_Remark == "收料最后节点自动发起" ? ",IQC" : ",外协";
 
-                    string XML = OA_XML_Template.Create2199XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, theSubcontractDis.OpCode, theSubcontractDis.OpDesc, (decimal)sd.DMRUnQualifiedQty,
+                    decimal ReqQty = CommonRepository.GetReqQtyOfAssemblySeq(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq);
+
+
+                    string XML = OA_XML_Template.Create2221XML(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, theSubcontractDis.OpCode, theSubcontractDis.OpDesc, (decimal)sd.DMRUnQualifiedQty,
                      theSubcontractDis.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["SUBTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "外协不良报废" + type1, sd.Responsibility,
                      "", sd.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(sd.DMRUnQualifiedReason), sd.ResponsibilityRemark, theSubcontractDis.PartNum, theSubcontractDis.PartDesc,
-                    "", CommonRepository.GetUserName(theSubcontractDis.FirstUserID), theSubcontractDis.SupplierNo, CommonRepository.GetUserName(theSubcontractDis.FirstUserID));
+                    "", CommonRepository.GetUserName(theSubcontractDis.FirstUserID), theSubcontractDis.SupplierNo, CommonRepository.GetUserName(theSubcontractDis.FirstUserID),ReqQty, theSubcontractDis.CreateDate);
 
                     OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
                     res = client.doCreateWorkflowRequest(XML, 1012);

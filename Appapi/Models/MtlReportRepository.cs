@@ -454,7 +454,7 @@ namespace Appapi.Models
             DMRInfo.DMRUnQualifiedQty = Convert.ToDecimal(DMRInfo.DMRUnQualifiedQty);
             DMRInfo.DMRJobNum = DMRInfo.DMRJobNum.Trim();
 
-            decimal determinedQty = Convert.ToDecimal(theReport.DMRQualifiedQty) + Convert.ToDecimal(theReport.DMRRepairQty) + Convert.ToDecimal(theReport.DMRUnQualifiedQty);
+            //decimal determinedQty = Convert.ToDecimal(theReport.DMRQualifiedQty) + Convert.ToDecimal(theReport.DMRRepairQty) + Convert.ToDecimal(theReport.DMRUnQualifiedQty);
 
 
             if (DMRInfo.TransformUserGroup == null || DMRInfo.TransformUserGroup == "")
@@ -480,6 +480,9 @@ namespace Appapi.Models
 
             if (DMRInfo.DMRRepairQty > 0 && CommonRepository.GetJobHeadState(DMRInfo.DMRJobNum) != "工单不存在,请联系计划部")
                 return "错误：返修工单号已存在";
+
+            if (DMRInfo.DMRJobNum.Trim() != "" && DMRInfo.DMRRepairQty == 0)
+                return "错误：返修数量不能为0";
 
             if ((DMRInfo.DMRUnQualifiedQty > 0 && DMRInfo.DMRUnQualifiedReason.Trim() == ""))
                 return "错误：报废原因不能为空";
@@ -565,7 +568,11 @@ namespace Appapi.Models
 
                 res = ErpAPI.CommonRepository.RepairDMRProcessing((int)theReport.DMRID, theReport.Company, theReport.Plant, theReport.PartNum, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, IUM.ToString(), theReport.JobNum);
                 if (res.Substring(0, 1).Trim() != "1")
+                {
+                    AddOpLog(DMRInfo.ID, 201, OpDate, "错误：" + res + ".请重新提交返修数量、报废数量");
+
                     return "错误：" + res + ". 请重新提交返修数量、报废数量";
+                }
 
                 InsertRepairRecord((int)DMRInfo.ID, (decimal)DMRInfo.DMRRepairQty, DMRInfo.DMRJobNum, (int)theReport.DMRID, DMRInfo.TransformUserGroup, DMRInfo.DMRWarehouseCode, DMRInfo.DMRBinNum, DMRInfo.DMRUnQualifiedReason, DMRInfo.Responsibility, DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark);
 
@@ -632,11 +639,12 @@ namespace Appapi.Models
                     sql = @"select  OpCode , OpDesc from erp.JobOper where JobNum = '" + theReport.JobNum + "' and  AssemblySeq = " + theReport.AssemblySeq + " and OprSeq = " + RelatedOperation + " ";
                     DataTable dt4 = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.ERP_strConn, sql);
 
+                    decimal ReqQty = CommonRepository.GetReqQtyOfAssemblySeq(theReport.JobNum, (int)theReport.AssemblySeq);
 
-                    string XML = OA_XML_Template.Create2199XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
+                    string XML = OA_XML_Template.Create2221XML(theReport.JobNum, (int)theReport.AssemblySeq, (int)theReport.MtlSeq, theReport.PartNum, theReport.PartDesc, (decimal)DMRInfo.DMRUnQualifiedQty,
                      theReport.Plant, amount, Decimal.Parse(ConfigurationManager.AppSettings["MTLTopLimit"]), HttpContext.Current.Session["UserId"].ToString(), OpDate, "物料不良报废", DMRInfo.Responsibility,
                      "", DMRInfo.DMRUnQualifiedReasonRemark, CommonRepository.GetReasonDesc(DMRInfo.DMRUnQualifiedReason), DMRInfo.ResponsibilityRemark, dt3.Rows[0]["PartNum"].ToString(), dt3.Rows[0]["Description"].ToString(),
-                     RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString(), CommonRepository.GetUserName(theReport.CreateUser),"","");
+                     RelatedOperation + "," + dt4.Rows[0]["OpCode"].ToString() + "," + dt4.Rows[0]["OpDesc"].ToString(), CommonRepository.GetUserName(theReport.CreateUser),"","", ReqQty, theReport.CheckDate);
 
                     OAServiceReference.WorkflowServiceXmlPortTypeClient client = new OAServiceReference.WorkflowServiceXmlPortTypeClient();
                     res = client.doCreateWorkflowRequest(XML, 1012);
