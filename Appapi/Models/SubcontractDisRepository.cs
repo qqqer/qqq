@@ -67,7 +67,7 @@ namespace Appapi.Models
             string sql = "select sum(DisQty) from SubcontractDisMain where  ponum = " + ponum + " and POLine = " + poline + " and PORelNum = " + porelnum + " and Type = 2 and M_IsDelete = 0";
             object sum = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            return sum is DBNull || sum == null ? 0 : (decimal)sum;
+            return sum is DBNull || sum == null ? 0 : Convert.ToDecimal(sum);
         }
 
 

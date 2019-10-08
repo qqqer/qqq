@@ -325,7 +325,17 @@ namespace Appapi.Models
             "where isdelete != 1 and isComplete != 1 and  jobnum = '" + jobnum + "' and AssemblySeq = " + asmSeq + " and  JobSeq = " + oprseq + " and id != " + id + "";
             object sum = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-            return sum is DBNull || sum == null ? 0 : (decimal)sum;
+            return sum is DBNull || sum == null ? 0 : Convert.ToDecimal( sum);
+        }
+
+        private static decimal GetRunningQtyOfPORelNum(int PoNum, int PoLine, int PORelNum) //
+        {
+            string sql = "select sum(case when ArrivedQty is null then(case when  ReceiveQty2 is null then ReceiveQty1 else ReceiveQty2 end) else ArrivedQty end) from Receipt " +
+                         "where isdelete != 1 and isComplete != 1 and  ponum = " + PoNum + " and poline = " + PoLine + " and  PORelNum = " + PORelNum + " and company = '001'";
+
+            object sum = Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+
+            return sum is DBNull || sum == null ? 0 : Convert.ToDecimal(sum);
         }
 
 
@@ -580,6 +590,16 @@ namespace Appapi.Models
                 if (RB.TranType == "PUR-SUB")
                 {
                     DataTable temp = GetAllOpSeqOfSeriesSUB(new Receipt { PoNum = batInfo.PoNum, PoLine = batInfo.PoLine, Company = batInfo.Company, PORelNum = batInfo.PORelNum, JobNum = RB.JobNum, AssemblySeq = RB.AssemblySeq, JobSeq = RB.JobSeq });
+
+
+                    decimal NotPOReceivedOfType2 = SubcontractDisRepository.GetNotPOReceivedOfType2((int)temp.Rows[temp.Rows.Count - 1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
+                    decimal RunningQtyOfPORelNum = GetRunningQtyOfPORelNum((int)temp.Rows[temp.Rows.Count - 1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
+                    decimal ArrivedQtyOfPORelNum = GetArrivedQtyOfPORelNum((int)temp.Rows[temp.Rows.Count - 1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
+                    decimal XRelQtyOfPORelNum = GetXRelQtyOfPORelNum((int)temp.Rows[temp.Rows.Count - 1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
+                    if (NotPOReceivedOfType2 + RunningQtyOfPORelNum + ArrivedQtyOfPORelNum > XRelQtyOfPORelNum)
+                        return "错误：该收货行的在跑数（" + NotPOReceivedOfType2 + "+" + RunningQtyOfPORelNum + "） + 已到货数(" + ArrivedQtyOfPORelNum + ") > 发货行的需求数(" + XRelQtyOfPORelNum + ")";
+
+
                     object PreOpSeq = CommonRepository.GetPreOpSeq(RB.JobNum, (int)RB.AssemblySeq, (int)temp.Rows[0]["jobseq"]);
 
                     if (PreOpSeq == null && CommonRepository.GetReqQtyOfAssemblySeq(RB.JobNum, (int)RB.AssemblySeq) < batInfo.ReceiveQty1 + GetTotalQtyOfJobSeq(RB.JobNum, (int)RB.AssemblySeq, (int)RB.JobSeq, 0))
@@ -796,12 +816,20 @@ namespace Appapi.Models
             return delta;
         }
 
-        private static decimal GetXRelQty(int ponum, int poline, int porelnum)
+        private static decimal GetXRelQtyOfPORelNum(int ponum, int poline, int porelnum)
         {
             string sql = @"select XRelQty  from erp.PORel where ponum = "+ponum+" and POLine = "+poline+" and PORelNum = "+porelnum+ "  and Company = '001'";
-            decimal XRelQty = Convert.ToDecimal(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null));
+            decimal XRelQty = Convert.ToDecimal(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
 
             return XRelQty;
+        }
+
+        private static decimal GetArrivedQtyOfPORelNum(int ponum, int poline, int porelnum)
+        {
+            string sql = @"select ArrivedQty  from erp.PORel where ponum = " + ponum + " and POLine = " + poline + " and PORelNum = " + porelnum + "  and Company = '001'";
+            decimal ArrivedQty = Convert.ToDecimal(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+
+            return ArrivedQty;
         }
 
         /// <summary>
@@ -836,8 +864,12 @@ namespace Appapi.Models
                 DataTable temp = GetAllOpSeqOfSeriesSUB(new Receipt { PoNum = batInfo.PoNum, PoLine = batInfo.PoLine, Company = batInfo.Company, PORelNum = batInfo.PORelNum, JobNum = RB.JobNum, AssemblySeq = RB.AssemblySeq, JobSeq = RB.JobSeq });
 
 
-                decimal A = SubcontractDisRepository.GetNotPOReceivedOfType2((int)temp.Rows[temp.Rows.Count-1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
-                decimal B = GetRunningQtyOfJobSeq()
+                decimal NotPOReceivedOfType2 = SubcontractDisRepository.GetNotPOReceivedOfType2((int)temp.Rows[temp.Rows.Count-1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
+                decimal RunningQtyOfPORelNum = GetRunningQtyOfPORelNum((int)temp.Rows[temp.Rows.Count - 1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
+                decimal ArrivedQtyOfPORelNum = GetArrivedQtyOfPORelNum((int)temp.Rows[temp.Rows.Count - 1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
+                decimal XRelQtyOfPORelNum = GetXRelQtyOfPORelNum((int)temp.Rows[temp.Rows.Count - 1]["ponum"], (int)temp.Rows[temp.Rows.Count - 1]["poline"], (int)temp.Rows[temp.Rows.Count - 1]["porelnum"]);
+                if(NotPOReceivedOfType2 + RunningQtyOfPORelNum + ArrivedQtyOfPORelNum > XRelQtyOfPORelNum)
+                    return "错误：该收货行的在跑数（"+NotPOReceivedOfType2+"+"+RunningQtyOfPORelNum+"） + 已到货数("+ArrivedQtyOfPORelNum+") > 发货行的需求数("+XRelQtyOfPORelNum+")";
 
 
 
@@ -862,7 +894,7 @@ namespace Appapi.Models
                     decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
                     decimal SolvedOurFailedQty = GetSolvedOurFailedQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
 
-                    if (OpSeqCompleteQty < batInfo.ReceiveQty1 + TotalQtyOfJobSeq - SolvedOurFailedQty)
+                    if (OpSeqCompleteQty + SolvedOurFailedQty < batInfo.ReceiveQty1 + TotalQtyOfJobSeq)
                     {
                         return "错误： 收货数超出上一道厂内工序的完成数量";
                     }
@@ -1398,7 +1430,7 @@ namespace Appapi.Models
                             decimal OpSeqCompleteQty = CommonRepository.GetOpSeqCompleteQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
                             decimal SolvedOurFailedQty = GetSolvedOurFailedQty(RB.JobNum, (int)RB.AssemblySeq, (int)PreOpSeq);
 
-                            if (OpSeqCompleteQty < AcceptInfo.ArrivedQty + TotalQtyOfJobSeq - SolvedOurFailedQty)
+                            if (OpSeqCompleteQty + SolvedOurFailedQty< AcceptInfo.ArrivedQty + TotalQtyOfJobSeq)
                             {
                                 return "错误： 收货数超出上一道非该供应商工序的完成数量";
                             }
@@ -1783,7 +1815,7 @@ namespace Appapi.Models
                 string OpCode, res;
                 res = ErpAPI.CommonRepository.getJobNextOprTypes(theBatch.JobNum, (int)theBatch.AssemblySeq, jobseq, out a, out b, out OpCode, out c, theBatch.Company);
 
-                sql = "select UserID,UserName from OpCodeUser where opcode = '" + OpCode + "' and  CHARINDEX('" + company + "', company) > 0 and CHARINDEX('" + plant + "', plant) > 0  and disabled = 0";
+                sql = "select uf.UserID,uf.UserName from OpCodeUser ou left join Userfile uf on ou.UserID = uf.UserID  where opcode = '" + OpCode + "' and  CHARINDEX('" + company + "', ou.company) > 0 and CHARINDEX('" + plant + "', ou.plant) > 0  and uf.disabled = 0";
                 dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
             }
 

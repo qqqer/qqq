@@ -1,4 +1,5 @@
 ﻿using Appapi.Models;
+using Common;
 using OA_WebService.Model;
 using System;
 using System.Collections;
@@ -11,6 +12,49 @@ namespace OA_WebService
 {
     public class PRO
     {
+        internal static string DeleteTimeHandler(Hashtable ht)
+        {
+            string error = "";
+
+            try
+            {
+                int BPMID = Convert.ToInt32(ht["BPMID"]);
+                string Plant= (string)ht["Plant"];
+                string ss = "";
+               
+
+                ss = @"select *  from  BPMID_LabrSeq where BPMID = " + BPMID + " order by DtlSeq desc ";
+                DataTable seq = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, ss);
+
+                if (seq != null)
+                {
+                    for (int i = 0; i < seq.Rows.Count; i++)
+                    {
+                        string ret = ErpAPI.OpReportRepository.deleteTimeAndCost((int)seq.Rows[i]["HedSeq"], (int)seq.Rows[i]["DtlSeq"], Plant);
+
+                        if (ret != "OK" && ret != "Labor record not found.")
+                        {
+                            error = ret;
+                            return error;
+                        }
+                        else //OK
+                        {
+                            ss = "  delete from BPMID_LabrSeq where BPMID = " +BPMID + " and HedSeq = " + seq.Rows[i]["HedSeq"] + " and DtlSeq = " + seq.Rows[i]["DtlSeq"];
+                            Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, ss, null);
+                        }
+                    }
+                }
+
+                ss = "update bpm set IsDelete = 1 where id = " + BPMID + "";
+                Common.SQLRepository.ExecuteNonQuery(SQLRepository.APP_strConn, CommandType.Text, ss, null);
+
+                return "true";
+            }
+            catch (Exception ex)
+            {
+                return ex.Message;
+            }
+        }
         internal static string DMRDiscardHandler(Hashtable ht)
         {
             try

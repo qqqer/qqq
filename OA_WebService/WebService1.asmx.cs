@@ -43,5 +43,15 @@ namespace OA_WebService
 
             return ret;
         }
+
+        [WebMethod]
+        public string Commit2223(string paraXML)
+        {
+            paraXML = HttpUtility.HtmlDecode(paraXML);
+            Hashtable ht = XmlHandler.GetParametersFromXML(paraXML);
+            string ret = PRO.DeleteTimeHandler(ht);
+
+            return ret;
+        }
     }
 }

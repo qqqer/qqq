@@ -897,7 +897,7 @@ namespace Appapi.Models
         {
             DataTable LatestOprInfo = GetLatestOprInfo(process.JobNum, (int)process.AssemblySeq, (int)process.JobSeq);
 
-            if (LatestOprInfo.Rows[0]["OpCode"].ToString() != process.OpCode)
+            if (LatestOprInfo.Rows[0]["OpCode"].ToString().ToUpper() != process.OpCode.ToUpper())
                 return "错误：原工序编号" + process.OpCode + "， 现工序编号：" + LatestOprInfo.Rows[0]["OpCode"].ToString();
 
             return "";

@@ -259,35 +259,35 @@ namespace Appapi.Models
 
         public static DataTable NPI_Handler(string jobnum, DataTable UserGroup)
         {
-            string sql = @"select Plant from erp.JobHead where company = '001' and JobNum = '" + jobnum + "'";
+            //string sql = @"select Plant from erp.JobHead where company = '001' and JobNum = '" + jobnum + "'";
 
-            string Plant = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
-            if (Plant != "HDSite")
-            {
-                if (UserGroup != null)
-                {
-                    if (jobnum.ToUpper().Contains("NPI") && UserGroup != null)
-                    {
-                        for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
-                        {
-                            if (!Convert.ToBoolean(UserGroup.Rows[i]["OnlyNPI"]) && ((Convert.ToInt32(UserGroup.Rows[i]["RoleID"]) & 16) == 0)) //排除不是专门处理npi的人
-                            {
-                                UserGroup.Rows.RemoveAt(i);
-                            }
-                        }
-                    }
-                    else if (!jobnum.ToUpper().Contains("NPI") && UserGroup != null)
-                    {
-                        for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
-                        {
-                            if (Convert.ToBoolean(UserGroup.Rows[i]["OnlyNPI"])) //排除专门处理npi的人
-                            {
-                                UserGroup.Rows.RemoveAt(i);
-                            }
-                        }
-                    }
-                }
-            }
+            //string Plant = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
+            //if (Plant != "HDSite")
+            //{
+            //    if (UserGroup != null)
+            //    {
+            //        if (jobnum.ToUpper().Contains("NPI") && UserGroup != null)
+            //        {
+            //            for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
+            //            {
+            //                if (!Convert.ToBoolean(UserGroup.Rows[i]["OnlyNPI"]) && ((Convert.ToInt32(UserGroup.Rows[i]["RoleID"]) & 16) == 0)) //排除不是专门处理npi的人
+            //                {
+            //                    UserGroup.Rows.RemoveAt(i);
+            //                }
+            //            }
+            //        }
+            //        else if (!jobnum.ToUpper().Contains("NPI") && UserGroup != null)
+            //        {
+            //            for (int i = UserGroup.Rows.Count - 1; i >= 0; i--)
+            //            {
+            //                if (Convert.ToBoolean(UserGroup.Rows[i]["OnlyNPI"])) //排除专门处理npi的人
+            //                {
+            //                    UserGroup.Rows.RemoveAt(i);
+            //                }
+            //            }
+            //        }
+            //    }
+            //}
             return UserGroup;
         }
 

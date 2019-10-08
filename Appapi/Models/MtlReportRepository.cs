@@ -980,14 +980,26 @@ namespace Appapi.Models
                 sql = @"select RelatedOperation from erp.JobMtl where JobNum = '" + theReport.JobNum + "' and  AssemblySeq = " + theReport.AssemblySeq + " and MtlSeq = " + theReport.MtlSeq + "";
                 int RelatedOperation = (int)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
+
+                sql = @"select  SubContract  from erp.JobOper where JobNum = '" + theReport.JobNum + "' and  AssemblySeq = " + theReport.AssemblySeq + " and OprSeq = " + RelatedOperation + " ";
+                bool IsSubContract = Convert.ToBoolean(Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null));
+
                 sql = @"select OpCode from erp.JobOper where JobNum = '" + theReport.JobNum + "' and  AssemblySeq = " + theReport.AssemblySeq + " and OprSeq = " + RelatedOperation + " ";
                 OpCode = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.ERP_strConn, CommandType.Text, sql, null);
 
-                sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
-                string TransformUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
+                if (IsSubContract)
+                {
+                    sql = "select * from userfile where disabled = 0  and CHARINDEX('" + theReport.Plant + "', plant) > 0  and  RoleID & " + 16 + " != 0 and RoleID != 2147483647";
+                    dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
+                }
+                else
+                {
+                    sql = "select TransformUser from BPMOpCode where OpCode = '" + OpCode + "'";
+                    string TransformUser = (string)Common.SQLRepository.ExecuteScalarToObject(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
 
-                sql = "select * from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and CHARINDEX('" + theReport.Plant + "', plant) > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
-                dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
+                    sql = "select * from userfile where disabled = 0 and CHARINDEX(userid, '" + TransformUser + "') > 0 and CHARINDEX('" + theReport.Plant + "', plant) > 0 and RoleID & " + 512 + " != 0 and RoleID != 2147483647";
+                    dt = Common.SQLRepository.ExecuteQueryToDataTable(Common.SQLRepository.APP_strConn, sql); //根据sql，获取指定人员表
+                }
             }
             else//3选4
             {

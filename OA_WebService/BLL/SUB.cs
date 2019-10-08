@@ -63,7 +63,7 @@ namespace OA_WebService
                     SubcontractDisRepository.AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "报废子流程生成", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
 
 
-                    sql = " update SubcontractDisMain set  ExistSubProcess = 1,checkcounter = checkcounter - " + discardReview.ReviewQty + ", TotalDMRUnQualifiedQty = ISNULL(totalDMRUnQualifiedQty,0) + " + discardReview.ReviewQty + "  where m_id = " + discardReview.SubcontractDisMainID + "";
+                    sql = " update SubcontractDisMain set  ExistSubProcess = 1, TotalDMRUnQualifiedQty = ISNULL(totalDMRUnQualifiedQty,0) + " + discardReview.ReviewQty + "  where m_id = " + discardReview.SubcontractDisMainID + "";
                     Common.SQLRepository.ExecuteNonQuery(Common.SQLRepository.APP_strConn, CommandType.Text, sql, null);
                     SubcontractDisRepository.AddOpLog(theSubcontractDis.JobNum, (int)theSubcontractDis.AssemblySeq, (int)theSubcontractDis.JobSeq, 201, "TotalDMRUnQualifiedQty += " + discardReview.ReviewQty + "  更新成功", theSubcontractDis.M_ID, 0, (int)theSubcontractDis.PoNum, (int)theSubcontractDis.Type);
 

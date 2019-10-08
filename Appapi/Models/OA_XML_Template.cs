@@ -165,7 +165,7 @@ namespace Appapi.Models
                     <requestName>不良品返工</requestName>     
             
                     <workflowBaseInfo>
-                        <workflowId>2188</workflowId>
+                        <workflowId>2232</workflowId>
                     </workflowBaseInfo>
 
                     <workflowMainTableInfo>
